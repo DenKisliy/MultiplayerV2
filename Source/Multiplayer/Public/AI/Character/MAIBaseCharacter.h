@@ -37,11 +37,16 @@ public:
 private:
 	AMPatrolPath* PatrolPath = nullptr;
 
+	UPROPERTY(ReplicatedUsing = OnRep_HealthValue)
+	float HealthValue;
+
 public:
 	// Sets default values for this character's properties
 	AMAIBaseCharacter();
 
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	void StartMove(AMPatrolPath* NewPatrolPath);
 
@@ -61,4 +66,12 @@ private:
 	void OnHealthUpdated(const FOnAttributeChangeData& Data);
 
 	void RotateAIWidgetComponent();
+
+	UFUNCTION(Server, Reliable)
+	void SetHealthValue(const float& NewHealthValue);
+
+	UFUNCTION()
+	void OnRep_HealthValue();
+
+	void SetPercentForHealthWidget(float NewHealthPercent);
 };

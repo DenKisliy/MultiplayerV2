@@ -49,6 +49,13 @@ void AMAIBaseCharacter::Tick(float DeltaTime)
 	RotateAIWidgetComponent();
 }
 
+void AMAIBaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMAIBaseCharacter, HealthValue);
+}
+
 void AMAIBaseCharacter::StartMove(AMPatrolPath* NewPatrolPath)
 {
 	PatrolPath = NewPatrolPath;
@@ -67,10 +74,7 @@ void AMAIBaseCharacter::InitializeAttributes()
 
 void AMAIBaseCharacter::OnHealthUpdated(const FOnAttributeChangeData& Data)
 {
-	if (UMAttributeWidget* widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
-	{
-		widget->SetPercent(Data.NewValue / Attributes->GetMaxHealth());
-	}
+	SetHealthValue(Data.NewValue / Attributes->GetMaxHealth());
 
 	if (Data.NewValue == 0)
 	{
@@ -84,4 +88,27 @@ void AMAIBaseCharacter::RotateAIWidgetComponent()
 	FRotator rotator = UKismetMathLibrary::FindLookAtRotation(AIWidgetComponent->GetComponentLocation(),
 		UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation());
 	AIWidgetComponent->SetWorldRotation(rotator);
+}
+
+void AMAIBaseCharacter::SetHealthValue_Implementation(const float& NewHealthValue)
+{
+	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	{
+		SetPercentForHealthWidget(NewHealthValue);
+	}
+
+	HealthValue = NewHealthValue;
+}
+
+void AMAIBaseCharacter::OnRep_HealthValue()
+{
+	SetPercentForHealthWidget(HealthValue);
+}
+
+void AMAIBaseCharacter::SetPercentForHealthWidget(float NewHealthPercent)
+{
+	if (UMAttributeWidget* widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
+	{
+		widget->SetPercent(NewHealthPercent);
+	}
 }
