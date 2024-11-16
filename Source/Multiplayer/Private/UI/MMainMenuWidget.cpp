@@ -49,19 +49,19 @@ void UMMainMenuWidget::CreateComboBox(FScriptDelegate SelectDelegate)
 {
 	ComboBoxWidget = NewObject<UComboBoxString>(this, UComboBoxString::StaticClass());
 
-	uint8 countOfEnum = static_cast<uint8>(ETypeOfCharacter::Max);
+	//uint8 countOfEnum = static_cast<uint8>(ETypeOfCharacter::Max);
 
-	for (int i = 1; i < countOfEnum; i++)
-	{
-		FString value = UEnum::GetValueAsString(ETypeOfCharacter(i));
-		FString type = typeid(ETypeOfCharacter).name();
-		type = type + "::";
-		type.RemoveFromStart("enum ");
-		value.RemoveFromStart(type);
-		ComboBoxWidget->AddOption(value);
-	}
-	ComboBoxWidget->SetItemStyle(ComboBoxItemStyle);
-	ComboBoxWidget->OnSelectionChanged.Add(SelectDelegate);
+	//for (int i = 1; i < countOfEnum; i++)
+	//{
+	//	FString value = UEnum::GetValueAsString(ETypeOfCharacter(i));
+	//	FString type = typeid(ETypeOfCharacter).name();
+	//	type = type + "::";
+	//	type.RemoveFromStart("enum ");
+	//	value.RemoveFromStart(type);
+	//	ComboBoxWidget->AddOption(value);
+	//}
+	//ComboBoxWidget->SetItemStyle(ComboBoxItemStyle);
+	//ComboBoxWidget->OnSelectionChanged.Add(SelectDelegate);
 
 	USizeBox* comboBoxSizeBox = NewObject<USizeBox>(this, USizeBox::StaticClass());
 	comboBoxSizeBox->SetMinDesiredWidth(200.0f);

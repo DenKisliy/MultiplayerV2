@@ -13,15 +13,6 @@ enum class EResultOfGame : uint8
 };
 
 UENUM(BlueprintType)
-enum class ETypeOfCharacter : uint8
-{
-	None = 0,
-	Greystone,
-	Fey,
-	Max
-};
-
-UENUM(BlueprintType)
 enum class ETypeOfAI : uint8
 {
 	None = 0,

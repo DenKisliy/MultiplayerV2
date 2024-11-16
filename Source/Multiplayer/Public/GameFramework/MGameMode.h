@@ -9,6 +9,9 @@
 #include "EngineUtils.h"
 #include "../../Multiplayer.h"
 #include "../Managers/MSpawnItemManager.h"
+#include "../Data/MPlayerDataStruct.h"
+
+#include "Engine/DataTable.h"
 
 #include "MGameMode.generated.h"
 
@@ -32,12 +35,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer Values")
 	TMap<ETypeOfAdditionalTimer, int> AdditionalTimerMap;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer Values")
-	int TimeForBeginMatch = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Timer Values")
-	int TimeForCaptureStation = 0;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Info")
 	TMap<ETypeOfCharacter, TSubclassOf<AActor>> PlayersClass;

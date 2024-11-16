@@ -13,6 +13,10 @@
 #include "../UI/PlayerWidget/Item/MInventoryWidget.h"
 #include "../UI/PlayerWidget/HUD/MInformWidget.h"
 
+#include "../UI/Menu/MSLoginInWidget.h"
+#include "../UI/Menu/MSRegistrationWidget.h"
+#include "../UI/Menu/MSInformativeWidget.h"
+
 #include "GameFramework/GameStateBase.h"
 
 #include "MPlayerHUD.generated.h"
@@ -50,6 +54,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMChatPanelWidget* ChatPanelWidget;
 
+	TSharedPtr<MSLoginInWidget> LoginInWidget;
+	TSharedPtr<SWidget> LoginInWidgetContainer;
+
+	TSharedPtr<MSRegistrationWidget> RegistrationWidget;
+	TSharedPtr<SWidget> RegistrationWidgetContainer;
+
+	TSharedPtr<MSInformativeWidget> InformativeWidget;
+	TSharedPtr<SWidget> InformativeWidgetContainer;
+
 private:
 
 	UMTimerWidget* TimerWidget;
@@ -80,4 +93,10 @@ public:
 	void ShowInventory(bool bValue);
 
 	void ShowInformText(FString Text);
+
+	void CloseInformWidget();
+
+	void ShowInformWidget(FInformativeWidgetData* InformWidgetData);
+
+	void ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget);
 };

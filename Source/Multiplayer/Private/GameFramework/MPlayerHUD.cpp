@@ -2,6 +2,7 @@
 
 
 #include "GameFramework/MPlayerHUD.h"
+#include "../../Public/GameFramework/MGameMode.h"
 
 AMPlayerHUD::AMPlayerHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -10,8 +11,21 @@ AMPlayerHUD::AMPlayerHUD(const FObjectInitializer& ObjectInitializer)
 
 void AMPlayerHUD::BeginPlay()
 {
-	UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance());
-	if (gameInstance)
+	Super::BeginPlay();
+
+	if (GEngine && GEngine->GameViewport)
+	{
+		/*MenuWidget = SNew(MSMenuWidget).OwnerHUD(this);
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuWidgetContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));*/
+	
+		LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+
+		/*RegistrationWidget = SNew(MSRegistrationWidget).OwnerHUD(this);
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationWidgetContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));*/
+	}
+
+	/*if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
 		FPlayerInfoStruct PlayerInfo = gameInstance->GetPlayerInfoFromGameInstance();
 		bool bSetCharacterType = PlayerInfo.CharacterType != ETypeOfCharacter::None;
@@ -57,7 +71,7 @@ void AMPlayerHUD::BeginPlay()
 			resultGameWidget->SetResultOfGame(PlayerInfo.ResultOfGame == EResultOfGame::Win);
 			resultGameWidget->AddToViewport(5);
 		}
-	}
+	}*/
 }
 
 void AMPlayerHUD::SetDelegateForSendMessageEvent(FScriptDelegate Delegate)
@@ -175,5 +189,69 @@ void AMPlayerHUD::ShowInformText(FString Text)
 	if (IsValid(InformWidget))
 	{
 		InformWidget->SetText(Text);
+	}
+}
+
+void AMPlayerHUD::ShowInformWidget(FInformativeWidgetData* InformWidgetData)
+{
+	if (GEngine && GEngine->GameViewport)
+	{
+		InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(this).WidgetData(InformWidgetData);
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(InformativeWidgetContainer, SWeakWidget).PossiblyNullContent(InformativeWidget.ToSharedRef()), 5);
+	}
+}
+
+void AMPlayerHUD::ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget)
+{
+	if (GEngine && GEngine->GameViewport)
+	{
+		if (TypeOfUIWidget != ETypeOfUIWidget::None)
+		{
+			GEngine->GameViewport->RemoveAllViewportWidgets();
+		}
+
+		switch (TypeOfUIWidget)
+		{
+		case ETypeOfUIWidget::LoginIn:
+			{
+				if (LoginInWidget.IsValid() && LoginInWidgetContainer.IsValid())
+				{
+					GEngine->GameViewport->AddViewportWidgetContent(LoginInWidgetContainer.ToSharedRef());
+				}
+
+				if (!LoginInWidget.IsValid() && !LoginInWidgetContainer.IsValid())
+				{
+					LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+				}
+			}
+			break;
+		case ETypeOfUIWidget::Registration:
+			{
+				if (RegistrationWidget.IsValid() && RegistrationWidgetContainer.IsValid())
+				{
+					GEngine->GameViewport->AddViewportWidgetContent(RegistrationWidgetContainer.ToSharedRef());
+				}
+
+				if (!RegistrationWidget.IsValid() && !RegistrationWidgetContainer.IsValid())
+				{
+					RegistrationWidget = SNew(MSRegistrationWidget).OwnerHUD(this);
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationWidgetContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));
+				}
+
+			}
+			break;
+		}
+	}
+}
+
+void AMPlayerHUD::CloseInformWidget()
+{
+	if (GEngine && GEngine->GameViewport)
+	{
+		if (InformativeWidgetContainer.IsValid())
+		{
+			GEngine->GameViewport->RemoveViewportWidgetContent(InformativeWidgetContainer.ToSharedRef());
+		}
 	}
 }

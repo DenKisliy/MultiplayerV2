@@ -31,8 +31,8 @@ AMHealingAreaActor::AMHealingAreaActor()
 void AMHealingAreaActor::BeginPlay()
 {
 	Super::BeginPlay();
-	NiagaraComponent->SetNiagaraVariableFloat("Size", (CollisionComponent->GetScaledSphereRadius() + 100) * 2);
-	NiagaraComponent->SetNiagaraVariableVec3("Scale", FVector(CollisionComponent->GetScaledSphereRadius() / 2));
+	NiagaraComponent->SetVariableFloat("Size", (CollisionComponent->GetScaledSphereRadius() + 100) * 2);
+	NiagaraComponent->SetVariableVec3("Scale", FVector(CollisionComponent->GetScaledSphereRadius() / 2));
 }
 
 void AMHealingAreaActor::SetData(FAbilitySpawnActorStruct Data)

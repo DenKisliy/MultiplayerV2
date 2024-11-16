@@ -30,6 +30,10 @@ class MULTIPLAYER_API AMGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Table", meta = (AllowPrivateAccess = "true"))
+	UDataTable* PlayersInfoDataTable;
+
 private:
 	int CountOfDeathPlayers = 0;
 	

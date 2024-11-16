@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 
 #include "../../Multiplayer.h"
+#include "../Data/MPlayerDataStruct.h"
 #include "GameplayEffect.h"
 
 #include "MGameInstance.generated.h"

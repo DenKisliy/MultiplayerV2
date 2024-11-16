@@ -39,21 +39,18 @@ FItemData* AMSpawnItemManager::GetDataFromDataTable(FItemTypeInfo ItemType)
 	FItemData* itemData = nullptr;
 	if (DataTable)
 	{
-		if (DataTable)
-		{
-			FString contextString;
-			TArray<FName> RowNames;
-			RowNames = DataTable->GetRowNames();
+		FString contextString;
+		TArray<FName> RowNames;
+		RowNames = DataTable->GetRowNames();
 
-			for (auto& name : RowNames)
+		for (auto& name : RowNames)
+		{
+			FItemData* row = DataTable->FindRow<FItemData>(name, contextString);
+			if (row)
 			{
-				FItemData* row = DataTable->FindRow<FItemData>(name, contextString);
-				if (row)
+				if (row->TypeInfo.Type == ItemType.Type && row->TypeInfo.Index == ItemType.Index)
 				{
-					if (row->TypeInfo.Type == ItemType.Type && row->TypeInfo.Index == ItemType.Index)
-					{
-						return row;
-					}
+					return row;
 				}
 			}
 		}

@@ -21,5 +21,7 @@ public class Multiplayer : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "NavigationSystem" });
 
+		PrivateDependencyModuleNames.AddRange(new string[] { "SQLiteCore", "SQLiteSupport" });
+
 	}
 }
