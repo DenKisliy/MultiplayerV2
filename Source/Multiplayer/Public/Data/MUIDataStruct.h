@@ -5,11 +5,14 @@
 #include "MUIDataStruct.generated.h"
 
 UENUM(BlueprintType)
-enum class ETypeOfUIWidget : uint8
+enum class ETypeOfWidget : uint8
 {
 	None = 0,
 	LoginIn,
 	Registration,
+	Menu,
+	CreateSession,
+	FindSession
 };
 
 USTRUCT()
@@ -24,37 +27,37 @@ struct FInformativeWidgetData
 	bool bWarning;
 
 	UPROPERTY(EditAnywhere)
-	ETypeOfUIWidget TypeOfNextWidget;
+	ETypeOfWidget TypeOfNextWidget;
 
 	FInformativeWidgetData()
 	{
 		Text = FText::GetEmpty();
 		bWarning = false;
-		TypeOfNextWidget = ETypeOfUIWidget::None;
+		TypeOfNextWidget = ETypeOfWidget::None;
 	}
 
 	FInformativeWidgetData(FText NewText)
 	{
 		Text = NewText;
 		bWarning = false;
-		TypeOfNextWidget = ETypeOfUIWidget::None;
+		TypeOfNextWidget = ETypeOfWidget::None;
 	}
 
 	FInformativeWidgetData(FText NewText, bool NewWarning)
 	{
 		Text = NewText;
 		bWarning = NewWarning;
-		TypeOfNextWidget = ETypeOfUIWidget::None;
+		TypeOfNextWidget = ETypeOfWidget::None;
 	}
 
-	FInformativeWidgetData(FText NewText, ETypeOfUIWidget NewTypeOfNextWidget)
+	FInformativeWidgetData(FText NewText, ETypeOfWidget NewTypeOfNextWidget)
 	{
 		Text = NewText;
 		bWarning = true;
 		TypeOfNextWidget = NewTypeOfNextWidget;
 	}
 
-	FInformativeWidgetData(FText NewText, bool NewWarning, ETypeOfUIWidget NewTypeOfNextWidget)
+	FInformativeWidgetData(FText NewText, bool NewWarning, ETypeOfWidget NewTypeOfNextWidget)
 	{
 		Text = NewText;
 		bWarning = NewWarning;

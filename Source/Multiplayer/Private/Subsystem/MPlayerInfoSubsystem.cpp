@@ -17,6 +17,16 @@ void UMPlayerInfoSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+bool UMPlayerInfoSubsystem::IsUserSignIn()
+{
+	return !LoginOfUser.IsEmpty();
+}
+
+int UMPlayerInfoSubsystem::GetCharacterType()
+{
+	return IsUserSignIn() ? GetPlayerInfo(LoginOfUser)->TypeOfCharacter : 0;
+}
+
 bool UMPlayerInfoSubsystem::IsPlayerRegistered(FString Login)
 {
 	const TCHAR* SQLQuery = TEXT("select * from users where Login = $Login");
@@ -42,6 +52,7 @@ bool UMPlayerInfoSubsystem::IsLoginPasswordCorrect(FString Login, FString Passwo
 	{
 		if (FindPlayerData->Password == Password)
 		{
+			LoginOfUser = FindPlayerData->Login;
 			return true;
 		}
 	}

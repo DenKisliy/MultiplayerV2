@@ -13,7 +13,7 @@
  */
 class MULTIPLAYER_API MSInformativeWidget : public SCompoundWidget
 {
-	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _InformativeText(), _IsWarning(false), _PreviousWidgetType(ETypeOfUIWidget::None), _WidgetData() {}
+	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _InformativeText(), _IsWarning(false), _PreviousWidgetType(ETypeOfWidget::None), _WidgetData() {}
 
 	SLATE_ARGUMENT(TWeakObjectPtr<AHUD>, OwnerHUD)
 
@@ -21,7 +21,7 @@ class MULTIPLAYER_API MSInformativeWidget : public SCompoundWidget
 
 	SLATE_ATTRIBUTE(bool, IsWarning)
 
-	SLATE_ATTRIBUTE(ETypeOfUIWidget, PreviousWidgetType);
+	SLATE_ATTRIBUTE(ETypeOfWidget, PreviousWidgetType);
 
 	SLATE_ATTRIBUTE(TSharedPtr<FInformativeWidgetData>, WidgetData);
 

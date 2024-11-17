@@ -15,18 +15,18 @@ void AMPlayerController::BeginPlay()
 	
 	if (IsLocalController())
 	{
-		if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+		if (IsValid(GetGameInstance()))
 		{
-			ETypeOfCharacter typeOfCharacter = gameInstance->GetPlayerInfoFromGameInstance().CharacterType;
+			TypeOfCharacter = ETypeOfCharacter(GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->GetCharacterType());
 
-			if (typeOfCharacter != ETypeOfCharacter::None)
+			if (TypeOfCharacter != ETypeOfCharacter::None)
 			{
 				if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
 				{
 					playerState->PlayerDeathDelegate.Broadcast(false);
 				}
-				TypeOfCharacter = typeOfCharacter;
-				SpawnCharacter(typeOfCharacter);
+
+				SpawnCharacter(TypeOfCharacter);
 			}
 		}
 	}

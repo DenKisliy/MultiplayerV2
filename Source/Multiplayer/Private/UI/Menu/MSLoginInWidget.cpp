@@ -115,7 +115,9 @@ FReply MSLoginInWidget::OnSingIn() const
 				bool bResult = PlayerInfoSubsystem->IsLoginPasswordCorrect(Login, Password);
 				if (bResult)
 				{
+					SetDefault();
 
+					SetNextWidget(ETypeOfWidget::Menu);
 				}
 				else
 				{
@@ -143,7 +145,9 @@ FReply MSLoginInWidget::OnQuit() const
 
 FReply MSLoginInWidget::OnSignUp() const
 {
-	SetNextWidget();
+	SetDefault();
+
+	SetNextWidget(ETypeOfWidget::Registration);
 
 	return FReply::Handled();
 }
@@ -177,11 +181,20 @@ void MSLoginInWidget::SetStyle(FString Login, FString Password) const
 	PasswordBoxPtr->SetColorAndOpacity(Password.IsEmpty() ? FColor::Red : FColor::White);
 }
 
-void MSLoginInWidget::SetNextWidget() const
+void MSLoginInWidget::SetDefault() const
+{
+	LoginBoxPtr->SetText(FText::GetEmpty());
+
+	PasswordBoxPtr->SetText(FText::GetEmpty());
+
+	SetStyle("1", "1");
+}
+
+void MSLoginInWidget::SetNextWidget(ETypeOfWidget NextWidgetType) const
 {
 	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
 	{
-		HUD->ShowNextWidget(ETypeOfUIWidget::Registration);
+		HUD->ShowNextWidget(NextWidgetType);
 	}
 }
 

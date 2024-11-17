@@ -162,7 +162,7 @@ FReply MSRegistrationWidget::OnSingUn() const
 				{
 					bool bResult = PlayerInfoSubsystem->RegisterPlayerData(&PlayerInfo);
 					InformWidgetData = new FInformativeWidgetData(bResult ? FText::FromString("The player is successfully registered.") : FText::FromString("Failed to register player."),
-						!bResult, bResult ? ETypeOfUIWidget::LoginIn : ETypeOfUIWidget::None);
+						!bResult, bResult ? ETypeOfWidget::LoginIn : ETypeOfWidget::None);
 				}
 				else
 				{
@@ -181,7 +181,7 @@ FReply MSRegistrationWidget::OnSingUn() const
 		ShowInformWidget(InformWidgetData);
 	}
 
-	if (InformWidgetData->TypeOfNextWidget != ETypeOfUIWidget::None)
+	if (InformWidgetData->TypeOfNextWidget != ETypeOfWidget::None)
 	{
 		OnCancel();
 	}
@@ -207,7 +207,7 @@ FReply MSRegistrationWidget::OnBackToPreviousMenu() const
 	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
 	{
 		OnCancel();
-		HUD->ShowNextWidget(ETypeOfUIWidget::LoginIn);
+		HUD->ShowNextWidget(ETypeOfWidget::LoginIn);
 	}
 
 	return FReply::Handled();

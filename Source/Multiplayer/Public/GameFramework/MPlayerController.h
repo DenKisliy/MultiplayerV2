@@ -15,6 +15,7 @@
 #include "MPlayerState.h"
 #include "MGameInstance.h"
 #include "GameFramework/Character.h"
+#include "../Subsystem/MPlayerInfoSubsystem.h"
 
 #include "MPlayerController.generated.h"
 

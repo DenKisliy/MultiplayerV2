@@ -46,5 +46,7 @@ private:
 
 	void SetStyle(FString Login, FString Password) const;
 
-	void SetNextWidget() const;
+	void SetDefault() const;
+
+	void SetNextWidget(ETypeOfWidget NextWidgetType) const;
 };

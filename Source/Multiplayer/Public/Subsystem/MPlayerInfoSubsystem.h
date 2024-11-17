@@ -28,6 +28,8 @@ class MULTIPLAYER_API UMPlayerInfoSubsystem : public UGameInstanceSubsystem
 private:
 	FSQLiteDatabase* MultiplayerDb;
 
+	FString LoginOfUser = "";
+
 public:
 	bool IsPlayerRegistered(FString Login);
 
@@ -38,6 +40,10 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
 	virtual void Deinitialize() override;
+
+	bool IsUserSignIn();
+
+	int GetCharacterType();
 
 private:
 	FPlayerInfoData* GetPlayerInfo(FString Login);

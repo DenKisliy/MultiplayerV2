@@ -13,16 +13,17 @@ void AMPlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (GEngine && GEngine->GameViewport)
+	if (!GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->IsUserSignIn())
 	{
-		/*MenuWidget = SNew(MSMenuWidget).OwnerHUD(this);
-		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuWidgetContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));*/
-	
-		LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
-		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+		if (GEngine && GEngine->GameViewport)
+		{
+			LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
+			GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+		}
+	}
+	else
+	{
 
-		/*RegistrationWidget = SNew(MSRegistrationWidget).OwnerHUD(this);
-		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationWidgetContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));*/
 	}
 
 	/*if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
@@ -201,18 +202,18 @@ void AMPlayerHUD::ShowInformWidget(FInformativeWidgetData* InformWidgetData)
 	}
 }
 
-void AMPlayerHUD::ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget)
+void AMPlayerHUD::ShowNextWidget(ETypeOfWidget TypeOfUIWidget)
 {
 	if (GEngine && GEngine->GameViewport)
 	{
-		if (TypeOfUIWidget != ETypeOfUIWidget::None)
+		if (TypeOfUIWidget != ETypeOfWidget::None)
 		{
 			GEngine->GameViewport->RemoveAllViewportWidgets();
 		}
 
 		switch (TypeOfUIWidget)
 		{
-		case ETypeOfUIWidget::LoginIn:
+		case ETypeOfWidget::LoginIn:
 			{
 				if (LoginInWidget.IsValid() && LoginInWidgetContainer.IsValid())
 				{
@@ -226,7 +227,7 @@ void AMPlayerHUD::ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget)
 				}
 			}
 			break;
-		case ETypeOfUIWidget::Registration:
+		case ETypeOfWidget::Registration:
 			{
 				if (RegistrationWidget.IsValid() && RegistrationWidgetContainer.IsValid())
 				{
@@ -241,6 +242,34 @@ void AMPlayerHUD::ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget)
 
 			}
 			break;
+		case ETypeOfWidget::Menu:
+			{
+				if (MenuWidget.IsValid() && MenuWidgetContainer.IsValid())
+				{
+					GEngine->GameViewport->AddViewportWidgetContent(MenuWidgetContainer.ToSharedRef());
+				}
+
+				if (!RegistrationWidget.IsValid() && !MenuWidgetContainer.IsValid())
+				{
+					MenuWidget = SNew(MSMenuWidget).OwnerHUD(this);
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuWidgetContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));
+				}
+			}
+			break;
+		case ETypeOfWidget::CreateSession:
+		{
+			if (CreateSessionWidget.IsValid() && CreateSessionWidgetContainer.IsValid())
+			{
+				GEngine->GameViewport->AddViewportWidgetContent(CreateSessionWidgetContainer.ToSharedRef());
+			}
+
+			if (!RegistrationWidget.IsValid() && !CreateSessionWidgetContainer.IsValid())
+			{
+				CreateSessionWidget = SNew(MSCreateSessionWidget).OwnerHUD(this);
+				GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(CreateSessionWidgetContainer, SWeakWidget).PossiblyNullContent(CreateSessionWidget.ToSharedRef()));
+			}
+		}
+		break;
 		}
 	}
 }

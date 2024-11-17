@@ -15,9 +15,13 @@
 
 #include "../UI/Menu/MSLoginInWidget.h"
 #include "../UI/Menu/MSRegistrationWidget.h"
-#include "../UI/Menu/MSInformativeWidget.h"
+#include "../UI/Menu/MSMenuWidget.h"
+#include "../UI/Inform/MSInformativeWidget.h"
+#include "../UI/Multiplayer/MSCreateSessionWidget.h"
+#include "../UI/Multiplayer/MSFindSessionWidget.h"
 
 #include "GameFramework/GameStateBase.h"
+#include "../Subsystem/MPlayerInfoSubsystem.h"
 
 #include "MPlayerHUD.generated.h"
 
@@ -54,6 +58,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMChatPanelWidget* ChatPanelWidget;
 
+
 	TSharedPtr<MSLoginInWidget> LoginInWidget;
 	TSharedPtr<SWidget> LoginInWidgetContainer;
 
@@ -62,6 +67,12 @@ public:
 
 	TSharedPtr<MSInformativeWidget> InformativeWidget;
 	TSharedPtr<SWidget> InformativeWidgetContainer;
+
+	TSharedPtr<MSMenuWidget> MenuWidget;
+	TSharedPtr<SWidget> MenuWidgetContainer;
+
+	TSharedPtr<MSCreateSessionWidget> CreateSessionWidget;
+	TSharedPtr<SWidget> CreateSessionWidgetContainer;
 
 private:
 
@@ -98,5 +109,5 @@ public:
 
 	void ShowInformWidget(FInformativeWidgetData* InformWidgetData);
 
-	void ShowNextWidget(ETypeOfUIWidget TypeOfUIWidget);
+	void ShowNextWidget(ETypeOfWidget TypeOfUIWidget);
 };
