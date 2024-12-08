@@ -35,6 +35,7 @@ private:
 
 	FVector SpawnLocationAfterDeath  = FVector(0);
 
+	FTimerHandle CharacterTypeTimer;
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ETypeOfCharacter TypeOfCharacter = ETypeOfCharacter::None;
@@ -80,6 +81,8 @@ private:
 	void SpawnCharacter(ETypeOfCharacter SelectTypeOfCharacter);
 
 	FString GetPlayerStartByTag();
+
+	void OnSetCharacterType();
 
 protected:
 	virtual void OnPossess(APawn* aPawn) override;

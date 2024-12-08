@@ -6,7 +6,6 @@
 #include "GameFramework/HUD.h"
 
 #include "../UI/MChatPanelWidget.h"
-#include "../UI/MMainMenuWidget.h"
 #include "../UI/PlayerWidget/MTimerWidget.h"
 #include "../UI/PlayerWidget/MResultGameWidget.h"
 #include "../UI/PlayerWidget/GAS/Attribute/MAttributesGroupWidget.h"
@@ -36,9 +35,6 @@ class MULTIPLAYER_API AMPlayerHUD : public AHUD
 public:
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
 	TSubclassOf<UMChatPanelWidget> ChatPanelStatic;
-
-	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
-	TSubclassOf<UMMainMenuWidget> MainMenuStatic;
 	
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
 	TSubclassOf<UMTimerWidget> TimerStatic;
@@ -58,24 +54,28 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UMChatPanelWidget* ChatPanelWidget;
 
+	//Inform widget
+	TSharedPtr<MSInformativeWidget> InformativeWidget;
+	TSharedPtr<SWidget> InformativeContainer;
 
+	//Menu widgets
 	TSharedPtr<MSLoginInWidget> LoginInWidget;
-	TSharedPtr<SWidget> LoginInWidgetContainer;
+	TSharedPtr<SWidget> LoginInContainer;
 
 	TSharedPtr<MSRegistrationWidget> RegistrationWidget;
-	TSharedPtr<SWidget> RegistrationWidgetContainer;
-
-	TSharedPtr<MSInformativeWidget> InformativeWidget;
-	TSharedPtr<SWidget> InformativeWidgetContainer;
+	TSharedPtr<SWidget> RegistrationContainer;
 
 	TSharedPtr<MSMenuWidget> MenuWidget;
-	TSharedPtr<SWidget> MenuWidgetContainer;
+	TSharedPtr<SWidget> MenuContainer;
 
+	//Multiplayers widgets
 	TSharedPtr<MSCreateSessionWidget> CreateSessionWidget;
-	TSharedPtr<SWidget> CreateSessionWidgetContainer;
+	TSharedPtr<SWidget> CreateSessionContainer;
+
+	TSharedPtr<MSFindSessionWidget> FindSessionWidget;
+	TSharedPtr<SWidget> FindSessionContainer;
 
 private:
-
 	UMTimerWidget* TimerWidget;
 
 	UMAttributesGroupWidget* AttributesGroupWidget;
@@ -83,6 +83,10 @@ private:
 	UMInventoryWidget* InventoryWidget;
 
 	UMInformWidget* InformWidget;
+
+	ETypeOfWidget CurrentWidgetType;
+
+	FOnlineSessionSearchResult SessionData;
 
 public:
 	AMPlayerHUD(const FObjectInitializer& ObjectInitializer);
@@ -105,9 +109,16 @@ public:
 
 	void ShowInformText(FString Text);
 
-	void CloseInformWidget();
+	void CloseWidget(ETypeOfWidget TypeOfWidget);
 
 	void ShowInformWidget(FInformativeWidgetData* InformWidgetData);
 
 	void ShowNextWidget(ETypeOfWidget TypeOfUIWidget);
+
+	UFUNCTION()
+	void OnFindSessions(bool bFindSession);
+
+private:
+	UFUNCTION()
+	void GoToNextWidgetStep();
 };

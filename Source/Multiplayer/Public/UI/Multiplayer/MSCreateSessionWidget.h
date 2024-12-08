@@ -30,10 +30,14 @@ public:
 
 	virtual bool SupportsKeyboardFocus() const override;
 
+	void CreateSession();
+
 private:
 	FReply OnCreateSession() const;
 
 	FReply OnBackToPreviousMenu() const;
 
 	void SetDefault() const;
+
+	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
 };

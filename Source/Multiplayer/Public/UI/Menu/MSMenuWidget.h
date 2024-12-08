@@ -35,4 +35,6 @@ private:
 	FReply OnBackToPreviousMenu() const;
 
 	void OpenNextWidget(ETypeOfWidget Type) const;
+
+	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
 };

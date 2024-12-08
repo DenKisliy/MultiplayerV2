@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "SlateBasics.h"
 
-#include "GameFramework/HUD.h"
 #include "../../Data/MUIDataStruct.h"
 
 /**
@@ -13,15 +12,9 @@
  */
 class MULTIPLAYER_API MSInformativeWidget : public SCompoundWidget
 {
-	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _InformativeText(), _IsWarning(false), _PreviousWidgetType(ETypeOfWidget::None), _WidgetData() {}
+	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _WidgetData() {}
 
 	SLATE_ARGUMENT(TWeakObjectPtr<AHUD>, OwnerHUD)
-
-	SLATE_ATTRIBUTE(FText, InformativeText)
-
-	SLATE_ATTRIBUTE(bool, IsWarning)
-
-	SLATE_ATTRIBUTE(ETypeOfWidget, PreviousWidgetType);
 
 	SLATE_ATTRIBUTE(TSharedPtr<FInformativeWidgetData>, WidgetData);
 
@@ -31,6 +24,8 @@ private:
 	TWeakObjectPtr<AHUD> OwnerHUD;
 
 	TAttribute<TSharedPtr<FInformativeWidgetData>> WidgetData;
+
+	TSharedPtr<SVerticalBox> WidgetBox;
 
 public:
 	void Construct(const FArguments& InArgs);

@@ -12,13 +12,7 @@ void MSRegistrationWidget::Construct(const FArguments& InArgs)
 
 	OwnerHUD = InArgs._OwnerHUD;
 
-	const FMargin ContentPadding = FMargin(100.0f);
-	const FMargin ButtontPadding = FMargin(10.0f);
-
-	FSlateFontInfo ButtonTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	ButtonTextStyle.Size = 40.0f;
-	FSlateFontInfo TitleTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	TitleTextStyle.Size = 60.0f;
+	FStyleWidgetData* StyleData = new FStyleWidgetData();
 
 	SetDefaultValuesForWidgets();
 
@@ -30,50 +24,50 @@ void MSRegistrationWidget::Construct(const FArguments& InArgs)
 					SNew(SImage).ColorAndOpacity(FColor::Black)
 				]
 
-				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(ContentPadding)
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(StyleData->ContentPadding)
 				[
 					SNew(SVerticalBox)
-						+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 						[
-							SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
+							SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
 						]
 
-						+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 						[
 							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().AutoWidth().Padding(ButtontPadding)
+								+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SVerticalBox)
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
-											SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
+											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
 										]
 
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
-											SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
+											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
 										]
 
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
-											SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
+											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
 										]
 								]
 
-								+ SHorizontalBox::Slot().AutoWidth().Padding(ButtontPadding)
+								+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SVerticalBox)
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
-											SAssignNew(LoginBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(TitleTextStyle).HintText(LOCTEXT("Registration", "Login"))
+											SAssignNew(LoginBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("Registration", "Login"))
 										]
 
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
-											SAssignNew(PasswordBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).IsPassword(true).Font(TitleTextStyle).HintText(LOCTEXT("Registration", "Password"))
+											SAssignNew(PasswordBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).IsPassword(true).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("Registration", "Password"))
 										]
 
-										+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 										[
 											SAssignNew(TypeOfCharacterComboBox, SComboBox<TSharedPtr<FText>>).InitiallySelectedItem(SelectedTypeOfCharacter).OptionsSource(&TypeOfCharacterArray)
 												.OnSelectionChanged_Lambda([this](TSharedPtr<FText> NewSelection, ESelectInfo::Type SelectInfo)
@@ -95,34 +89,34 @@ void MSRegistrationWidget::Construct(const FArguments& InArgs)
 								]
 						]
 
-						+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 						[
 							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().Padding(ButtontPadding)
+								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnSingUn)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
 										]
 								]
 
-								+ SHorizontalBox::Slot().Padding(ButtontPadding)
+								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnCancel)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
 										]
 								]
 						]
 
-						+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 						[
 							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().Padding(ButtontPadding).HAlign(HAlign_Center)
+								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding).HAlign(HAlign_Center)
 								[
 									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnBackToPreviousMenu)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
 										]
 								]
 					]

@@ -24,35 +24,32 @@ bool UMPlayerInfoSubsystem::IsUserSignIn()
 
 int UMPlayerInfoSubsystem::GetCharacterType()
 {
-	return IsUserSignIn() ? GetPlayerInfo(LoginOfUser)->TypeOfCharacter : 0;
-}
-
-bool UMPlayerInfoSubsystem::IsPlayerRegistered(FString Login)
-{
-	const TCHAR* SQLQuery = TEXT("select * from users where Login = $Login");
-	FSQLitePreparedStatement LoadStatement;
-	LoadStatement.Create(*MultiplayerDb, SQLQuery, ESQLitePreparedStatementFlags::Persistent);
-
-	if (MultiplayerDb->IsValid() && LoadStatement.IsValid())
+	if (!IsValid(Database))
 	{
-		LoadStatement.Reset();
+		delete Database;
+		SetDataBase();
+	}
 
-		if (LoadStatement.SetBindingValueByName(TEXT("$Login"), Login) && LoadStatement.Execute())
+	if (IsValid(Database) && !LoginOfUser.IsEmpty())
+	{
+		FQueryResult Result =
+			Database->GetQueryData("SELECT * FROM Users Where Login = " + LoginOfUser + " ;");
+		if (Result.ResultRows.Num() > 0 && Result.Success)
 		{
-			return LoadStatement.Step() == ESQLitePreparedStatementStepResult::Row;
+			return FCString::Atoi(**Result.ResultRows[0].Fields.Find("CharacterType"));
 		}
 	}
 
-	return false;
+	return !LoginOfUser.IsEmpty() ? 0 : -1;
 }
 
-bool UMPlayerInfoSubsystem::IsLoginPasswordCorrect(FString Login, FString Password)
+bool UMPlayerInfoSubsystem::IsUserDataCorrect(FString Login, FString Password)
 {
-	if (FPlayerInfoData* FindPlayerData = GetPlayerInfo(Login))
+	if (IsValid(Database))
 	{
-		if (FindPlayerData->Password == Password)
+		if (Database->GetQueryData("SELECT * FROM Users Where Login = " + Login + " AND Password = " + Password + " ;").Success)
 		{
-			LoginOfUser = FindPlayerData->Login;
+			LoginOfUser = Login;
 			return true;
 		}
 	}
@@ -60,77 +57,49 @@ bool UMPlayerInfoSubsystem::IsLoginPasswordCorrect(FString Login, FString Passwo
 	return false;
 }
 
-bool UMPlayerInfoSubsystem::RegisterPlayerData(FPlayerInfoData* NewPlayerData)
+bool UMPlayerInfoSubsystem::IsPlayerRegistered(FString Login)
 {
-	const TCHAR* SQLQuery = TEXT("INSERT INTO users (Login, Password, TypeOfCharacter) VALUES($Login, $Password, $TypeOfCharacter)");
-	FSQLitePreparedStatement PreparedStatement;
-	PreparedStatement.Create(*MultiplayerDb, SQLQuery, ESQLitePreparedStatementFlags::Persistent);
-
-	if (MultiplayerDb->IsValid() && PreparedStatement.IsValid())
+	if (IsValid(Database))
 	{
-		PreparedStatement.Reset();
-
-		bool bBindingSuccess = true;
-		bBindingSuccess = bBindingSuccess && PreparedStatement.SetBindingValueByName(TEXT("$Login"), NewPlayerData->Login);
-		bBindingSuccess = bBindingSuccess && PreparedStatement.SetBindingValueByName(TEXT("$Password"), NewPlayerData->Password);
-		bBindingSuccess = bBindingSuccess && PreparedStatement.SetBindingValueByName(TEXT("$TypeOfCharacter"), NewPlayerData->TypeOfCharacter);
-
-		if (!bBindingSuccess)
-		{
-			return false;
-		}
-
-		return PreparedStatement.Execute();
+		return Database->GetQueryData("SELECT * FROM Users Where Login = " + Login + " ;").Success;
 	}
 
 	return false;
 }
 
-FPlayerInfoData* UMPlayerInfoSubsystem::GetPlayerInfo(FString Login)
+bool UMPlayerInfoSubsystem::RegisterPlayerData(FPlayerInfoData* NewPlayerData)
 {
-	const TCHAR* SQLQuery = TEXT("select * from users where Login = $Login");
-	FSQLitePreparedStatement PreparedStatement;
-	PreparedStatement.Create(*MultiplayerDb, SQLQuery, ESQLitePreparedStatementFlags::Persistent);
-
-	if (MultiplayerDb->IsValid() && PreparedStatement.IsValid())
+	if (IsValid(Database))
 	{
-		PreparedStatement.Reset();
-
-		PreparedStatement.SetBindingValueByName(TEXT("$Login"), Login);
-
-		if (PreparedStatement.Execute() && PreparedStatement.Step() == ESQLitePreparedStatementStepResult::Row)
+		if (Database->ExecuteQuery("INSERT INTO Users (Login, Password, CharacterType) VALUES("
+			+ NewPlayerData->Login + " , " + 
+			NewPlayerData->Password + " , " +
+			FString::FromInt(NewPlayerData->TypeOfCharacter) + " );"))
 		{
-			FPlayerInfoData* PlayerInfo = new FPlayerInfoData();
-			PlayerInfo->Login = Login;
-			PreparedStatement.GetColumnValueByName(TEXT("Password"), PlayerInfo->Password);
-			PreparedStatement.GetColumnValueByName(TEXT("TypeOfCharacter"), PlayerInfo->TypeOfCharacter);
-
-			return PlayerInfo;
+			return true;
 		}
 	}
 
-	return nullptr;
+	return false;
 }
 
 void UMPlayerInfoSubsystem::SetDataBase()
 {
-	FString dbPath = FPaths::ProjectContentDir() + "DataBase/Multiplayer.db";
-	MultiplayerDb = new FSQLiteDatabase();
-	
-	if (!MultiplayerDb->Open(*dbPath, ESQLiteDatabaseOpenMode::ReadWrite))
+	Database = NewObject<UMSQLDatabase>();
+
+	if (IsValid(Database))
 	{
-		UE_LOG(LogTemp, Fatal, TEXT("%s"), TEXT("Couldn't open db."));
+		if (!Database->InitConnection())
+		{
+			delete Database;
+		}
 	}
 }
 
 void UMPlayerInfoSubsystem::CloseDataBase()
 {
-	if (!MultiplayerDb->Close())
+	if (IsValid(Database))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to close database: %s"), *MultiplayerDb->GetLastError());
-	}
-	else
-	{
-		delete MultiplayerDb;
+		Database->IsCloseConnection();
 	}
 }

@@ -12,13 +12,7 @@ void MSMenuWidget::Construct(const FArguments& InArgs)
 
 	OwnerHUD = InArgs._OwnerHUD;
 
-	const FMargin ContentPadding = FMargin(100.0f);
-	const FMargin ButtontPadding = FMargin(10.0f);
-
-	FSlateFontInfo ButtonTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	ButtonTextStyle.Size = 40.0f;
-	FSlateFontInfo TitleTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	TitleTextStyle.Size = 60.0f;
+	FStyleWidgetData* StyleData = new FStyleWidgetData();
 
 	ChildSlot
 		[
@@ -28,32 +22,32 @@ void MSMenuWidget::Construct(const FArguments& InArgs)
 					SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
 						[
 							SNew(SVerticalBox)
-								+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 								[
-									SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("Menu", "Multiplayer")).Justification(ETextJustify::Center)
+									SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Menu", "Multiplayer")).Justification(ETextJustify::Center)
 								]
 
-								+ SVerticalBox::Slot().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSMenuWidget::OnCreateSession)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Menu", "Create session")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Menu", "Create session")).Justification(ETextJustify::Center)
 										]
 								]
 
-								+ SVerticalBox::Slot().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSMenuWidget::OnFindSession)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Menu", "Find session")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Menu", "Find session")).Justification(ETextJustify::Center)
 										]
 								]
 
-								+ SVerticalBox::Slot().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSMenuWidget::OnBackToPreviousMenu)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("Menu", "Back to previous menu")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Menu", "Back to previous menu")).Justification(ETextJustify::Center)
 										]
 								]
 						]
@@ -74,7 +68,11 @@ FReply MSMenuWidget::OnCreateSession() const
 
 FReply MSMenuWidget::OnFindSession() const
 {
-	OpenNextWidget(ETypeOfWidget::FindSession);
+	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	{
+		ShowInformWidget(new FInformativeWidgetData(FText::FromString("Please wait. Searching for sessions in progress."), false, true, ETypeOfWidget::FindSession));
+	}
+
 	return FReply::Handled();
 }
 
@@ -90,6 +88,14 @@ void MSMenuWidget::OpenNextWidget(ETypeOfWidget Type) const
 	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
 	{
 		HUD->ShowNextWidget(Type);
+	}
+}
+
+void MSMenuWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+{
+	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	{
+		HUD->ShowInformWidget(InformWidgetData);
 	}
 }
 

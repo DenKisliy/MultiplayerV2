@@ -13,23 +13,7 @@ void AMPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	if (IsLocalController())
-	{
-		if (IsValid(GetGameInstance()))
-		{
-			TypeOfCharacter = ETypeOfCharacter(GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->GetCharacterType());
-
-			if (TypeOfCharacter != ETypeOfCharacter::None)
-			{
-				if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
-				{
-					playerState->PlayerDeathDelegate.Broadcast(false);
-				}
-
-				SpawnCharacter(TypeOfCharacter);
-			}
-		}
-	}
+	OnSetCharacterType();
 }
 
 void AMPlayerController::CharacterDeath()
@@ -101,6 +85,33 @@ FString AMPlayerController::GetPlayerStartByTag()
 	return FString();
 }
 
+void AMPlayerController::OnSetCharacterType()
+{
+	if (IsLocalController())
+	{
+		if (IsValid(GetGameInstance()))
+		{
+			if (IsValid(GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()))
+			{
+				int CharacterTypeIndex = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->GetCharacterType();
+
+				if (ETypeOfCharacter(CharacterTypeIndex) != ETypeOfCharacter::None)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Get CharacterTypeIndex  %d"), CharacterTypeIndex);
+					if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
+					{
+						playerState->PlayerDeathDelegate.Broadcast(false);
+					}
+
+					TypeOfCharacter = ETypeOfCharacter(CharacterTypeIndex);
+
+					SpawnCharacter(TypeOfCharacter);
+				}
+			}
+		}
+	}
+}
+
 void AMPlayerController::SetPlayerHUD()
 {
 	if (Cast<AMPlayerHUD>(GetHUD()))
@@ -110,7 +121,7 @@ void AMPlayerController::SetPlayerHUD()
 		FScriptDelegate Delegate;
 		Delegate.BindUFunction(this, "SubmitMessage");
 
-		PlayerHUD->SetDelegateForSendMessageEvent(Delegate);
+		//PlayerHUD->SetDelegateForSendMessageEvent(Delegate);
 
 		PlayerHUD->SetRemoveOrAddAttributesGroupWidget(true);
 	}
@@ -120,14 +131,14 @@ void AMPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
 
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
-	{
-		FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-		if (playerInfo.bCharacterDeath || !SpawnLocationAfterDeath.IsZero())
-		{
-			aPawn->SetActorLocation(SpawnLocationAfterDeath);
-		}
-	}
+	//if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	//{
+	//	FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
+	//	if (playerInfo.bCharacterDeath || !SpawnLocationAfterDeath.IsZero())
+	//	{
+	//		aPawn->SetActorLocation(SpawnLocationAfterDeath);
+	//	}
+	//}
 }
 
 void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTypeOfCharacter)

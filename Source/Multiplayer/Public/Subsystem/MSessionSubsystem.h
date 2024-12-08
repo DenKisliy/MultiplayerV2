@@ -43,7 +43,10 @@ private:
 	TArray<FOnlineSessionSearchResult> ArrayOfFindSessions;
 
 	bool bCreateSession = false;
+
 	bool bJoinToSession = false;
+
+	FString JoinSessionName;
 
 public:
 	virtual void Deinitialize() override;
@@ -54,9 +57,7 @@ public:
 
 	void FindSessions();
 
-	void JoinToSession(FName SessionName, const FOnlineSessionSearchResult& SearchResult);
-
-	TArray<FOnlineSessionSearchResult> GetFindSessions();
+	TArray<FOnlineSessionSearchResult> GetFindSessionsNamesArray();
 
 	void StartSession();
 
@@ -64,8 +65,14 @@ public:
 
 	bool IsCreateOrStartSession();
 
+	void SetJoinSessionName(FString SessionName);
+
+	void ConnectToSession();
+
 private:
 	void SetSessionInfoFromGameMode();
+
+	void JoinToSession(FName SessionName, const FOnlineSessionSearchResult& SearchResult);
 
 	void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 
@@ -78,4 +85,6 @@ private:
 	void OnStartSessionComplete(FName SessionName, bool bWasSuccessful);
 
 	void OnEndSessionCompleted(FName SessionName, bool bWasSuccessful);
+
+	FOnlineSessionSearchResult GetSessionDataByName();
 };

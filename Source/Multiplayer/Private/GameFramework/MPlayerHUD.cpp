@@ -2,7 +2,6 @@
 
 
 #include "GameFramework/MPlayerHUD.h"
-#include "../../Public/GameFramework/MGameMode.h"
 
 AMPlayerHUD::AMPlayerHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -17,68 +16,18 @@ void AMPlayerHUD::BeginPlay()
 	{
 		if (GEngine && GEngine->GameViewport)
 		{
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+
 			LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
-			GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+			GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
 		}
 	}
-	else
-	{
-
-	}
-
-	/*if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
-	{
-		FPlayerInfoStruct PlayerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-		bool bSetCharacterType = PlayerInfo.CharacterType != ETypeOfCharacter::None;
-		
-		if (IsValid(MainMenuStatic) && !bSetCharacterType)
-		{
-			GetOwningPlayerController()->SetShowMouseCursor(true);
-			GetOwningPlayerController()->SetInputMode(FInputModeUIOnly());
-
-			UMMainMenuWidget* mainMenuWidget = CreateWidget<UMMainMenuWidget>(this->GetOwningPlayerController(), MainMenuStatic);
-			mainMenuWidget->AddToViewport();
-		}
-
-		if (bSetCharacterType)
-		{
-			if (IsValid(TimerStatic) && !IsValid(TimerWidget))
-			{
-				TimerWidget = CreateWidget<UMTimerWidget>(this->GetOwningPlayerController(), TimerStatic);
-				TimerWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.0f));
-				TimerWidget->SetAlignmentInViewport(FVector2D(double(0.5), 0));
-				TimerWidget->AddToViewport(2);
-			}
-			
-			if (IsValid(AttributesGroupStatic))
-			{
-				AttributesGroupWidget = CreateWidget<UMAttributesGroupWidget>(this->GetOwningPlayerController(), AttributesGroupStatic);
-				AttributesGroupWidget->AddToViewport();
-			}
-			
-			if (IsValid(InformStatic))
-			{
-				InformWidget = CreateWidget<UMInformWidget>(this->GetOwningPlayerController(), InformStatic);
-				InformWidget->AddToViewport();
-			}
-
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
-		}
-
-		if (PlayerInfo.ResultOfGame != EResultOfGame::None && !bSetCharacterType)
-		{
-			UMResultGameWidget* resultGameWidget = CreateWidget<UMResultGameWidget>(this->GetOwningPlayerController(), ResultGameStatic);
-			resultGameWidget->SetResultOfGame(PlayerInfo.ResultOfGame == EResultOfGame::Win);
-			resultGameWidget->AddToViewport(5);
-		}
-	}*/
 }
 
 void AMPlayerHUD::SetDelegateForSendMessageEvent(FScriptDelegate Delegate)
 {
-	UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance());
-	if (gameInstance)
+	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
 		if (gameInstance->GetPlayerInfoFromGameInstance().CharacterType != ETypeOfCharacter::None)
 		{
@@ -117,6 +66,7 @@ void AMPlayerHUD::SetTimeTimerWidget(bool bMain, int Time)
 		TimerWidget->SetAlignmentInViewport(FVector2D(double(0.5), 0));
 		TimerWidget->AddToViewport(2);
 	}
+
 	TimerWidget->SetTimeForTimer(bMain, Time);
 }
 
@@ -198,7 +148,14 @@ void AMPlayerHUD::ShowInformWidget(FInformativeWidgetData* InformWidgetData)
 	if (GEngine && GEngine->GameViewport)
 	{
 		InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(this).WidgetData(InformWidgetData);
-		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(InformativeWidgetContainer, SWeakWidget).PossiblyNullContent(InformativeWidget.ToSharedRef()), 5);
+		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(InformativeContainer, SWeakWidget).PossiblyNullContent(InformativeWidget.ToSharedRef()), 5);
+
+		if (InformWidgetData->bWaitingWidget)
+		{
+			FTimerHandle Timer;
+			CurrentWidgetType = InformWidgetData->TypeOfNextWidget;
+			GetWorld()->GetTimerManager().SetTimer(Timer, this, &AMPlayerHUD::GoToNextWidgetStep, 1.0f, false);
+		}
 	}
 }
 
@@ -215,58 +172,58 @@ void AMPlayerHUD::ShowNextWidget(ETypeOfWidget TypeOfUIWidget)
 		{
 		case ETypeOfWidget::LoginIn:
 			{
-				if (LoginInWidget.IsValid() && LoginInWidgetContainer.IsValid())
+				if (LoginInWidget.IsValid() && LoginInContainer.IsValid())
 				{
-					GEngine->GameViewport->AddViewportWidgetContent(LoginInWidgetContainer.ToSharedRef());
+					GEngine->GameViewport->AddViewportWidgetContent(LoginInContainer.ToSharedRef());
 				}
 
-				if (!LoginInWidget.IsValid() && !LoginInWidgetContainer.IsValid())
+				if (!LoginInWidget.IsValid() && !LoginInContainer.IsValid())
 				{
 					LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInWidgetContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
 				}
 			}
 			break;
 		case ETypeOfWidget::Registration:
 			{
-				if (RegistrationWidget.IsValid() && RegistrationWidgetContainer.IsValid())
+				if (RegistrationWidget.IsValid() && RegistrationContainer.IsValid())
 				{
-					GEngine->GameViewport->AddViewportWidgetContent(RegistrationWidgetContainer.ToSharedRef());
+					GEngine->GameViewport->AddViewportWidgetContent(RegistrationContainer.ToSharedRef());
 				}
 
-				if (!RegistrationWidget.IsValid() && !RegistrationWidgetContainer.IsValid())
+				if (!RegistrationWidget.IsValid() && !RegistrationContainer.IsValid())
 				{
 					RegistrationWidget = SNew(MSRegistrationWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationWidgetContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));
 				}
 
 			}
 			break;
 		case ETypeOfWidget::Menu:
 			{
-				if (MenuWidget.IsValid() && MenuWidgetContainer.IsValid())
+				if (MenuWidget.IsValid() && MenuContainer.IsValid())
 				{
-					GEngine->GameViewport->AddViewportWidgetContent(MenuWidgetContainer.ToSharedRef());
+					GEngine->GameViewport->AddViewportWidgetContent(MenuContainer.ToSharedRef());
 				}
 
-				if (!RegistrationWidget.IsValid() && !MenuWidgetContainer.IsValid())
+				if (!MenuWidget.IsValid() && !MenuContainer.IsValid())
 				{
 					MenuWidget = SNew(MSMenuWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuWidgetContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));
 				}
 			}
 			break;
 		case ETypeOfWidget::CreateSession:
 		{
-			if (CreateSessionWidget.IsValid() && CreateSessionWidgetContainer.IsValid())
+			if (CreateSessionWidget.IsValid() && CreateSessionContainer.IsValid())
 			{
-				GEngine->GameViewport->AddViewportWidgetContent(CreateSessionWidgetContainer.ToSharedRef());
+				GEngine->GameViewport->AddViewportWidgetContent(CreateSessionContainer.ToSharedRef());
 			}
 
-			if (!RegistrationWidget.IsValid() && !CreateSessionWidgetContainer.IsValid())
+			if (!CreateSessionWidget.IsValid() && !CreateSessionContainer.IsValid())
 			{
 				CreateSessionWidget = SNew(MSCreateSessionWidget).OwnerHUD(this);
-				GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(CreateSessionWidgetContainer, SWeakWidget).PossiblyNullContent(CreateSessionWidget.ToSharedRef()));
+				GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(CreateSessionContainer, SWeakWidget).PossiblyNullContent(CreateSessionWidget.ToSharedRef()));
 			}
 		}
 		break;
@@ -274,13 +231,77 @@ void AMPlayerHUD::ShowNextWidget(ETypeOfWidget TypeOfUIWidget)
 	}
 }
 
-void AMPlayerHUD::CloseInformWidget()
+void AMPlayerHUD::OnFindSessions(bool bFindSession)
+{
+	if (bFindSession)
+	{
+		if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+		{
+			if (sessionManager->GetFindSessionsNamesArray().Num() > 0)
+			{
+				if (GEngine && GEngine->GameViewport)
+				{
+					CloseWidget(ETypeOfWidget::Inform);
+					FindSessionWidget = SNew(MSFindSessionWidget).OwnerHUD(this).FindSessions(sessionManager->GetFindSessionsNamesArray());
+					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(FindSessionContainer, SWeakWidget).PossiblyNullContent(FindSessionWidget.ToSharedRef()), 5);
+				}
+			}
+		}
+	}
+}
+
+void AMPlayerHUD::GoToNextWidgetStep()
+{
+	switch (CurrentWidgetType)
+	{
+	case ETypeOfWidget::CreateSession:
+		if (CreateSessionContainer.IsValid())
+		{
+			CreateSessionWidget.Get()->CreateSession();
+		}
+		break;
+	case ETypeOfWidget::FindSession:
+		if (MenuContainer.IsValid())
+		{
+			if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+			{
+				SessionManager->ResultOfFindSessionsDelegate.AddDynamic(this, &AMPlayerHUD::OnFindSessions);
+				SessionManager->FindSessions();
+			}
+		}
+		break;
+	case ETypeOfWidget::JoinSession:
+		if (FindSessionContainer.IsValid())
+		{
+			if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+			{
+				SessionManager->ConnectToSession();
+			}
+		}
+		break;
+	}
+
+	CurrentWidgetType = ETypeOfWidget::None;
+}
+
+void AMPlayerHUD::CloseWidget(ETypeOfWidget TypeOfWidget)
 {
 	if (GEngine && GEngine->GameViewport)
 	{
-		if (InformativeWidgetContainer.IsValid())
+		switch (TypeOfWidget)
 		{
-			GEngine->GameViewport->RemoveViewportWidgetContent(InformativeWidgetContainer.ToSharedRef());
+		case ETypeOfWidget::FindSession:
+			if (FindSessionContainer.IsValid())
+			{
+				GEngine->GameViewport->RemoveViewportWidgetContent(FindSessionContainer.ToSharedRef());
+			}
+			break;
+		case ETypeOfWidget::Inform:
+			if (InformativeContainer.IsValid())
+			{
+				GEngine->GameViewport->RemoveViewportWidgetContent(InformativeContainer.ToSharedRef());
+			}
+			break;
 		}
 	}
 }

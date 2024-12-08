@@ -11,14 +11,7 @@ void MSCreateSessionWidget::Construct(const FArguments& InArgs)
 	bCanSupportFocus = true;
 
 	OwnerHUD = InArgs._OwnerHUD;
-
-	const FMargin ContentPadding = FMargin(100.0f);
-	const FMargin ButtontPadding = FMargin(10.0f);
-
-	FSlateFontInfo ButtonTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	ButtonTextStyle.Size = 40.0f;
-	FSlateFontInfo TitleTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-	TitleTextStyle.Size = 60.0f;
+	FStyleWidgetData* StyleData = new FStyleWidgetData();
 
 	ChildSlot
 		[
@@ -28,39 +21,39 @@ void MSCreateSessionWidget::Construct(const FArguments& InArgs)
 					SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
 						[
 							SNew(SVerticalBox)
-								+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 								[
-									SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
+									SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
 								]
 
-								+ SVerticalBox::Slot().AutoHeight().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SHorizontalBox)
-										+ SHorizontalBox::Slot().AutoWidth().Padding(ButtontPadding)
+										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
 										[
-											SNew(STextBlock).Font(TitleTextStyle).Text(LOCTEXT("CreateSession", "Session name")).Justification(ETextJustify::Left)
+											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("CreateSession", "Session name")).Justification(ETextJustify::Left)
 										]
 
-										+ SHorizontalBox::Slot().AutoWidth().Padding(ButtontPadding)
+										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
 										[
-											SAssignNew(SessionNameBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(TitleTextStyle).HintText(LOCTEXT("CreateSession", "Session name"))
+											SAssignNew(SessionNameBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("CreateSession", "Session name"))
 										]
 
 								]
 
-								+ SVerticalBox::Slot().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSCreateSessionWidget::OnCreateSession)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
 										]
 								]
 
-								+ SVerticalBox::Slot().Padding(ButtontPadding)
+								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
 								[
 									SNew(SButton).OnClicked(this, &MSCreateSessionWidget::OnBackToPreviousMenu)
 										[
-											SNew(STextBlock).Font(ButtonTextStyle).Text(LOCTEXT("CreateSession", "Back to previous menu")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("CreateSession", "Back to previous menu")).Justification(ETextJustify::Center)
 										]
 								]
 						]
@@ -73,7 +66,7 @@ bool MSCreateSessionWidget::SupportsKeyboardFocus() const
 	return true;
 }
 
-FReply MSCreateSessionWidget::OnCreateSession() const
+void MSCreateSessionWidget::CreateSession()
 {
 	FString SessionName = SessionNameBoxPtr->GetText().ToString();
 
@@ -81,9 +74,20 @@ FReply MSCreateSessionWidget::OnCreateSession() const
 	{
 		if (UMSessionSubsystem* SessionSubsystem = OwnerHUD.Get()->GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 		{
-			SetDefault();
 			SessionSubsystem->CreateSession(FName(*SessionName), true, false);
+
+			SetDefault();
 		}
+	}
+}
+
+FReply MSCreateSessionWidget::OnCreateSession() const
+{
+	FString SessionName = SessionNameBoxPtr->GetText().ToString();
+
+	if (!SessionName.IsEmpty())
+	{
+		ShowInformWidget(new FInformativeWidgetData(FText::FromString("Please wait. Session creation in progress."), false, true, ETypeOfWidget::CreateSession));
 	}
 	else
 	{
@@ -108,6 +112,15 @@ void MSCreateSessionWidget::SetDefault() const
 {
 	SessionNameBoxPtr->SetText(FText::GetEmpty());
 	SessionNameBoxPtr->SetColorAndOpacity(FColor::White);
+}
+
+
+void MSCreateSessionWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+{
+	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	{
+		HUD->ShowInformWidget(InformWidgetData);
+	}
 }
 
 #undef LOCTEXT_NAMESPACE

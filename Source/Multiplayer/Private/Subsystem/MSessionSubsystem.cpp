@@ -25,7 +25,7 @@ void UMSessionSubsystem::SetSessionInfoFromGameMode()
 	}
 }
 
-TArray<FOnlineSessionSearchResult> UMSessionSubsystem::GetFindSessions()
+TArray<FOnlineSessionSearchResult> UMSessionSubsystem::GetFindSessionsNamesArray()
 {
 	return ArrayOfFindSessions;
 }
@@ -57,6 +57,23 @@ void UMSessionSubsystem::EndSession()
 bool UMSessionSubsystem::IsCreateOrStartSession()
 {
 	return bCreateSession || bJoinToSession;
+}
+
+void UMSessionSubsystem::SetJoinSessionName(FString SessionName)
+{
+	JoinSessionName = SessionName;
+}
+
+void UMSessionSubsystem::ConnectToSession()
+{
+	if (!JoinSessionName.IsEmpty())
+	{
+		JoinToSession(FName(*JoinSessionName), GetSessionDataByName());
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "JoinSessionName empty");
+	}
 }
 
 void UMSessionSubsystem::CreateSession(FName SessionName, bool bIsLAN, bool bIsDedicatedServer)
@@ -256,4 +273,19 @@ void UMSessionSubsystem::OnEndSessionCompleted(FName SessionName, bool bWasSucce
 			}
 		}
 	}
+}
+
+FOnlineSessionSearchResult UMSessionSubsystem::GetSessionDataByName()
+{
+	for (FOnlineSessionSearchResult SessionData : GetFindSessionsNamesArray())
+	{
+		FString SessionName = "";
+		SessionData.Session.SessionSettings.Get(FName("SESSION_NAME_KEY"), SessionName);
+		if (SessionName == JoinSessionName && !JoinSessionName.IsEmpty())
+		{
+			return SessionData;
+		}
+	}
+
+	return FOnlineSessionSearchResult();
 }

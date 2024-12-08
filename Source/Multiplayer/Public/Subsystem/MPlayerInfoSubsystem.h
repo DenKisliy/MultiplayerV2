@@ -6,9 +6,9 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 
 #include "../Data/MPlayerDataStruct.h"
+#include "../SQL/MSQLDatabase.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "SQLiteDatabase.h"
 
 #include "MPlayerInfoSubsystem.generated.h"
 
@@ -16,24 +16,20 @@
  * 
  */
 
-
-class FSQLiteDatabase;
-class FSQLitePreparedStatement;
-
 UCLASS()
 class MULTIPLAYER_API UMPlayerInfoSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
-	
-private:
-	FSQLiteDatabase* MultiplayerDb;
 
+private:
+	UPROPERTY()
 	FString LoginOfUser = "";
+
+	UPROPERTY()
+	UMSQLDatabase* Database;
 
 public:
 	bool IsPlayerRegistered(FString Login);
-
-	bool IsLoginPasswordCorrect(FString Login, FString Password);
 
 	bool RegisterPlayerData(FPlayerInfoData* NewPlayerData);
 
@@ -45,9 +41,9 @@ public:
 
 	int GetCharacterType();
 
-private:
-	FPlayerInfoData* GetPlayerInfo(FString Login);
+	bool IsUserDataCorrect(FString Login, FString Password);
 
+private:
 	void SetDataBase();
 
 	void CloseDataBase();
