@@ -2,6 +2,8 @@
 
 
 #include "Subsystem/MSessionSubsystem.h"
+#include "../../Public/GameFramework/MGameMode.h"
+#include "../../Public/Subsystem/MPlayerInfoSubsystem.h"
 
 void UMSessionSubsystem::Deinitialize()
 {
@@ -16,16 +18,16 @@ void UMSessionSubsystem::SetSessionInfoFromGameMode()
 	{
 		if (UGameplayStatics::GetGameMode(GetWorld()))
 		{
-			if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 			{
-				OpenLevelURL = gameMode->OpenLevelURL;
-				CountOfMaxNumPlayers = gameMode->CountOfMaxNumPlayers;
+				OpenLevelURL = GameMode->SessionLevelURL;
+				CountOfMaxNumPlayers = GameMode->CountOfMaxNumPlayers;
 			}
 		}
 	}
 }
 
-TArray<FOnlineSessionSearchResult> UMSessionSubsystem::GetFindSessionsNamesArray()
+TArray<FOnlineSessionSearchResult> UMSessionSubsystem::GetFindSessionsArray()
 {
 	return ArrayOfFindSessions;
 }
@@ -59,20 +61,15 @@ bool UMSessionSubsystem::IsCreateOrStartSession()
 	return bCreateSession || bJoinToSession;
 }
 
-void UMSessionSubsystem::SetJoinSessionName(FString SessionName)
-{
-	JoinSessionName = SessionName;
-}
-
-void UMSessionSubsystem::ConnectToSession()
+void UMSessionSubsystem::ConnectToSession(FString JoinSessionName)
 {
 	if (!JoinSessionName.IsEmpty())
 	{
-		JoinToSession(FName(*JoinSessionName), GetSessionDataByName());
+		JoinToSession(FName(*JoinSessionName), GetSessionDataByName(JoinSessionName));
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Red, "JoinSessionName empty");
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "JoinSessionName empty");
 	}
 }
 
@@ -113,8 +110,19 @@ void UMSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuc
 			{
 				GameSessionName = SessionName;
 				bCreateSession = true;
+				if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+				{
+					if (PlayerInfo->CreateChatTable(new FCreateTableStructData("Chat_" + SessionName.ToString())))
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "CreateChatTable");
+					}
+					else
+					{
+						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "CreateChatTable false");
+					}
+				}
 				sessionsPtrRef->OnCreateSessionCompleteDelegates.Clear();
-				GetWorld()->ServerTravel(OpenLevelURL);
+				GetWorld()->ServerTravel(OpenLevelURL.Contains("?listen") ? OpenLevelURL : OpenLevelURL + "?listen");
 			}
 		}
 	}
@@ -197,7 +205,7 @@ void UMSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 					}
 				}
 				
-				ResultOfFindSessionsDelegate.Broadcast(SessionSearch->SearchResults.Num() > 0);
+				ResultOfFindSessionsDelegate.ExecuteIfBound(ArrayOfFindSessions);
 			}
 		}
 	}
@@ -205,15 +213,30 @@ void UMSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 
 void UMSessionSubsystem::JoinToSession(FName SessionName, const FOnlineSessionSearchResult& SearchResult)
 {
-	if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+	if (SearchResult.IsValid())
 	{
-		if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
 		{
-			sessionsPtrRef->OnJoinSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnJoinSessionComplete);
+			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			{
+				sessionsPtrRef->OnJoinSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnJoinSessionComplete);
 
-			const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-			sessionsPtrRef->JoinSession(*localPlayer->GetPreferredUniqueNetId(), SessionName, SearchResult);
+				const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+				sessionsPtrRef->JoinSession(*localPlayer->GetPreferredUniqueNetId(), SessionName, SearchResult);
+			}
+			else
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld())");
+			}
 		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface()");
+		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "JoinToSession");
 	}
 }
 
@@ -221,25 +244,36 @@ void UMSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 {
 	if (Result == EOnJoinSessionCompleteResult::Success)
 	{
-		if (APlayerController* playerController = GetWorld()->GetFirstPlayerController())
+		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 		{
-			if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
-					FString joinAdress;
-					sessionsPtrRef->GetResolvedConnectString(SessionName, joinAdress);
-
-					if (!joinAdress.IsEmpty())
+					FString joinAdress = "";
+					if (SessionsPtrRef->GetResolvedConnectString(SessionName, joinAdress))
 					{
-						GameSessionName = SessionName;
-						bJoinToSession = true;
-						sessionsPtrRef->OnJoinSessionCompleteDelegates.Clear();
-						playerController->ClientTravel(joinAdress, ETravelType::TRAVEL_Absolute);
+
+						if (!joinAdress.IsEmpty())
+						{
+							if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+							{
+								PlayerInfo->SetChatTableName("Chat_" + SessionName.ToString());
+							}
+
+							GameSessionName = SessionName;
+							bJoinToSession = true;
+							SessionsPtrRef->OnJoinSessionCompleteDelegates.Clear();
+							PlayerController->ClientTravel(joinAdress, ETravelType::TRAVEL_Absolute);
+						}
 					}
 				}
 			}
 		}
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "OnJoinSessionComplete");
 	}
 }
 
@@ -275,13 +309,13 @@ void UMSessionSubsystem::OnEndSessionCompleted(FName SessionName, bool bWasSucce
 	}
 }
 
-FOnlineSessionSearchResult UMSessionSubsystem::GetSessionDataByName()
+FOnlineSessionSearchResult UMSessionSubsystem::GetSessionDataByName(FString SessionName)
 {
-	for (FOnlineSessionSearchResult SessionData : GetFindSessionsNamesArray())
+	for (FOnlineSessionSearchResult SessionData : GetFindSessionsArray())
 	{
-		FString SessionName = "";
-		SessionData.Session.SessionSettings.Get(FName("SESSION_NAME_KEY"), SessionName);
-		if (SessionName == JoinSessionName && !JoinSessionName.IsEmpty())
+		FString FindSessionName = "";
+		SessionData.Session.SessionSettings.Get(FName("SESSION_NAME_KEY"), FindSessionName);
+		if (FindSessionName == SessionName && !FindSessionName.IsEmpty())
 		{
 			return SessionData;
 		}

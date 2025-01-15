@@ -4,6 +4,7 @@
 #include "UI/Multiplayer/MSFindSessionWidget.h"
 
 #include "../../../Public/UI/Multiplayer/MSSessionInformationFoundWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "FindSession"
@@ -13,8 +14,7 @@ void MSFindSessionWidget::Construct(const FArguments& InArgs)
 	bCanSupportFocus = true;
 
 	OwnerHUD = InArgs._OwnerHUD;
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
+	
 	ChildSlot
 	[
 		SNew(SOverlay)
@@ -23,9 +23,10 @@ void MSFindSessionWidget::Construct(const FArguments& InArgs)
 				SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Recessed"))
 					[
 						SAssignNew(SessionsButtonsBox, SVerticalBox)
-							+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
+							+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
 							[
-								SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("FindSession", "Find sessions")).Justification(ETextJustify::Center)
+								SNew(STextBlock)
+									.Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("FindSession", "Find sessions")).Justification(ETextJustify::Center)
 							]
 					]
 			]
@@ -41,8 +42,6 @@ bool MSFindSessionWidget::SupportsKeyboardFocus() const
 
 void MSFindSessionWidget::AddButtonsForSessions(TArray<FOnlineSessionSearchResult> FindSessionsData)
 {
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
 	for (FOnlineSessionSearchResult Session : FindSessionsData)
 	{
 		SessionsButtonsBox->AddSlot().AutoHeight().Padding(FMargin(10.0f))
@@ -55,14 +54,14 @@ void MSFindSessionWidget::AddButtonsForSessions(TArray<FOnlineSessionSearchResul
 	[
 		SNew(SButton).OnClicked(this, &MSFindSessionWidget::OnCloseWindow)
 		[
-			SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Menu", "Close window")).Justification(ETextJustify::Center)
+			SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Menu", "Close window")).Justification(ETextJustify::Center)
 		]
 	];
 }
 
 FReply MSFindSessionWidget::OnCloseWindow() const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
 		HUD->CloseWidget(ETypeOfWidget::FindSession);
 	}

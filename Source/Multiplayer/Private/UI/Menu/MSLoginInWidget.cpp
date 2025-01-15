@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/Menu/MSLoginInWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "LoginInMenu"
@@ -11,79 +12,87 @@ void MSLoginInWidget::Construct(const FArguments& InArgs)
 
 	OwnerHUD = InArgs._OwnerHUD;
 
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
 	ChildSlot
-		[
-			SNew(SOverlay)
-				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
-				[
-					SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
-						[
-							SNew(SVerticalBox)
-								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-								[
-									SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("LoginInMenu", "Login In")).Justification(ETextJustify::Center)
-								]
+	[
+		SNew(SOverlay)
+			+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
+			[
+				SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
+					[
+						SNew(SVerticalBox)
+							+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("LoginInMenu", "Login In")).Justification(ETextJustify::Center)
+							]
 
-								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SHorizontalBox)
-										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
-										[
-											SNew(SVerticalBox)
-												+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-												[
-													SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("LoginInMenu", "Login")).Justification(ETextJustify::Center)
-												]
+							+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SHorizontalBox)
+									+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SNew(SVerticalBox)
+											+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+											[
+												SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("LoginInMenu", "Login")).Justification(ETextJustify::Center)
+											]
 
-												+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-												[
-													SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("LoginInMenu", "Password")).Justification(ETextJustify::Center)
-												]
-										]
+											+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+											[
+												SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("LoginInMenu", "Password")).Justification(ETextJustify::Center)
+											]
+									]
 
-										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
-										[
-											SNew(SVerticalBox)
-												+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-												[
-													SAssignNew(LoginBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("LoginInMenu", "Login"))
-												]
+									+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SNew(SVerticalBox)
+											+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+											[
+												SAssignNew(LoginBoxPtr, SEditableTextBox)
+													.MinDesiredWidth(400.0f)
+													.ClearKeyboardFocusOnCommit(false)
+													.OnTextCommitted(this, &MSLoginInWidget::OnTextCommitted)
+													.Font(UMWidgetStyle::GetTitleTextStyle())
+													.HintText(LOCTEXT("LoginInMenu", "Login"))
+											]
 
-												+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-												[
-													SAssignNew(PasswordBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).IsPassword(true).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("LoginInMenu", "Password"))
-												]
-										]
-								]
+											+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+											[
+												SAssignNew(PasswordBoxPtr, SEditableTextBox)
+													.MinDesiredWidth(400.0f)
+													.ClearKeyboardFocusOnCommit(false)
+													.IsPassword(true)
+													.Font(UMWidgetStyle::GetTitleTextStyle())
+													.HintText(LOCTEXT("LoginInMenu", "Password"))
+											]
+									]
+							]
 
-								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SButton).OnClicked(this, &MSLoginInWidget::OnSingIn)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("LoginInMenu", "Sign in")).Justification(ETextJustify::Center)
-										]
-								]
+							+ SVerticalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SButton).OnClicked(this, &MSLoginInWidget::OnSingIn)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("LoginInMenu", "Sign in")).Justification(ETextJustify::Center)
+									]
+							]
 
-								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SButton).OnClicked(this, &MSLoginInWidget::OnSignUp)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("LoginInMenu", "Sign up")).Justification(ETextJustify::Center)
-										]
-								]
+							+ SVerticalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SButton).OnClicked(this, &MSLoginInWidget::OnSignUp)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("LoginInMenu", "Sign up")).Justification(ETextJustify::Center)
+									]
+							]
 
-								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SButton).OnClicked(this, &MSLoginInWidget::OnQuit)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("LoginInMenu", "Quit")).Justification(ETextJustify::Center)
-										]
-								]
-						]
-				]
-		];
+							+ SVerticalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SButton).OnClicked(this, &MSLoginInWidget::OnQuit)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("LoginInMenu", "Quit")).Justification(ETextJustify::Center)
+									]
+							]
+					]
+			]
+	];
 }
 
 bool MSLoginInWidget::SupportsKeyboardFocus() const
@@ -91,14 +100,27 @@ bool MSLoginInWidget::SupportsKeyboardFocus() const
 	return true;
 }
 
+void MSLoginInWidget::SetFocus()
+{
+	FString Login, Password;
+
+	GetLoginAndPassword(Login, Password);
+
+	if (Login.IsEmpty() || (!Password.IsEmpty() && !Login.IsEmpty()))
+	{
+		FSlateApplication::Get().SetKeyboardFocus(LoginBoxPtr);
+	}
+	else if (Password.IsEmpty())
+	{
+		FSlateApplication::Get().SetKeyboardFocus(PasswordBoxPtr);
+	}
+}
+
 FReply MSLoginInWidget::OnSingIn() const
 {
-	PasswordBoxPtr->SetIsPassword(false);
+	FString Login, Password;
 
-	FString Login = LoginBoxPtr->GetText().ToString();
-	FString Password = PasswordBoxPtr->GetText().ToString();
-
-	PasswordBoxPtr->SetIsPassword(true);
+	GetLoginAndPassword(Login, Password);
 
 	if (!Login.IsEmpty() && !Password.IsEmpty())
 	{
@@ -106,24 +128,23 @@ FReply MSLoginInWidget::OnSingIn() const
 		{
 			if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = OwnerHUD->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 			{
-				bool bResult = PlayerInfoSubsystem->IsUserDataCorrect(Login, Password);
-				
-				if (bResult)
+				if (PlayerInfoSubsystem->IsUserDataCorrect(Login, Password))
 				{
 					SetDefault();
-
-					SetNextWidget(ETypeOfWidget::Menu);
+					SetNextWidget(ETypeOfWidget::GameTypeMenu);
 				}
 				else
 				{
-					ShowInformWidget(new FInformativeWidgetData(FText::FromString("Login or password is not correct."), true));
+					ShowInformWidget(FText::FromString("Login or password is not correct."));
+					SetStyle("", "");
 				}
 			}
 		}
 	}
 	else
 	{
-		ShowInformWidget(new FInformativeWidgetData(FText::FromString(GetInformMessage(Login, Password)), true));
+		ShowInformWidget(FText::FromString(GetInformMessage(Login, Password)));
+		SetStyle(Login, Password);
 	}
 
 	return FReply::Handled();
@@ -135,6 +156,7 @@ FReply MSLoginInWidget::OnQuit() const
 	{
 		OwnerHUD->GetOwningPlayerController()->ConsoleCommand("quit");
 	}
+
 	return FReply::Handled();
 }
 
@@ -147,11 +169,20 @@ FReply MSLoginInWidget::OnSignUp() const
 	return FReply::Handled();
 }
 
-void MSLoginInWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+void MSLoginInWidget::ShowInformWidget(FText Text) const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
-		HUD->ShowInformWidget(InformWidgetData);
+		HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Warning(true).Text(Text).PreviousWidget(ETypeOfWidget::LoginIn);
+		SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
+
+		if (IsValid(HUD->GetWorld()))
+		{
+			if (HUD->GetWorld()->GetGameViewport())
+			{
+				HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
+			}
+		}
 	}
 }
 
@@ -160,13 +191,13 @@ FString MSLoginInWidget::GetInformMessage(FString Login, FString Password) const
 	FString TextForMessage = "";
 	int32 count = 0;
 
-	TextForMessage = TextForMessage + (Login.IsEmpty() ? "Login" : "");
+	TextForMessage += Login.IsEmpty() ? "Login" : "";
 	count = Login.IsEmpty() ? 1 : 0;
 
-	TextForMessage = TextForMessage + (Password.IsEmpty() ? (!TextForMessage.IsEmpty() ? " , password" : "Password") : "");
+	TextForMessage += Password.IsEmpty() ? (!TextForMessage.IsEmpty() ? " , password" : "Password") : "";
 	count = Password.IsEmpty() ? count + 1 : count;
 
-	return !TextForMessage.IsEmpty() ? TextForMessage + (count == 1 ? " is" : +" are") + " not set." : FString();
+	return !TextForMessage.IsEmpty() ? TextForMessage + (count == 1 ? " is" : " are") + " not set." : FString();
 }
 
 void MSLoginInWidget::SetStyle(FString Login, FString Password) const
@@ -181,16 +212,37 @@ void MSLoginInWidget::SetDefault() const
 	LoginBoxPtr->SetText(FText::GetEmpty());
 
 	PasswordBoxPtr->SetText(FText::GetEmpty());
-
+	
 	SetStyle("1", "1");
 }
 
 void MSLoginInWidget::SetNextWidget(ETypeOfWidget NextWidgetType) const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
-		HUD->ShowNextWidget(NextWidgetType);
+		HUD->ShowWidget(NextWidgetType);
 	}
+}
+
+void MSLoginInWidget::OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod)
+{
+	if (CommitMethod == ETextCommit::OnEnter)
+	{
+		if (PasswordBoxPtr.IsValid() && !LoginBoxPtr->GetText().IsEmpty())
+		{
+			FSlateApplication::Get().SetKeyboardFocus(PasswordBoxPtr);
+		}
+	}
+}
+
+void MSLoginInWidget::GetLoginAndPassword(FString& Login, FString& Password) const
+{
+	PasswordBoxPtr->SetIsPassword(false);
+
+	Login = LoginBoxPtr->GetText().ToString();
+	Password = PasswordBoxPtr->GetText().ToString();
+
+	PasswordBoxPtr->SetIsPassword(true);
 }
 
 #undef LOCTEXT_NAMESPACE

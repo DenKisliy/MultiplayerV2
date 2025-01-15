@@ -2,6 +2,10 @@
 
 
 #include "GameFramework/MGameState.h"
+#include "GameFramework/MGameMode.h"
+#include "GameFramework/MPlayerHUD.h"
+#include "GameFramework/MPlayerState.h"
+#include "../../Public/Managers/MBaseManager.h"
 
 void AMGameState::StartBeginPlayTimer()
 {
@@ -42,27 +46,35 @@ void AMGameState::OnTimerCounter()
 
 void AMGameState::StartSession_Implementation()
 {
-	if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+	if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 	{
-		sessionManager->StartSession();
+		SessionManager->StartSession();
 	}
 }
 
 void AMGameState::DestroySession_Implementation()
 {
-	if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+	if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 	{
-		sessionManager->DestroySession();
+		SessionManager->DestroySession();
+	}
+}
+
+void AMGameState::EndSession_Implementation()
+{
+	if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+	{
+		SessionManager->EndSession();
 	}
 }
 
 void AMGameState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
 {
-	for (APlayerState* playerStateBase : PlayerArray)
+	for (APlayerState* PlayerStateBase : PlayerArray)
 	{
-		if (AMPlayerState* playerState = Cast<AMPlayerState>(playerStateBase))
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerStateBase))
 		{
-			playerState->SaveResultOfGame(ResultOfGame);
+			CharacterPS->SaveResultOfGame(ResultOfGame);
 		}
 	}
 }
@@ -71,23 +83,57 @@ void AMGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 
-	if (PlayerArray.Num() == GetPlayerCountFromGameMode())
+	if (IsStandAloneMode())
 	{
-		for (APlayerState* playerStateBase : PlayerArray)
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
 		{
-			if (AMPlayerState* playerState = Cast<AMPlayerState>(playerStateBase))
-			{
-				playerState->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
-			}
+			CharacterPS->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
 		}
 
-		if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+		TimerAccelerationFactorDelegate.AddDynamic(this, &AMGameState::OnTimerAccelerationFactor);
+
+		if (TimerFinishDelegate.IsBound())
 		{
-			if (sessionManager->IsCreateOrStartSession())
+			TimerFinishDelegate.Broadcast(TypeOfTimer);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+			GetWorld()->GetTimerManager().SetTimer(ManagerTiner, this, &AMGameState::OnCheckManagerState, 1.0f, false);
+		}
+	}
+	else
+	{
+		if (PlayerArray.Num() == GetPlayerCountFromGameMode())
+		{
+			for (APlayerState* playerStateBase : PlayerArray)
 			{
-				StartBeginPlayTimer();
+				if (AMPlayerState* playerState = Cast<AMPlayerState>(playerStateBase))
+				{
+					playerState->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
+				}
+			}
+
+			if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+			{
+				if (sessionManager->IsCreateOrStartSession())
+				{
+					StartBeginPlayTimer();
+				}
 			}
 		}
+	}
+}
+
+void AMGameState::RemovePlayerState(APlayerState* PlayerState)
+{
+	Super::RemovePlayerState(PlayerState);
+
+	if (PlayerArray.Num() == 1)
+	{
+		EndSession();
 	}
 }
 
@@ -101,15 +147,28 @@ void AMGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 int AMGameState::GetPlayerCountFromGameMode()
 {
-	if (UGameplayStatics::GetGameMode(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 		{
-			return gameMode->CountOfMaxNumPlayers;
+			return GameMode->CountOfMaxNumPlayers;
 		}
 	}
 
 	return 0;
+}
+
+bool AMGameState::IsStandAloneMode()
+{
+	if (IsValid(GetWorld()))
+	{
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		{
+			return GameMode->bStandAloneMode;
+		}
+	}
+
+	return false;
 }
 
 int AMGameState::GetTimeForTimerByType()
@@ -118,13 +177,13 @@ int AMGameState::GetTimeForTimerByType()
 
 	if (UGameplayStatics::GetGameMode(GetWorld()))
 	{
-		if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 		{
-			time = *gameMode->MainTimerMap.Find(TypeOfTimer);
+			return *GameMode->MainTimerMap.Find(TypeOfTimer);
 		}
 	}
 
-	return time;
+	return 0;
 }
 
 int AMGameState::GetAdditionalTimeForTimerByType()
@@ -284,5 +343,35 @@ void AMGameState::ShowTimeForHUD(bool bMain, int Time)
 				playerHUD->SetTimeTimerWidget(bMain, Time);
 			}
 		}
+	}
+}
+
+void AMGameState::OnCheckManagerState()
+{
+	TArray<AActor*> FindManagers;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMBaseManager::StaticClass(), FindManagers);
+
+	int CountOfReadyManager = 0;
+
+	for (AActor* Manager : FindManagers)
+	{
+		if (AMBaseManager* FindManager = Cast<AMBaseManager>(Manager))
+		{
+			if (FindManager->IsFinishBind())
+			{
+				CountOfReadyManager = CountOfReadyManager + 1;
+			}
+		}
+	}
+
+	if (FindManagers.Num() == CountOfReadyManager)
+	{
+		TimerFinishDelegate.Broadcast(ETypeOfTimer::StartMatch);
+		GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+	}
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+		GetWorld()->GetTimerManager().SetTimer(ManagerTiner, this, &AMGameState::OnCheckManagerState, 1.0f, false);
 	}
 }

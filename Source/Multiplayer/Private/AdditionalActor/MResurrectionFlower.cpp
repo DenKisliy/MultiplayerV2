@@ -39,7 +39,7 @@ void AMResurrectionFlower::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* O
 {
 	if (!Player)
 	{
-		Player = Cast<AMBaseCharacter>(Other);
+		Player = Cast<AMPlayerCharacter>(Other);
 		if (Player)
 		{
 			IsHaveResurrectionItemInInventory(Player->GetPlayerName());
@@ -86,7 +86,7 @@ void AMResurrectionFlower::IsHaveResurrectionItemInInventory_Implementation(cons
 				{
 					if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
 					{
-						if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+						if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
 						{
 							if (player->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
 							{
@@ -122,7 +122,7 @@ void  AMResurrectionFlower::RemoveResurrectionItemFromInventory_Implementation(c
 				{
 					if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
 					{
-						if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+						if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
 						{
 							player->InventoryComponent->UseItem(ItemForResurrectionInfo);
 						}

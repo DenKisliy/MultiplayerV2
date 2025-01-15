@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UI/Inform/MSInformativeWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "Informative"
@@ -10,12 +11,18 @@ void MSInformativeWidget::Construct(const FArguments& InArgs)
 	bCanSupportFocus = true;
 
 	OwnerHUD = InArgs._OwnerHUD;
-	WidgetData = InArgs._WidgetData.Get();
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
+
+	bWarning = InArgs._Warning.Get();
+
+	bWaiting = InArgs._Waiting.Get();
+
+	TypeOfNextWidget = InArgs._NextWidget.Get();
+
+	TypeOfPreviousWidget = InArgs._PreviousWidget.Get();
 
 	FSlateBrush* Style = new FSlateBrush();
 
-	if (WidgetData.Get()->bWarning)
+	if (bWarning)
 	{
 		Style->TintColor = FColor::Red;
 	}
@@ -35,31 +42,32 @@ void MSInformativeWidget::Construct(const FArguments& InArgs)
 							SNew(SBorder).BorderImage(Style)
 							[
 								SAssignNew(WidgetBox, SVerticalBox)
-									+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
 									[
-										SNew(STextBlock).Font(StyleData->TitleTextStyle).Justification(ETextJustify::Center).Text(WidgetData.Get()->bWarning ?
+										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Justification(ETextJustify::Center).Text(bWarning ?
 											LOCTEXT("Informative", "Warning") : LOCTEXT("Informative", "Information"))
 									]
 
-									+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(StyleData->ButtontPadding)
+									+ SVerticalBox::Slot().AutoHeight().HAlign(HAlign_Center).Padding(UMWidgetStyle::GetButtontPadding())
 									[
-										SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(WidgetData.Get()->Text).Justification(ETextJustify::Center).AutoWrapText(true)
+										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(InArgs._Text.Get()).Justification(ETextJustify::Center).AutoWrapText(true)
 									]
 							]
 						]
 			]
 	];
 
-	if (!WidgetData.Get()->bWaitingWidget)
+	if (!bWaiting)
 	{
-		WidgetBox.Get()->AddSlot().AutoHeight().Padding(StyleData->ButtontPadding)
-			[
-				SNew(SButton).OnClicked(this, &MSInformativeWidget::OnConfirm)
-					[
-						SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Informative", "Ok")).Justification(ETextJustify::Center)
-					]
-			];
+		WidgetBox.Get()->AddSlot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+		[
+			SNew(SButton).OnClicked(this, &MSInformativeWidget::OnConfirm)
+				[
+					SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Informative", "Ok")).Justification(ETextJustify::Center)
+				]
+		];
 	}
+
 }
 
 bool MSInformativeWidget::SupportsKeyboardFocus() const
@@ -69,17 +77,27 @@ bool MSInformativeWidget::SupportsKeyboardFocus() const
 
 FReply MSInformativeWidget::OnConfirm() const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
-		if (WidgetData.Get()->bWarning)
-		{
-			HUD->CloseWidget(ETypeOfWidget::Inform);
+		if (bWarning)
+			{
+				if (HUD->InformativeWidget.IsValid())
+				{
+					if (IsValid(HUD->GetWorld()))
+					{
+						if (HUD->GetWorld()->GetGameViewport())
+						{
+							HUD->GetWorld()->GetGameViewport()->RemoveViewportWidgetContent(HUD->InformContainer.ToSharedRef());
+							HUD->SetFocus(TypeOfPreviousWidget);
+						}
+					}
+				}
+			}
+			else if (TypeOfNextWidget != ETypeOfWidget::None)
+			{
+				HUD->ShowWidget(TypeOfNextWidget);
+			}
 		}
-		else
-		{
-			HUD->ShowNextWidget(WidgetData.Get()->TypeOfNextWidget);
-		}
-	}
 
 	return FReply::Handled();
 }

@@ -2,6 +2,7 @@
 
 
 #include "GameFramework/MPlayerController.h"
+#include "../../Public/GameFramework/MPlayerHUD.h"
 
 AMPlayerController::AMPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -174,31 +175,28 @@ void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTy
 	}
 }
 
-void AMPlayerController::SubmitMessage_Implementation(const FString& PlayerName, const FString& MessageText)
+void AMPlayerController::MessageSubmit_Implementation()
 {
 	if (GetWorld()->GetGameState())
 	{
-		TArray<TObjectPtr<APlayerState>> playerArray = GetWorld()->GetGameState()->PlayerArray;
-		for (int i = 0; i < playerArray.Num(); i++)
+		for (auto PlayerStateInfo : GetWorld()->GetGameState()->PlayerArray)
 		{
-			APlayerState* playerState = playerArray[i].Get();
-			if (IsValid(playerState))
+			if (APlayerState* State = Cast<APlayerState>(PlayerStateInfo.Get()))
 			{
-				AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController());
-				if (IsValid(playerController))
+				if (AMPlayerController* PlayerController = Cast<AMPlayerController>(State->GetPlayerController()))
 				{
-					playerController->UpdateChat(PlayerName, MessageText);
+					PlayerController->UpdateChat();
 				}
 			}
 		}
 	}
 }
 
-void AMPlayerController::UpdateChat_Implementation(const FString& PlayerName, const FString& MessageText)
+void AMPlayerController::UpdateChat_Implementation()
 {
-	if (IsValid(PlayerHUD))
+	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(GetHUD()))
 	{
-		PlayerHUD->AddMessage(PlayerName, MessageText);
+		HUD->ChatWidget.Get()->UpdateChatBox();
 	}
 }
 

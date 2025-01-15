@@ -8,6 +8,15 @@
 #include "MSQLDataStruct.generated.h"
 
 UENUM(BlueprintType)
+enum class ECreatTableFieldType : uint8
+{
+	Int,
+	Varchar,
+	Text,
+	Datetime,
+};
+
+UENUM(BlueprintType)
 enum class EQueryResultValType : uint8
 {
 	Int,
@@ -125,5 +134,32 @@ struct MSQLConnectorQueryResult
 	{
 		ErrorMessage = NewErrorMessage;
 		Success = !NewErrorMessage.IsEmpty();
+	}
+};
+
+USTRUCT()
+struct FCreateTableStructData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	FString TableName;
+
+	UPROPERTY()
+	TMap<FString, ECreatTableFieldType> Fields;
+
+	FCreateTableStructData()
+	{
+		TableName = "";
+	}
+
+	FCreateTableStructData(FString NewTableName)
+	{
+		TableName = NewTableName;
+	}
+
+	void AddField(FString FieldName, ECreatTableFieldType Type)
+	{
+		Fields.Add(FieldName, Type);
 	}
 };

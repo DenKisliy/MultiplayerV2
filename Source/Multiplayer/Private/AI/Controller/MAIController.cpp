@@ -2,6 +2,7 @@
 
 
 #include "AI/Controller/MAIController.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
 
 AMAIController::AMAIController(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -31,7 +32,7 @@ AMAIController::AMAIController(const FObjectInitializer& ObjectInitializer) :Sup
 
 void AMAIController::SetStartDate()
 {
-	if (AMAIBaseCharacter* bot = Cast<AMAIBaseCharacter>(GetPawn()))
+	if (AMAICharacter* bot = Cast<AMAICharacter>(GetPawn()))
 	{
 		OwnerCharacter = bot;
 		OwnerCharacter->StartMoveDelegate.AddDynamic(this, &AMAIController::LaunchBehaviorTree);
@@ -58,19 +59,19 @@ void AMAIController::OnPerception(AActor* Actor, FAIStimulus Stimulus)
 		{
 			if (Stimulus.WasSuccessfullySensed())
 			{
-				if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Actor))
+				if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(Actor))
 				{
-					if (AMPlayerState* playerState = Cast<AMPlayerState>(player->GetPlayerState()))
+					if (AMPlayerState* PlayerCharcterState = Cast<AMPlayerState>(Player->GetPlayerState()))
 					{
-						if (!playerState->IsPlayerInSaveZone())
+						if (!PlayerCharcterState->IsPlayerInSaveZone())
 						{
 							BlackboardComponent->SetValueAsObject("DetectPlayer", Actor);
-							if (!player->InsertInSaveZoneDelegate.IsBound())
+							if (!Player->InsertInSaveZoneDelegate.IsBound())
 							{
-								player->InsertInSaveZoneDelegate.AddDynamic(this, &AMAIController::OnDetectPlayerInSaveZone);
+								Player->InsertInSaveZoneDelegate.AddDynamic(this, &AMAIController::OnDetectPlayerInSaveZone);
 							}
-							OwnerCharacter->DetectPlayerDelegate.Broadcast(OwnerCharacter, player);
-							OwnerCharacter->SetCharacterSpeed(player->GetCharacterMovement()->GetMaxSpeed() / OwnerCharacter->GetCharacterMovement()->GetMaxSpeed());
+							OwnerCharacter->DetectPlayerDelegate.Broadcast(OwnerCharacter, Player);
+							OwnerCharacter->SetCharacterSpeed(Player->GetCharacterMovement()->GetMaxSpeed() / OwnerCharacter->GetCharacterMovement()->GetMaxSpeed());
 							RunBehaviorTree(BTStalkingAndAttack);
 						}
 					}
@@ -102,7 +103,7 @@ void AMAIController::OnDetectPlayerInSaveZone(AActor* Player)
 {
 	if (InitializeBlackboardComponent(BTStalkingAndAttack))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Player))
+		if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player))
 		{
 			BlackboardComponent->SetValueAsObject("DetectPlayer", nullptr);
 			RunBehaviorTree(BTPatrol);

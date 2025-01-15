@@ -3,23 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 
 #include "Kismet/GameplayStatics.h"
-#include "../AI/Character/MAIBaseCharacter.h"
-#include "../Character/MBaseCharacter.h"
+#include "../Character/MAICharacter.h"
+#include "../AI/Move/MPatrolPath.h"
+#include "../Character/MPlayerCharacter.h"
 #include "../GameFramework/MGameState.h"
+#include "../Managers/MBaseManager.h"
 
 #include "MSpawnBotManager.generated.h"
 
 UCLASS()
-class MULTIPLAYER_API AMSpawnBotManager : public AActor
+class MULTIPLAYER_API AMSpawnBotManager : public AMBaseManager
 {
 	GENERATED_BODY()
 	 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Actor, meta = (AllowPrivateAccess = true))
-	TSubclassOf<AMAIBaseCharacter> AICharacterStatic;
+	TSubclassOf<AMAICharacter> AICharacterStatic;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Actor, meta = (AllowPrivateAccess = true))
 	TSubclassOf<AMPatrolPath> PatrolPathStatic;
@@ -28,7 +29,7 @@ public:
 	TArray<FItemTypeInfo> RewardItemsArray;
 
 private:
-	TMap<AMAIBaseCharacter*, AMBaseCharacter* > DetectPlayer;
+	TMap<AMAICharacter*, AMPlayerCharacter* > DetectPlayer;
 
 public:	
 	// Sets default values for this actor's properties

@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 
-#include "../../Character/MBaseCharacter.h"
 #include "../../GAS/Abilities/MBaseAbility.h"
 #include "AbilitySystemBlueprintLibrary.h"
 

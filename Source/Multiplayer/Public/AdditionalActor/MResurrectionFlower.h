@@ -10,7 +10,7 @@
 
 #include "../GameFramework/MGameState.h"
 #include "../GameFramework/MPlayerController.h"
-#include "../Character/MBaseCharacter.h"
+#include "../Character/MPlayerCharacter.h"
 
 #include "MResurrectionFlower.generated.h"
 
@@ -33,7 +33,7 @@ public:
 	FItemTypeInfo ItemForResurrectionInfo;
 
 private:
-	AMBaseCharacter* Player = nullptr;
+	AMPlayerCharacter* Player = nullptr;
 
 public:	
 	// Sets default values for this actor's properties

@@ -50,10 +50,10 @@ public:
 	void BeginPlay();
 
 	UFUNCTION(Server, Reliable)
-	void SubmitMessage(const FString& PlayerName, const FString& MessageText);
+	void MessageSubmit();
 
 	UFUNCTION(Client, Reliable)
-	void UpdateChat(const FString& PlayerName, const FString& MessageText);
+	void UpdateChat();
 
 	void CharacterDeath();
 

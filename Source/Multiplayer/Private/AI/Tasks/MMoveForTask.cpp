@@ -2,6 +2,7 @@
 
 
 #include "AI/Tasks/MMoveForTask.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
 
 UMMoveForTask::UMMoveForTask(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
@@ -17,9 +18,9 @@ EBTNodeResult::Type UMMoveForTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp
 	{
 		if (UBlackboardComponent* blackboard = OwnerComp.GetBlackboardComponent())
 		{
-			if (AMBaseCharacter* detectPlayer = Cast<AMBaseCharacter>(blackboard->GetValueAsObject("DetectPlayer")))
+			if (AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(blackboard->GetValueAsObject("DetectPlayer")))
 			{
-				botController->MoveToLocation(detectPlayer->GetActorLocation());
+				botController->MoveToLocation(DetectPlayer->GetActorLocation());
 				nodeResult = EBTNodeResult::Succeeded;
 			}
 		}

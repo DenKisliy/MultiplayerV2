@@ -34,6 +34,8 @@ public class Multiplayer : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "SQLiteCore", "SQLiteSupport" });
 
+		PrivateDependencyModuleNames.AddRange(new string[] { "Networking", "Sockets" });
+
 		PublicIncludePaths.Add("../DataBaseConnectorC64/include");
 
 		bool LibSupportedBool = false;

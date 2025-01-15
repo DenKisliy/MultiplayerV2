@@ -25,10 +25,6 @@ class MULTIPLAYER_API MSRegistrationWidget : public SCompoundWidget
 private:
 	TWeakObjectPtr<AHUD> OwnerHUD;
 
-	TSharedPtr<SEditableTextBox> LoginBoxPtr;
-
-	TSharedPtr<SEditableTextBox> PasswordBoxPtr;
-
 	SComboBox<TSharedPtr<FText>> TypeOfCharacterPtr;
 
 	TSharedPtr<SComboBox<TSharedPtr<FText>>> TypeOfCharacterComboBox;
@@ -42,9 +38,16 @@ private:
 	TSharedPtr<FText> DefaultTypeOfCharacter;
 
 public:
+	TSharedPtr<SEditableTextBox> LoginBoxPtr;
+
+	TSharedPtr<SEditableTextBox> PasswordBoxPtr;
+
+public:
 	void Construct(const FArguments& InArgs);
 
 	virtual bool SupportsKeyboardFocus() const override;
+
+	void SetFocus();
 
 private:
 	FReply OnSingUn() const;
@@ -53,11 +56,13 @@ private:
 
 	FReply OnBackToPreviousMenu() const;
 
-	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
+	void ShowInformWidget(FText Text, bool bWarning = true, ETypeOfWidget NextWidget = ETypeOfWidget::None, ETypeOfWidget PreviousWidget = ETypeOfWidget::Registration) const;
 
 	FString GetInformMessage(FString Login, FString Password, FString Type) const;
 
 	 void SetStyle(FString Login, FString Password, FString Type) const;
 
 	 void SetDefaultValuesForWidgets();
+
+	 void OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod);
 };

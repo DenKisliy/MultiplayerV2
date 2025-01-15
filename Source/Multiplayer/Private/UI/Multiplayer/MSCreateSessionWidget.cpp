@@ -2,6 +2,7 @@
 
 
 #include "UI/Multiplayer/MSCreateSessionWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "CreateSession"
@@ -11,8 +12,7 @@ void MSCreateSessionWidget::Construct(const FArguments& InArgs)
 	bCanSupportFocus = true;
 
 	OwnerHUD = InArgs._OwnerHUD;
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
+	
 	ChildSlot
 		[
 			SNew(SOverlay)
@@ -21,39 +21,40 @@ void MSCreateSessionWidget::Construct(const FArguments& InArgs)
 					SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
 						[
 							SNew(SVerticalBox)
-								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
 								[
-									SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
+									SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
 								]
 
-								+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
 								[
 									SNew(SHorizontalBox)
-										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
+										+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
 										[
-											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("CreateSession", "Session name")).Justification(ETextJustify::Left)
+											SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("CreateSession", "Session name")).Justification(ETextJustify::Left)
 										]
 
-										+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
+										+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
 										[
-											SAssignNew(SessionNameBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("CreateSession", "Session name"))
+											SAssignNew(SessionNameBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).ClearKeyboardFocusOnCommit(true)
+												.Font(UMWidgetStyle::GetTitleTextStyle()).HintText(LOCTEXT("CreateSession", "Session name"))
 										]
 
 								]
 
-								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
+								+ SVerticalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
 								[
 									SNew(SButton).OnClicked(this, &MSCreateSessionWidget::OnCreateSession)
 										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("CreateSession", "Create session")).Justification(ETextJustify::Center)
 										]
 								]
 
-								+ SVerticalBox::Slot().Padding(StyleData->ButtontPadding)
+								+ SVerticalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
 								[
 									SNew(SButton).OnClicked(this, &MSCreateSessionWidget::OnBackToPreviousMenu)
 										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("CreateSession", "Back to previous menu")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("CreateSession", "Back to previous menu")).Justification(ETextJustify::Center)
 										]
 								]
 						]
@@ -66,7 +67,7 @@ bool MSCreateSessionWidget::SupportsKeyboardFocus() const
 	return true;
 }
 
-void MSCreateSessionWidget::CreateSession()
+void MSCreateSessionWidget::CreateSession() const
 {
 	FString SessionName = SessionNameBoxPtr->GetText().ToString();
 
@@ -87,10 +88,11 @@ FReply MSCreateSessionWidget::OnCreateSession() const
 
 	if (!SessionName.IsEmpty())
 	{
-		ShowInformWidget(new FInformativeWidgetData(FText::FromString("Please wait. Session creation in progress."), false, true, ETypeOfWidget::CreateSession));
+		ShowInformWidget(FText::FromString("Please wait. Session creation in progress."));
 	}
 	else
 	{
+		ShowInformWidget(FText::FromString("Session name is not set."), true, false, ETypeOfWidget::CreateSession);
 		SessionNameBoxPtr->SetColorAndOpacity(FColor::Red);
 	}
 
@@ -99,10 +101,10 @@ FReply MSCreateSessionWidget::OnCreateSession() const
 
 FReply MSCreateSessionWidget::OnBackToPreviousMenu() const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
 		SetDefault();
-		HUD->ShowNextWidget(ETypeOfWidget::Menu);
+		HUD->ShowWidget(ETypeOfWidget::MultiplayerMenu);
 	}
 
 	return FReply::Handled();
@@ -115,11 +117,34 @@ void MSCreateSessionWidget::SetDefault() const
 }
 
 
-void MSCreateSessionWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+void MSCreateSessionWidget::ShowInformWidget(FText Text, bool bWarning, bool bWaiting, ETypeOfWidget PreviousWidget) const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (GEngine && GEngine->GameViewport)
 	{
-		HUD->ShowInformWidget(InformWidgetData);
+		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
+		{
+			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Text(Text).Warning(bWarning).Waiting(bWaiting).PreviousWidget(PreviousWidget);
+			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
+
+			if (IsValid(HUD->GetWorld()))
+			{
+				if (HUD->GetWorld()->GetGameViewport())
+				{
+					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
+				}
+			}
+			
+			if (bWaiting)
+			{
+				FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+
+				FTimerHandle CreateSessionTimer;
+				HUD->GetWorld()->GetTimerManager().SetTimer(CreateSessionTimer, [this]()
+					{
+						CreateSession();
+					}, 1.0f, false);
+			}
+		}
 	}
 }
 

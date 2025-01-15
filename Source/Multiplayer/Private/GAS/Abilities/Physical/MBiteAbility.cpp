@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Physical/MBiteAbility.h"
+#include "../../../../Public/Character/MBaseCharacter.h"
 
 UMBiteAbility::UMBiteAbility()
 {
@@ -13,7 +14,7 @@ void UMBiteAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		PlayMontage();
 	}
@@ -21,9 +22,9 @@ void UMBiteAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UMBiteAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->EndAbilityDelegate.Broadcast();
+		Character->EndAbilityDelegate.Broadcast();
 	}
 
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);

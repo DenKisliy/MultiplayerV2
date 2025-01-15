@@ -2,6 +2,7 @@
 
 
 #include "UI/PlayerWidget/Item/MInventoryWidget.h"
+#include "../../../../Public/Character/MPlayerCharacter.h"
 
 void UMInventoryWidget::NativeConstruct()
 {
@@ -9,11 +10,11 @@ void UMInventoryWidget::NativeConstruct()
 
 	CreateItemsList();
 
-	if (APlayerController* playerController = Cast<APlayerController>(GetOwningPlayer()))
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetOwningPlayer()))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+		if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(PlayerController->GetPawn()))
 		{
-			player->InventoryComponent->UpdateInventoryDelegate.AddDynamic(this, &UMInventoryWidget::CreateItemsList);
+			Player->InventoryComponent->UpdateInventoryDelegate.AddDynamic(this, &UMInventoryWidget::CreateItemsList);
 		}
 	}
 }
@@ -21,20 +22,20 @@ void UMInventoryWidget::NativeConstruct()
 void UMInventoryWidget::CreateItemsList()
 {
 	ScrollBox->ClearChildren();
-	TArray<UMItemBase*> itemsArray;
-	if (APlayerController* playerController = Cast<APlayerController>(GetOwningPlayer()))
+	TArray<UMItemBase*> ItemsArray;
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetOwningPlayer()))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+		if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(PlayerController->GetPawn()))
 		{
-			itemsArray = player->InventoryComponent->GetItemsArray();
+			ItemsArray = Player->InventoryComponent->GetItemsArray();
 		}
 	}
 
-	if (itemsArray.Num() > 0)
+	if (ItemsArray.Num() > 0)
 	{
 		int count = 0;
 		UHorizontalBox* horizontalBox = nullptr;
-		for (int i = 0; i< itemsArray.Num(); i++)
+		for (int i = 0; i< ItemsArray.Num(); i++)
 		{
 			if (!horizontalBox)
 			{
@@ -42,7 +43,7 @@ void UMInventoryWidget::CreateItemsList()
 			}
 			
 			UMItemWidget* itemWidget = CreateWidget<UMItemWidget>(GetOwningPlayer(), ItemStaticWidget);
-			itemWidget->SetItemInfo(itemsArray[i]);
+			itemWidget->SetItemInfo(ItemsArray[i]);
 			horizontalBox->AddChild(itemWidget);
 			count = count + 1;
 			
@@ -53,7 +54,7 @@ void UMInventoryWidget::CreateItemsList()
 				count = 0;
 			}
 
-			if (i == itemsArray.Num() - 1 && count < CountOfItemInOneRow && count> 0)
+			if (i == ItemsArray.Num() - 1 && count < CountOfItemInOneRow && count> 0)
 			{
 				ScrollBox->AddChild(horizontalBox);
 			}

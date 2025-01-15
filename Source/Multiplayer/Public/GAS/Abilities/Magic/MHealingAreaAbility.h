@@ -5,9 +5,6 @@
 #include "CoreMinimal.h"
 #include "GAS/Abilities/MBaseAbility.h"
 
-#include "../../../MagicActor/MHealingAreaActor.h"
-#include "../../../GameFramework/MCharacter.h"
-
 #include "MHealingAreaAbility.generated.h"
 
 /**

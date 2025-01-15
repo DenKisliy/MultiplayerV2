@@ -2,6 +2,7 @@
 
 
 #include "UI/Menu/MSRegistrationWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "Registration"
@@ -12,121 +13,148 @@ void MSRegistrationWidget::Construct(const FArguments& InArgs)
 
 	OwnerHUD = InArgs._OwnerHUD;
 
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
 	SetDefaultValuesForWidgets();
 
 	ChildSlot
-		[
-			SNew(SOverlay)
-				+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-				[
-					SNew(SImage).ColorAndOpacity(FColor::Black)
-				]
+	[
+		SNew(SOverlay)
+			+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			[
+				SNew(SImage).ColorAndOpacity(FColor::Black)
+			]
 
-				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(StyleData->ContentPadding)
-				[
-					SNew(SVerticalBox)
-						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-						[
-							SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
-						]
-
-						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-						[
-							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SVerticalBox)
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
-										]
-
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
-										]
-
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SNew(STextBlock).Font(StyleData->TitleTextStyle).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
-										]
-								]
-
-								+ SHorizontalBox::Slot().AutoWidth().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SVerticalBox)
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SAssignNew(LoginBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("Registration", "Login"))
-										]
-
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SAssignNew(PasswordBoxPtr, SEditableTextBox).MinDesiredWidth(400.0f).IsPassword(true).Font(StyleData->TitleTextStyle).HintText(LOCTEXT("Registration", "Password"))
-										]
-
-										+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-										[
-											SAssignNew(TypeOfCharacterComboBox, SComboBox<TSharedPtr<FText>>).InitiallySelectedItem(SelectedTypeOfCharacter).OptionsSource(&TypeOfCharacterArray)
-												.OnSelectionChanged_Lambda([this](TSharedPtr<FText> NewSelection, ESelectInfo::Type SelectInfo)
-													{
-														SelectedTypeOfCharacter = NewSelection;
-													})
-												.OnGenerateWidget_Lambda([](TSharedPtr<FText> Option)
-													{
-														return SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60)).Text(*Option);
-													})
-														[
-															SAssignNew(CheckBoxPtr, STextBlock).MinDesiredWidth(400.0f).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60))
-																.Text_Lambda([this]()
-																	{
-																		return SelectedTypeOfCharacter.IsValid() ? *SelectedTypeOfCharacter : FText::GetEmpty();
-																	})
-														]
-										]
-								]
-						]
-
-						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-						[
-							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnSingUn)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
-										]
-								]
-
-								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding)
-								[
-									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnCancel)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
-										]
-								]
-						]
-
-						+ SVerticalBox::Slot().AutoHeight().Padding(StyleData->ButtontPadding)
-						[
-							SNew(SHorizontalBox)
-								+ SHorizontalBox::Slot().Padding(StyleData->ButtontPadding).HAlign(HAlign_Center)
-								[
-									SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnBackToPreviousMenu)
-										[
-											SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
-										]
-								]
+			+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(UMWidgetStyle::GetContentPadding())
+			[
+				SNew(SVerticalBox)
+					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+					[
+						SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
 					]
+
+					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+					[
+						SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SVerticalBox)
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
+									]
+
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
+									]
+
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
+									]
+							]
+
+							+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SVerticalBox)
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SAssignNew(LoginBoxPtr, SEditableTextBox)
+											.MinDesiredWidth(400.0f)
+											.OnTextCommitted(this, &MSRegistrationWidget::OnTextCommitted)
+											.ClearKeyboardFocusOnCommit(false)
+											.Font(UMWidgetStyle::GetTitleTextStyle())
+											.HintText(LOCTEXT("Registration", "Login"))
+									]
+
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SAssignNew(PasswordBoxPtr, SEditableTextBox)
+											.MinDesiredWidth(400.0f)
+											.ClearKeyboardFocusOnCommit(false)
+											.IsPassword(true)
+											.Font(UMWidgetStyle::GetTitleTextStyle())
+											.HintText(LOCTEXT("Registration", "Password"))
+									]
+
+									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+									[
+										SAssignNew(TypeOfCharacterComboBox, SComboBox<TSharedPtr<FText>>).InitiallySelectedItem(SelectedTypeOfCharacter).OptionsSource(&TypeOfCharacterArray)
+											.OnSelectionChanged_Lambda([this](TSharedPtr<FText> NewSelection, ESelectInfo::Type SelectInfo)
+												{
+													SelectedTypeOfCharacter = NewSelection;
+												})
+											.OnGenerateWidget_Lambda([](TSharedPtr<FText> Option)
+												{
+													return SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60)).Text(*Option);
+												})
+													[
+														SAssignNew(CheckBoxPtr, STextBlock).MinDesiredWidth(400.0f).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60))
+															.Text_Lambda([this]()
+																{
+																	return SelectedTypeOfCharacter.IsValid() ? *SelectedTypeOfCharacter : FText::GetEmpty();
+																})
+													]
+									]
+							]
+					]
+
+					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+					[
+						SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnSingUn)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
+									]
+							]
+
+							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+							[
+								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnCancel)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
+									]
+							]
+					]
+
+					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+					[
+						SNew(SHorizontalBox)
+							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding()).HAlign(HAlign_Center)
+							[
+								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnBackToPreviousMenu)
+									[
+										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
+									]
+							]
 				]
+			]
 	];
 }
 
 bool MSRegistrationWidget::SupportsKeyboardFocus() const
 {
 	return true;
+}
+
+void MSRegistrationWidget::SetFocus()
+{
+	PasswordBoxPtr->SetIsPassword(false);
+
+	FString Login = LoginBoxPtr->GetText().ToString();
+	FString Password = PasswordBoxPtr->GetText().ToString();
+
+	PasswordBoxPtr->SetIsPassword(true);
+
+	if (Login.IsEmpty() || (!Password.IsEmpty() && !Login.IsEmpty()))
+	{
+		FSlateApplication::Get().SetKeyboardFocus(LoginBoxPtr);
+	}
+	else if (Password.IsEmpty())
+	{
+		FSlateApplication::Get().SetKeyboardFocus(PasswordBoxPtr);
+	}
 }
 
 FReply MSRegistrationWidget::OnSingUn() const
@@ -139,45 +167,39 @@ FReply MSRegistrationWidget::OnSingUn() const
 
 	PasswordBoxPtr->SetIsPassword(true);
 
-	FString TextForMessage = GetInformMessage(Login, Password, Type);
 	SetStyle(Login, Password, Type);
 
-	FInformativeWidgetData* InformWidgetData = nullptr;
-
-	if (TextForMessage.IsEmpty())
+	if (GetInformMessage(Login, Password, Type).IsEmpty())
 	{
-		FPlayerInfoData PlayerInfo = FPlayerInfoData(Login, Password, TypeOfCharacterArray.Find(SelectedTypeOfCharacter) + 1);
+		FPlayerInfoData* PlayerInfo = new FPlayerInfoData(Login, Password, TypeOfCharacterArray.Find(SelectedTypeOfCharacter) + 1);
 
 		if (IsValid(OwnerHUD->GetGameInstance()))
 		{
 			if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = OwnerHUD->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 			{
-				if (!PlayerInfoSubsystem->IsPlayerRegistered(PlayerInfo.Login))
+				if (!PlayerInfoSubsystem->IsPlayerRegistered(PlayerInfo->Login))
 				{
-					bool bResult = PlayerInfoSubsystem->RegisterPlayerData(&PlayerInfo);
-					InformWidgetData = new FInformativeWidgetData(bResult ? FText::FromString("The player is successfully registered.") : FText::FromString("Failed to register player."),
-						!bResult, bResult ? ETypeOfWidget::LoginIn : ETypeOfWidget::None);
+					if (PlayerInfoSubsystem->RegisterPlayerData(PlayerInfo))
+					{
+						ShowInformWidget(FText::FromString("The player is successfully registered."), false, ETypeOfWidget::LoginIn);
+					}
+					else
+					{
+						ShowInformWidget(FText::FromString("Failed to register player."));
+					}
 				}
 				else
 				{
-					InformWidgetData = new FInformativeWidgetData(FText::FromString("A user with this login already exists."), true);
+					ShowInformWidget(FText::FromString("A user with this login already exists."));
 				}
 			}
 		}
+
+		delete PlayerInfo;
 	}
 	else
 	{
-		InformWidgetData = new FInformativeWidgetData(FText::FromString(TextForMessage), true);
-	}
-
-	if (!InformWidgetData->Text.IsEmpty())
-	{
-		ShowInformWidget(InformWidgetData);
-	}
-
-	if (InformWidgetData->TypeOfNextWidget != ETypeOfWidget::None)
-	{
-		OnCancel();
+		ShowInformWidget(FText::FromString(GetInformMessage(Login, Password, Type)));
 	}
 
 	return FReply::Handled();
@@ -198,20 +220,32 @@ FReply MSRegistrationWidget::OnCancel() const
 
 FReply MSRegistrationWidget::OnBackToPreviousMenu() const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
 		OnCancel();
-		HUD->ShowNextWidget(ETypeOfWidget::LoginIn);
+		HUD->ShowWidget(ETypeOfWidget::LoginIn);
 	}
 
 	return FReply::Handled();
 }
 
-void MSRegistrationWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+void MSRegistrationWidget::ShowInformWidget(FText Text, bool bWarning, ETypeOfWidget NextWidget, ETypeOfWidget PreviousWidget) const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD.Get()))
+	if (GEngine && GEngine->GameViewport)
 	{
-		HUD->ShowInformWidget(InformWidgetData);
+		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
+		{
+			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Warning(bWarning).Text(Text).PreviousWidget(PreviousWidget).NextWidget(NextWidget);
+			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
+
+			if (IsValid(HUD->GetWorld()))
+			{
+				if (HUD->GetWorld()->GetGameViewport())
+				{
+					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
+				}
+			}
+		}
 	}
 }
 
@@ -264,6 +298,17 @@ void MSRegistrationWidget::SetDefaultValuesForWidgets()
 			{
 				TypeOfCharacterArray.Add(MakeShareable(new FText(FText::FromString(value))));
 			}
+		}
+	}
+}
+
+void MSRegistrationWidget::OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod)
+{
+	if (CommitMethod == ETextCommit::OnEnter)
+	{
+		if (PasswordBoxPtr.IsValid() && !LoginBoxPtr->GetText().IsEmpty())
+		{
+			FSlateApplication::Get().SetKeyboardFocus(PasswordBoxPtr);
 		}
 	}
 }

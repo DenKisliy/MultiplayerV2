@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 
-#include "../UI/MChatPanelWidget.h"
 #include "../UI/PlayerWidget/MTimerWidget.h"
 #include "../UI/PlayerWidget/MResultGameWidget.h"
 #include "../UI/PlayerWidget/GAS/Attribute/MAttributesGroupWidget.h"
@@ -14,10 +13,12 @@
 
 #include "../UI/Menu/MSLoginInWidget.h"
 #include "../UI/Menu/MSRegistrationWidget.h"
-#include "../UI/Menu/MSMenuWidget.h"
-#include "../UI/Inform/MSInformativeWidget.h"
+#include "../UI/Menu/MSMultiplayerMenuWidget.h"
 #include "../UI/Multiplayer/MSCreateSessionWidget.h"
 #include "../UI/Multiplayer/MSFindSessionWidget.h"
+#include "../UI/Inform/MSInformativeWidget.h"
+#include "../UI/PlayerWidget/Chat/MSChatWidget.h"
+#include "../UI/Menu/MSGameTypeMenuWidget.h"
 
 #include "GameFramework/GameStateBase.h"
 #include "../Subsystem/MPlayerInfoSubsystem.h"
@@ -34,9 +35,6 @@ class MULTIPLAYER_API AMPlayerHUD : public AHUD
 
 public:
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
-	TSubclassOf<UMChatPanelWidget> ChatPanelStatic;
-	
-	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
 	TSubclassOf<UMTimerWidget> TimerStatic;
 
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
@@ -51,29 +49,25 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
 	TSubclassOf<UMInformWidget> InformStatic;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UMChatPanelWidget* ChatPanelWidget;
-
 	//Inform widget
 	TSharedPtr<MSInformativeWidget> InformativeWidget;
-	TSharedPtr<SWidget> InformativeContainer;
+	TSharedPtr<SWidget> InformContainer;
 
 	//Menu widgets
 	TSharedPtr<MSLoginInWidget> LoginInWidget;
-	TSharedPtr<SWidget> LoginInContainer;
 
 	TSharedPtr<MSRegistrationWidget> RegistrationWidget;
-	TSharedPtr<SWidget> RegistrationContainer;
 
-	TSharedPtr<MSMenuWidget> MenuWidget;
-	TSharedPtr<SWidget> MenuContainer;
+	TSharedPtr<MSMultiplayerMenuWidget> MultiplayerMenuWidget;
 
 	//Multiplayers widgets
 	TSharedPtr<MSCreateSessionWidget> CreateSessionWidget;
-	TSharedPtr<SWidget> CreateSessionContainer;
 
 	TSharedPtr<MSFindSessionWidget> FindSessionWidget;
-	TSharedPtr<SWidget> FindSessionContainer;
+
+	TSharedPtr<MSChatWidget> ChatWidget;
+
+	TSharedPtr<MSGameTypeMenuWidget> GameTypeMenuWidget;
 
 private:
 	UMTimerWidget* TimerWidget;
@@ -85,17 +79,10 @@ private:
 	UMInformWidget* InformWidget;
 
 	ETypeOfWidget CurrentWidgetType;
-
-	FOnlineSessionSearchResult SessionData;
-
 public:
 	AMPlayerHUD(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
-
-	void SetDelegateForSendMessageEvent(FScriptDelegate Delegate);
-
-	void AddMessage(FString PlayerName, FString MessageText);
 
 	void SetTimeTimerWidget(bool bMain, int Time);
 
@@ -111,14 +98,12 @@ public:
 
 	void CloseWidget(ETypeOfWidget TypeOfWidget);
 
-	void ShowInformWidget(FInformativeWidgetData* InformWidgetData);
+	void ShowWidget(ETypeOfWidget TypeOfUIWidget);
 
-	void ShowNextWidget(ETypeOfWidget TypeOfUIWidget);
+	void SetFocus(ETypeOfWidget TypeOfWidget);
 
-	UFUNCTION()
-	void OnFindSessions(bool bFindSession);
+protected:
+	virtual void PostInitializeComponents() override;
 
-private:
-	UFUNCTION()
-	void GoToNextWidgetStep();
+	virtual void DrawHUD() override;
 };

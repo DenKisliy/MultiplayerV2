@@ -6,7 +6,6 @@
 #include "GAS/Abilities/MBaseAbility.h"
 
 #include "../../../MagicAttackActor/MWindBallActor.h"
-#include "../../../GameFramework/MCharacter.h"
 
 #include "MWindBallAbility.generated.h"
 

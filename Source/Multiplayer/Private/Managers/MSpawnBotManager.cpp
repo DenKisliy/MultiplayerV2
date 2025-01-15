@@ -2,6 +2,7 @@
 
 
 #include "Managers/MSpawnBotManager.h"
+#include "../../Public/GameFramework/MGameMode.h"
 
 // Sets default values
 AMSpawnBotManager::AMSpawnBotManager()
@@ -16,9 +17,13 @@ void AMSpawnBotManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+	if (IsValid(GetWorld()))
 	{
-		gameState->TimerFinishDelegate.AddDynamic(this, &AMSpawnBotManager::SpawnBot);
+		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		{
+			GameState->TimerFinishDelegate.AddDynamic(this, &AMSpawnBotManager::SpawnBot);
+			SetFinishBind();
+		}
 	}
 }
 
@@ -39,7 +44,7 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 					{
 						if (!patrolPath->IsSetOwner())
 						{
-							if (AMAIBaseCharacter* AICharacter = GetWorld()->SpawnActor<AMAIBaseCharacter>(AICharacterStatic, patrolPath->GetStartPoint(), patrolPath->GetRotatorForStartPoint(), FActorSpawnParameters()))
+							if (AMAICharacter* AICharacter = GetWorld()->SpawnActor<AMAICharacter>(AICharacterStatic, patrolPath->GetStartPoint(), patrolPath->GetRotatorForStartPoint(), FActorSpawnParameters()))
 							{
 								patrolPath->SetOwner(AICharacter);
 								AICharacter->StartMove(patrolPath);
@@ -63,9 +68,9 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 
 void AMSpawnBotManager::DetectPlayerByBot(AActor* Bot, AActor* Player)
 {
-	if (AMAIBaseCharacter* bot = Cast<AMAIBaseCharacter>(Bot))
+	if (AMAICharacter* bot = Cast<AMAICharacter>(Bot))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Player))
+		if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Player))
 		{
 			if (!DetectPlayer.Find(bot))
 			{
@@ -88,9 +93,9 @@ void AMSpawnBotManager::DetectPlayerByBot(AActor* Bot, AActor* Player)
 
 void AMSpawnBotManager::PlayerRemoveSaveZone(AActor* Player)
 {
-	if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Player))
+	if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Player))
 	{
-		TArray<AMAIBaseCharacter*> stalkingBots;
+		TArray<AMAICharacter*> stalkingBots;
 		for (auto value : DetectPlayer)
 		{
 			if (value.Value == player)
@@ -101,7 +106,7 @@ void AMSpawnBotManager::PlayerRemoveSaveZone(AActor* Player)
 
 		if (stalkingBots.Num() > 0)
 		{
-			for (AMAIBaseCharacter* bot : stalkingBots)
+			for (AMAICharacter* bot : stalkingBots)
 			{
 				stalkingBots.Remove(bot);
 			}

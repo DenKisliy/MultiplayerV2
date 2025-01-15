@@ -57,7 +57,7 @@ void AMCaptureStation::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AMBaseCharacter* hitActor = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* hitActor = Cast<AMPlayerCharacter>(Other))
 	{
 		FVector center = GetActorLocation();
 		FVector hitActorLocation = hitActor->GetActorLocation();
@@ -84,7 +84,7 @@ void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overl
 
 void AMCaptureStation::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AMBaseCharacter* hitActor = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* hitActor = Cast<AMPlayerCharacter>(Other))
 	{
 		if (!bCapture)
 		{
@@ -105,7 +105,7 @@ void AMCaptureStation::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* Overlap
 	}
 }
 
-void AMCaptureStation::ActivateGameplayEffectForCharacter(AMBaseCharacter* Character, bool bValue)
+void AMCaptureStation::ActivateGameplayEffectForCharacter(AMPlayerCharacter* Character, bool bValue)
 {
 	if (IsValid(GameplayEffect))
 	{
@@ -158,7 +158,7 @@ void AMCaptureStation::AddItems_Implementation()
 		{
 			if (APlayerState* playerState = playerArray[i].Get())
 			{
-				for (AMBaseCharacter* player : InsertPlayerArray)
+				for (AMPlayerCharacter* player : InsertPlayerArray)
 				{
 					if (player->GetPlayerName() == playerState->GetPlayerName())
 					{

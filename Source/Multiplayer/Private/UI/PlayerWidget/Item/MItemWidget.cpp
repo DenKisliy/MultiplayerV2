@@ -2,7 +2,7 @@
 
 
 #include "UI/PlayerWidget/Item/MItemWidget.h"
-#include <Character/MBaseCharacter.h>
+#include "../../../../Public/Character/MPlayerCharacter.h"
 
 void UMItemWidget::NativeConstruct()
 {
@@ -67,9 +67,9 @@ void UMItemWidget::RemoveItem()
 {
 	if (APlayerController* playerController = Cast<APlayerController>(GetOwningPlayer()))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+		if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
 		{
-			player->InventoryComponent->RemoveItemFromInventory(TypeInfo);
+			Player->InventoryComponent->RemoveItemFromInventory(TypeInfo);
 		}
 	}
 
@@ -89,7 +89,7 @@ void UMItemWidget::UseItem()
 {
 	if (APlayerController* playerController = Cast<APlayerController>(GetOwningPlayer()))
 	{
-		if (AMBaseCharacter* player = Cast<AMBaseCharacter>(playerController->GetPawn()))
+		if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
 		{
 			player->InventoryComponent->UseItem(TypeInfo);
 		}

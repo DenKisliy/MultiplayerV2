@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Physical/MSwordAttackAbility.h"
+#include "../../../../Public/Character/MBaseCharacter.h"
 
 UMSwordAttackAbility::UMSwordAttackAbility()
 {
@@ -13,7 +14,7 @@ void UMSwordAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		PlayMontage();
 	}
@@ -31,7 +32,7 @@ bool UMSwordAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle H
 
 void UMSwordAttackAbility::CalculateEffect(AActor* ActorWhichAttack, AActor* ActorWhichDamaged)
 {
-	if (AMCharacter* characterAttack = Cast<AMCharacter>(ActorWhichAttack))
+	if (AMBaseCharacter* characterAttack = Cast<AMBaseCharacter>(ActorWhichAttack))
 	{
 		FGameplayEffectContextHandle EffectContext = characterAttack->GetAbilitySystemComponent()->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
@@ -47,7 +48,7 @@ void UMSwordAttackAbility::CalculateEffect(AActor* ActorWhichAttack, AActor* Act
 				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, magnitudeValue);
 			}
 
-			if (AMCharacter* characterDamaged = Cast<AMCharacter>(ActorWhichDamaged))
+			if (AMBaseCharacter* characterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
 			{
 				characterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}

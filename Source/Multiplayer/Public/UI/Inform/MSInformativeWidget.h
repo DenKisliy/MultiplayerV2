@@ -12,20 +12,35 @@
  */
 class MULTIPLAYER_API MSInformativeWidget : public SCompoundWidget
 {
-	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _WidgetData() {}
+	SLATE_BEGIN_ARGS(MSInformativeWidget) : _OwnerHUD(), _Text(FText::FromString("")), _Warning(false),
+		_Waiting(false), _NextWidget(ETypeOfWidget::None), _PreviousWidget(ETypeOfWidget::None) {}
 
 	SLATE_ARGUMENT(TWeakObjectPtr<AHUD>, OwnerHUD)
 
-	SLATE_ATTRIBUTE(TSharedPtr<FInformativeWidgetData>, WidgetData);
+	SLATE_ATTRIBUTE(FText, Text);
+
+	SLATE_ATTRIBUTE(bool, Warning);
+
+	SLATE_ATTRIBUTE(bool, Waiting);
+
+	SLATE_ATTRIBUTE(ETypeOfWidget, NextWidget);
+
+	SLATE_ATTRIBUTE(ETypeOfWidget, PreviousWidget);
 
 	SLATE_END_ARGS()
 
 private:
 	TWeakObjectPtr<AHUD> OwnerHUD;
 
-	TAttribute<TSharedPtr<FInformativeWidgetData>> WidgetData;
-
 	TSharedPtr<SVerticalBox> WidgetBox;
+
+	bool bWarning;
+
+	bool bWaiting;
+
+	ETypeOfWidget TypeOfNextWidget;
+
+	ETypeOfWidget TypeOfPreviousWidget;
 
 public:
 	void Construct(const FArguments& InArgs);

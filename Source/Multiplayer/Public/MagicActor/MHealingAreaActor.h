@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
-#include "../Character/MBaseCharacter.h"
+#include "../Character/MPlayerCharacter.h"
 #include "../Data/MAbilityDataStruct.h"
 #include "Components/SphereComponent.h"
 #include "Particles/ParticleSystemComponent.h"
@@ -33,7 +33,7 @@ private:
 
 	UGameplayEffect* GameplayEffect;
 
-	TArray<AMBaseCharacter*> HealActor;
+	TArray<AMPlayerCharacter*> HealActor;
 
 public:	
 	// Sets default values for this actor's properties

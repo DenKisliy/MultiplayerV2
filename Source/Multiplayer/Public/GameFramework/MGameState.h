@@ -5,10 +5,6 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 
-#include "MGameMode.h"
-#include "MPlayerHUD.h"
-#include "MPlayerState.h"
-
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 
@@ -29,10 +25,6 @@ UCLASS()
 class MULTIPLAYER_API AMGameState : public AGameStateBase
 {
 	GENERATED_BODY()
-
-public:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data Table", meta = (AllowPrivateAccess = "true"))
-	UDataTable* PlayersInfoDataTable;
 
 private:
 	int CountOfDeathPlayers = 0;
@@ -61,6 +53,9 @@ private:
 	UPROPERTY(ReplicatedUsing = OnRep_AdditionalTimerChecker)
 	int AdditionalTimerChecker;
 
+	//Manager Timer
+	FTimerHandle ManagerTiner;
+
 public:
 	FTimerFinish TimerFinishDelegate;
 
@@ -84,15 +79,22 @@ public:
 	void DestroySession();
 
 	UFUNCTION(Server, Reliable)
+	void EndSession();
+
+	UFUNCTION(Server, Reliable)
 	void SaveResultOfGame(EResultOfGame ResultOfGame);
 
 protected:
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
+
+	virtual void RemovePlayerState(APlayerState* PlayerState) override;
 	
 	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
 
 private:
 	int GetPlayerCountFromGameMode();
+
+	bool IsStandAloneMode();
 
 	int GetTimeForTimerByType();
 
@@ -124,5 +126,9 @@ private:
 
 	//show time
 	void ShowTimeForHUD(bool bMain, int Time);
+
+	//Manager timer
+	UFUNCTION()
+	void OnCheckManagerState();
 
 };

@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Magic/MReduceAbility.h"
+#include "../../../../Public/Character/MPlayerCharacter.h"
 
 UMReduceAbility::UMReduceAbility()
 {
@@ -13,9 +14,9 @@ void UMReduceAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, c
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+		Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
 		SetScaleForCharacter(true);
 		StartTimer();
 	}
@@ -30,8 +31,8 @@ void UMReduceAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, con
 
 void UMReduceAbility::SetScaleForCharacter(bool bScale)
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->SetPlayerScale(bScale ? FVector(ReductionFactor) : FVector(1));
+		Character->SetPlayerScale(bScale ? FVector(ReductionFactor) : FVector(1));
 	}
 }

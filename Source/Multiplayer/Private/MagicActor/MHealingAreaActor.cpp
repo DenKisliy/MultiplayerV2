@@ -49,14 +49,14 @@ void AMHealingAreaActor::SetData(FAbilitySpawnActorStruct Data)
 
 void AMHealingAreaActor::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AMBaseCharacter* hitActor = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
-		if (HealActor.Find(hitActor) == INDEX_NONE)
+		if (HealActor.Find(HitActor) == INDEX_NONE)
 		{
-			HealActor.Add(hitActor);
+			HealActor.Add(HitActor);
 			if (IsValid(GameplayEffect))
 			{
-				hitActor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(GameplayEffect, 1.0f, hitActor->GetAbilitySystemComponent()->MakeEffectContext());
+				HitActor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(GameplayEffect, 1.0f, HitActor->GetAbilitySystemComponent()->MakeEffectContext());
 			}
 		}
 	}
@@ -64,20 +64,20 @@ void AMHealingAreaActor::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Ove
 
 void AMHealingAreaActor::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AMBaseCharacter* hitActor = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
-		if (HealActor.Find(hitActor) != INDEX_NONE)
+		if (HealActor.Find(HitActor) != INDEX_NONE)
 		{
-			HealActor.Remove(hitActor);
+			HealActor.Remove(HitActor);
 		}
 	}
 }
 
 void AMHealingAreaActor::SetEffectAfterSetData()
 {
-	for (AMBaseCharacter* actor : HealActor)
+	for (AMPlayerCharacter* Actor : HealActor)
 	{
-		actor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(GameplayEffect, 1.0f, actor->GetAbilitySystemComponent()->MakeEffectContext());
+		Actor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(GameplayEffect, 1.0f, Actor->GetAbilitySystemComponent()->MakeEffectContext());
 	}
 }
 

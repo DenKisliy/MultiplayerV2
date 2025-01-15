@@ -5,8 +5,7 @@
 #include "CoreMinimal.h"
 #include "AIController.h"
 
-#include "../Character/MAIBaseCharacter.h"
-#include "../../Character/MBaseCharacter.h"
+#include "../../Character/MAICharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Hearing.h"
@@ -38,7 +37,7 @@ public:
 	UBlackboardComponent* BlackboardComponent;
 
 private:
-	AMAIBaseCharacter* OwnerCharacter;
+	AMAICharacter* OwnerCharacter;
 
 public:
 	AMAIController(const FObjectInitializer& ObjectInitializer);

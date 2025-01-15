@@ -2,6 +2,8 @@
 
 
 #include "Animation/NotifyState/MHandAttackNotifyState.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
+#include "../../../Public/GAS/Abilities/MBaseAbility.h"
 
 void UMHandAttackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -29,7 +31,7 @@ void UMHandAttackNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAnim
 
 		if (bHitRight || bHitLeft)
 		{
-			AMBaseCharacter* playerWhichAttack = Cast<AMBaseCharacter>(MeshComp->GetOwner());
+			AMPlayerCharacter* playerWhichAttack = Cast<AMPlayerCharacter>(MeshComp->GetOwner());
 
 			if (playerWhichAttack)
 			{

@@ -31,5 +31,5 @@ public:
 private:
 	FReply OnJoinSession() const;
 
-	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
+	void ShowInformWidget(FText Text) const;
 };

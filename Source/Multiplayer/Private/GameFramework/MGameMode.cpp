@@ -20,6 +20,11 @@ void AMGameMode::SetSpawnItems(FItemTypeInfo TypeInfo, FVector Location)
 	}
 }
 
+bool AMGameMode::IsStandAloneMode()
+{
+	return bStandAloneMode;
+}
+
 void AMGameMode::BeginPlay()
 {
 	Super::BeginPlay();

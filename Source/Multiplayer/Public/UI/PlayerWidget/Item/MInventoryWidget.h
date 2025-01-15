@@ -8,6 +8,7 @@
 #include "MItemWidget.h"
 
 #include "Components/ScrollBox.h"
+#include "Components/HorizontalBox.h"
 
 #include "MInventoryWidget.generated.h"
 

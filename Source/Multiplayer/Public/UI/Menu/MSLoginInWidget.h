@@ -24,7 +24,8 @@ class MULTIPLAYER_API MSLoginInWidget : public SCompoundWidget
 private:
 	TWeakObjectPtr<AHUD> OwnerHUD;
 
-	TSharedPtr<SEditableTextBox> LoginBoxPtr; 
+public:
+	TSharedPtr<SEditableTextBox> LoginBoxPtr;
 
 	TSharedPtr<SEditableTextBox> PasswordBoxPtr;
 
@@ -33,6 +34,8 @@ public:
 
 	virtual bool SupportsKeyboardFocus() const override;
 
+	void SetFocus();
+
 private:
 	FReply OnSingIn() const;
 
@@ -40,7 +43,7 @@ private:
 
 	FReply OnSignUp() const;
 
-	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
+	void ShowInformWidget(FText Text) const;
 
 	FString GetInformMessage(FString Login, FString Password) const;
 
@@ -49,4 +52,8 @@ private:
 	void SetDefault() const;
 
 	void SetNextWidget(ETypeOfWidget NextWidgetType) const;
+
+	void OnTextCommitted(const FText& InText, ETextCommit::Type CommitMethod);
+
+	void GetLoginAndPassword(FString& Login, FString& Password) const;
 };

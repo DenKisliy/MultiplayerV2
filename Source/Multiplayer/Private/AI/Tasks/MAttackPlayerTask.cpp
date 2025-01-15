@@ -11,7 +11,7 @@ EBTNodeResult::Type UMAttackPlayerTask::ExecuteTask(UBehaviorTreeComponent& Owne
 	{
 		BehaviorTreeComponent = &OwnerComp;
 		
-		if (AMAIBaseCharacter* ownerCharacter = Cast<AMAIBaseCharacter>(OwnerComp.GetAIOwner()->GetPawn()))
+		if (AMAICharacter* ownerCharacter = Cast<AMAICharacter>(OwnerComp.GetAIOwner()->GetPawn()))
 		{
 			if (UAbilitySystemComponent* abilitySystem = ownerCharacter->GetAbilitySystemComponent())
 			{

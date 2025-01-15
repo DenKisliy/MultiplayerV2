@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "GAS/Abilities/MBaseAbility.h"
 
-#include "../../../Character/MBaseCharacter.h"
-
 #include "MReduceAbility.generated.h"
 
 /**

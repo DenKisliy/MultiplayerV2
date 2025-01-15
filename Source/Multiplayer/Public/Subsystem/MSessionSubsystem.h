@@ -7,20 +7,18 @@
 
 #include "OnlineSubsystem.h"
 #include "OnlineSessionSettings.h"
-#include "Interfaces/OnlineSessionInterface.h"
 #include "Online/OnlineSessionNames.h"
 #include "OnlineSubsystemUtils.h"
+#include "Interfaces/OnlineSessionInterface.h"
 
 #include "Kismet/GameplayStatics.h"
-
-#include "../GameFramework/MGameMode.h"
 
 #include "MSessionSubsystem.generated.h"
 
 /**
  * 
  */
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnResultOfFindSessionsSignature, bool, IsFindSession);
+DECLARE_DELEGATE_OneParam(FOnResultOfFindSessionsSignature, TArray<FOnlineSessionSearchResult>);
 
 UCLASS()
 class MULTIPLAYER_API UMSessionSubsystem : public UGameInstanceSubsystem
@@ -28,7 +26,6 @@ class MULTIPLAYER_API UMSessionSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-
 	FOnResultOfFindSessionsSignature ResultOfFindSessionsDelegate;
 
 private:
@@ -46,8 +43,6 @@ private:
 
 	bool bJoinToSession = false;
 
-	FString JoinSessionName;
-
 public:
 	virtual void Deinitialize() override;
 
@@ -57,7 +52,7 @@ public:
 
 	void FindSessions();
 
-	TArray<FOnlineSessionSearchResult> GetFindSessionsNamesArray();
+	TArray<FOnlineSessionSearchResult> GetFindSessionsArray();
 
 	void StartSession();
 
@@ -65,9 +60,7 @@ public:
 
 	bool IsCreateOrStartSession();
 
-	void SetJoinSessionName(FString SessionName);
-
-	void ConnectToSession();
+	void ConnectToSession(FString JoinSessionName);
 
 private:
 	void SetSessionInfoFromGameMode();
@@ -86,5 +79,5 @@ private:
 
 	void OnEndSessionCompleted(FName SessionName, bool bWasSuccessful);
 
-	FOnlineSessionSearchResult GetSessionDataByName();
+	FOnlineSessionSearchResult GetSessionDataByName(FString SessionName);
 };

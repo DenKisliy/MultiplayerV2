@@ -9,7 +9,6 @@
 #include "Components/SphereComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 
-#include "../Character/MBaseCharacter.h"
 #include "../Data/MAbilityDataStruct.h"
 
 #include "MWindBallActor.generated.h"

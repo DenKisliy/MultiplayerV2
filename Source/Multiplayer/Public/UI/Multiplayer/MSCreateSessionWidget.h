@@ -23,14 +23,13 @@ class MULTIPLAYER_API MSCreateSessionWidget : public SCompoundWidget
 private:
 	TWeakObjectPtr<AHUD> OwnerHUD;
 
+public:
 	TSharedPtr<SEditableTextBox> SessionNameBoxPtr;
 
 public:
 	void Construct(const FArguments& InArgs);
 
 	virtual bool SupportsKeyboardFocus() const override;
-
-	void CreateSession();
 
 private:
 	FReply OnCreateSession() const;
@@ -39,5 +38,7 @@ private:
 
 	void SetDefault() const;
 
-	void ShowInformWidget(FInformativeWidgetData* InformWidgetData) const;
+	void ShowInformWidget(FText Text, bool bWarning = false, bool bWaiting = true, ETypeOfWidget PreviousWidget = ETypeOfWidget::None) const;
+
+	void CreateSession() const;
 };

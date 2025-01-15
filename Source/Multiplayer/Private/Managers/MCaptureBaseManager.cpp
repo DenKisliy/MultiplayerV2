@@ -2,6 +2,8 @@
 
 
 #include "Managers/MCaptureBaseManager.h"
+#include "../../Public/GameFramework/MGameMode.h"
+#include "../../Public/GameFramework/MGameState.h"
 
 // Sets default values
 AMCaptureBaseManager::AMCaptureBaseManager()
@@ -16,47 +18,13 @@ void AMCaptureBaseManager::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), CaptureStationArray);
-
-	if (CaptureStationArray.Num() > 1)
+	if (IsValid(GetWorld()))
 	{
-		CaptureStationArray.Sort([](const AActor& Lhs, const AActor& Rhs) {
-			TArray<FName> leftTags = Lhs.Tags;
-			TArray<FName> rightTags = Rhs.Tags;
-			bool result = false;
-
-			if (rightTags.Num() > 0 && leftTags.Num() > 0)
-			{
-				FName* rightFindElem = nullptr;
-				FName* leftFindElem = nullptr;
-
-				auto searchFunction = [](const FName& Item) {
-					FString text = Item.ToString();
-					return text.Contains("CaptureStation_");
-					};
-
-				rightFindElem = rightTags.FindByPredicate(searchFunction);
-				leftFindElem = leftTags.FindByPredicate(searchFunction);
-
-				if (rightFindElem && leftFindElem)
-				{
-					FString rightText = rightFindElem->ToString();
-					FString leftText = leftFindElem->ToString();
-					rightText.RemoveFromStart("CaptureStation_");
-					leftText.RemoveFromStart("CaptureStation_");
-					int rightIndex = FCString::Atoi(*rightText);
-					int leftIndex = FCString::Atoi(*leftText);
-					result = FCString::Atoi(*rightText) > FCString::Atoi(*leftText);
-				}
-			}
-
-			return result;
-			});
-	}
-
-	if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
-	{
-		gameState->TimerFinishDelegate.AddDynamic(this, &AMCaptureBaseManager::SpawnStation);
+		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		{
+			GameState->TimerFinishDelegate.AddDynamic(this, &AMCaptureBaseManager::SpawnStation);
+			SetFinishBind();
+		}
 	}
 }
 
@@ -70,11 +38,50 @@ void AMCaptureBaseManager::OnSetCaptureStation(int CountOfPlayer)
 
 void AMCaptureBaseManager::SpawnStation(ETypeOfTimer TypeOfFinishTimer)
 {
-	if (CaptureStationArray.Num() == 0)
+	GetCaptureStationArray();
+
+	if (CaptureStationArray.Num() > 0)
+	{
+		if (TypeOfFinishTimer == ETypeOfTimer::CaptureStation)
+		{
+			CaptureStation->CaptureFinish();
+			CaptureStationCount = CaptureStationCount == -1 ? 1 : CaptureStationCount + 1;
+		}
+
+		if (SpawnStationStatic)
+		{
+			if (CaptureStation)
+			{
+				CaptureStation->ChangeCountOfCapturePlayerDelegate.Clear();
+				CaptureStation = nullptr;
+			}
+
+			CaptureStation = GetWorld()->SpawnActor<AMCaptureStation>(SpawnStationStatic, CaptureStationArray[0]->GetActorLocation(), CaptureStationArray[0]->GetActorRotation(), FActorSpawnParameters());
+			CaptureStation->ChangeCountOfCapturePlayerDelegate.AddDynamic(this, &AMCaptureBaseManager::OnSetCaptureStation);
+			CaptureStationArray.RemoveAt(0);
+		}
+		
+		TArray<AActor*> StationCheck;
+		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), StationCheck);
+
+		if (CaptureStationCount >= 1 && StationCheck.Num() == CaptureStationCount)
+		{
+			if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+			{
+				GameState->SaveResultOfGame(EResultOfGame::Win);
+				return;
+			}
+		}
+	}
+}
+
+void AMCaptureBaseManager::GetCaptureStationArray()
+{
+	if (CaptureStationArray.IsEmpty())
 	{
 		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), CaptureStationArray);
 
-		if (CaptureStationArray.Num() > 1)
+		if (CaptureStationArray.Num() > 0)
 		{
 			CaptureStationArray.Sort([](const AActor& Lhs, const AActor& Rhs) {
 				TArray<FName> leftTags = Lhs.Tags;
@@ -106,49 +113,6 @@ void AMCaptureBaseManager::SpawnStation(ETypeOfTimer TypeOfFinishTimer)
 
 				return result;
 				});
-		}
-
-
-		if (CaptureStationCount >= 1 && CaptureStationArray.Num() == CaptureStationCount)
-		{
-			if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
-			{
-				gameState->SaveResultOfGame(EResultOfGame::Win);
-				return;
-			}
-		}
-	}
-
-	if (CaptureStationArray.Num() > 0)
-	{
-		if (TypeOfFinishTimer == ETypeOfTimer::CaptureStation)
-		{
-			CaptureStation->CaptureFinish();
-			CaptureStationCount = CaptureStationCount == -1 ? 1 : CaptureStationCount + 1;
-		}
-
-		if (SpawnStationStatic)
-		{
-			if (CaptureStation)
-			{
-				CaptureStation->ChangeCountOfCapturePlayerDelegate.Clear();
-				CaptureStation = nullptr;
-			}
-			CaptureStation = GetWorld()->SpawnActor<AMCaptureStation>(SpawnStationStatic, CaptureStationArray[0]->GetActorLocation(), CaptureStationArray[0]->GetActorRotation(), FActorSpawnParameters());
-			CaptureStation->ChangeCountOfCapturePlayerDelegate.AddDynamic(this, &AMCaptureBaseManager::OnSetCaptureStation);
-			CaptureStationArray.RemoveAt(0);
-		}
-		
-		TArray<AActor*> StationCheck;
-		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), StationCheck);
-
-		if (CaptureStationCount >= 1 && StationCheck.Num() == CaptureStationCount)
-		{
-			if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
-			{
-				gameState->SaveResultOfGame(EResultOfGame::Win);
-				return;
-			}
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 
 #include "AI/Decorator/MIsDistanceEnoughForAttack.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
 
 bool UMIsDistanceEnoughForAttack::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
@@ -15,13 +16,13 @@ bool UMIsDistanceEnoughForAttack::CalculateRawConditionValue(UBehaviorTreeCompon
 
 	if (AMAIController* controller = Cast<AMAIController>(OwnerComp.GetAIOwner()))
 	{
-		AMAIBaseCharacter* ownerCharacter = Cast<AMAIBaseCharacter>(controller->GetPawn());
-		AMBaseCharacter* detectPlayer = Cast<AMBaseCharacter>(blackboardComp->GetValueAsObject("DetectPlayer"));
+		AMAICharacter* OwnerCharacter = Cast<AMAICharacter>(controller->GetPawn());
+		AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(blackboardComp->GetValueAsObject("DetectPlayer"));
 		
-		if (ownerCharacter && detectPlayer)
+		if (OwnerCharacter && DetectPlayer)
 		{
-			float dist = FVector::DistXY(ownerCharacter->GetActorLocation(), detectPlayer->GetActorLocation()) - 
-				ownerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius() + detectPlayer->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+			float dist = FVector::DistXY(OwnerCharacter->GetActorLocation(), DetectPlayer->GetActorLocation()) -
+				OwnerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius() + DetectPlayer->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
 
 			bValue = (dist <= MaxDistance && dist >= MinDistance);
 		}

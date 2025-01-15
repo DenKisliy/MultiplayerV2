@@ -2,7 +2,7 @@
 
 
 #include "GAS/Abilities/MBaseAbility.h"
-#include <GameFramework/MCharacter.h>
+#include "../../../Public/Character/MBaseCharacter.h"
 
 FAbilityMontageStruct UMBaseAbility::GetRandomMontageStruct()
 {
@@ -54,9 +54,9 @@ bool UMBaseAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 	if (TimerInfo.CostOfActivateAbilityMap.Num() > 0 && TimerInfo.TimerInterval > 0)
 	{
-		if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+		if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 		{
-			return character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+			return Character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap);
 		}
 	}
 
@@ -65,16 +65,16 @@ bool UMBaseAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UMBaseAbility::PlayMontage()
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
 		FAbilityMontageStruct montageStruct = GetRandomMontageStruct();
 		if (montageStruct.GetMontage())
 		{
-			if (UAnimInstance* animInstance = (character->GetMesh()) ? character->GetMesh()->GetAnimInstance() : nullptr)
+			if (UAnimInstance* animInstance = (Character->GetMesh()) ? Character->GetMesh()->GetAnimInstance() : nullptr)
 			{
 				animInstance->Montage_JumpToSection(montageStruct.GetSectionName(), montageStruct.GetMontage());
 				animInstance->OnMontageEnded.AddDynamic(this, &UMBaseAbility::OnMontageEnded);
-				character->MulticastPlayMontage(montageStruct);
+				Character->MulticastPlayMontage(montageStruct);
 			}
 		}
 	}
@@ -95,13 +95,13 @@ void UMBaseAbility::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void UMBaseAbility::OnTimer()
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
 		if (TimerInfo.bLoopTimer)
 		{
-			if (character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap))
+			if (Character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap))
 			{
-				character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+				Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
 			}
 		}
 		else

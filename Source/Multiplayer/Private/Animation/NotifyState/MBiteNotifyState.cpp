@@ -2,6 +2,9 @@
 
 
 #include "Animation/NotifyState/MBiteNotifyState.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
+#include "../../../Public/Character/MAICharacter.h"
+
 
 void UMBiteNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -25,8 +28,8 @@ void UMBiteNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequen
 
 		if (bHit)
 		{
-			AMBaseCharacter* characterWhichDamaged = Cast<AMBaseCharacter>(hitResult.GetActor());
-			AMAIBaseCharacter* playerWhichAttack = Cast<AMAIBaseCharacter>(MeshComp->GetOwner());
+			AMPlayerCharacter* characterWhichDamaged = Cast<AMPlayerCharacter>(hitResult.GetActor());
+			AMAICharacter* playerWhichAttack = Cast<AMAICharacter>(MeshComp->GetOwner());
 
 			if (characterWhichDamaged && playerWhichAttack)
 			{

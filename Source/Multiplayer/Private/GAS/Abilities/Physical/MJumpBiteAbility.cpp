@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Physical/MJumpBiteAbility.h"
+#include "../../../../Public/Character/MBaseCharacter.h"
 
 UMJumpBiteAbility::UMJumpBiteAbility()
 {
@@ -13,7 +14,7 @@ void UMJumpBiteAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		PlayMontage();
 	}
@@ -21,9 +22,9 @@ void UMJumpBiteAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UMJumpBiteAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->EndAbilityDelegate.Broadcast();
+		Character->EndAbilityDelegate.Broadcast();
 	}
 
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);

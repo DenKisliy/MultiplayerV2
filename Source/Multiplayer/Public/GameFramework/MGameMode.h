@@ -24,8 +24,14 @@ class MULTIPLAYER_API AMGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Mode")
+	bool bStandAloneMode = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Mode")
+	FString StandAloneLevelURL = "";
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session Varible")
-	FString OpenLevelURL = "";
+	FString SessionLevelURL = "";
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session Varible")
 	int CountOfMaxNumPlayers = 0;
@@ -55,6 +61,8 @@ public:
 	AMGameMode();
 
 	void SetSpawnItems(FItemTypeInfo ItemType, FVector Location);
+
+	bool IsStandAloneMode();
 
 protected:
 	virtual void BeginPlay() override;

@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Magic/MWindBallAbility.h"
+#include "../../../../Public/Character/MPlayerCharacter.h"
 
 UMWindBallAbility::UMWindBallAbility()
 {
@@ -13,9 +14,9 @@ void UMWindBallAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(ActorInfo->AvatarActor.Get()))
 	{
-		character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+		Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
 
 		SpawnActor();
 
@@ -25,13 +26,13 @@ void UMWindBallAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
 
 void UMWindBallAbility::SpawnActor()
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		AMWindBallActor* windBall = GetWorld()->SpawnActor<AMWindBallActor>(SpawnActorStruct.SpawnActor, character->GetSpawnActorLocation(),
-			character->GetSpawnActorRotation(), FActorSpawnParameters());
+		AMWindBallActor* WindBall = GetWorld()->SpawnActor<AMWindBallActor>(SpawnActorStruct.SpawnActor, Character->GetSpawnActorLocation(),
+			Character->GetSpawnActorRotation(), FActorSpawnParameters());
 
 		SpawnActorStruct.OwnerActor = GetCurrentActorInfo()->AvatarActor.Get();
 		SpawnActorStruct.GameplayEffectForSpawnActor = GetAbilityGameplayEffect();
-		windBall->SetData(SpawnActorStruct);
+		WindBall->SetData(SpawnActorStruct);
 	}
 }

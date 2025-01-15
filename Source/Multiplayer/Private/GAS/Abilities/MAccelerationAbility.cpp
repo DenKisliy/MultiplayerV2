@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/MAccelerationAbility.h"
+#include "../../../Public/Character/MBaseCharacter.h"
 
 UMAccelerationAbility::UMAccelerationAbility()
 {
@@ -13,7 +14,7 @@ void UMAccelerationAbility::ActivateAbility(const FGameplayAbilitySpecHandle Han
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		ActivateAbilityForCharacter();
 		SetSpeedForCharacter(true);
@@ -64,7 +65,7 @@ void UMAccelerationAbility::TimerActiveAbility()
 
 bool UMAccelerationAbility::IsEnoughStamina(const FGameplayAbilityActorInfo* ActorInfo) const
 {
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		if (character->Attributes)
 		{
@@ -77,7 +78,7 @@ bool UMAccelerationAbility::IsEnoughStamina(const FGameplayAbilityActorInfo* Act
 
 void UMAccelerationAbility::ActivateAbilityForCharacter()
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
 		float staminaValue = character->Attributes->GetStamina();
 
@@ -87,7 +88,7 @@ void UMAccelerationAbility::ActivateAbilityForCharacter()
 
 void UMAccelerationAbility::SetSpeedForCharacter(bool bAcceleration)
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
 		character->SetCharacterSpeed(bAcceleration ? AccelerationCoefficientSpeed : -1);
 	}

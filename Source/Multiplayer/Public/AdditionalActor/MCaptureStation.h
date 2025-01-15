@@ -10,7 +10,7 @@
 #include "NavModifierComponent.h"
 #include "NavAreas/NavArea_Null.h"
 
-#include "../Character/MBaseCharacter.h"
+#include "../Character/MPlayerCharacter.h"
 
 #include "NavigationSystem.h"
 #include "Math/MathFwd.h"
@@ -59,7 +59,7 @@ private:
 
 	int CountOfPlayer = 0;
 
-	TArray<AMBaseCharacter*> InsertPlayerArray;
+	TArray<AMPlayerCharacter*> InsertPlayerArray;
 
 public:	
 	// Sets default values for this actor's properties
@@ -74,7 +74,7 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	void ActivateGameplayEffectForCharacter(AMBaseCharacter* Character, bool bValue);
+	void ActivateGameplayEffectForCharacter(AMPlayerCharacter* Character, bool bValue);
 
 	UFUNCTION()
 	void OnRep_NewStatueMesh();

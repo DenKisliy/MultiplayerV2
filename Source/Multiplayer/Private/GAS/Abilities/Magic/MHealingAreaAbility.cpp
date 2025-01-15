@@ -2,6 +2,8 @@
 
 
 #include "GAS/Abilities/Magic/MHealingAreaAbility.h"
+#include "../../../../Public/Character/MPlayerCharacter.h"
+#include "../../../../Public/MagicActor/MHealingAreaActor.h"
 
 UMHealingAreaAbility::UMHealingAreaAbility()
 {
@@ -13,9 +15,9 @@ void UMHealingAreaAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(ActorInfo->AvatarActor.Get()))
 	{
-		character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+		Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
 
 		SpawnActor();
 
@@ -26,12 +28,12 @@ void UMHealingAreaAbility::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 
 void UMHealingAreaAbility::SpawnActor()
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		AMHealingAreaActor* healingArea = GetWorld()->SpawnActor<AMHealingAreaActor>(SpawnActorStruct.SpawnActor, character->GetMesh()->GetComponentLocation(),
-			character->GetSpawnActorRotation(), FActorSpawnParameters());
+		AMHealingAreaActor* HealingArea = GetWorld()->SpawnActor<AMHealingAreaActor>(SpawnActorStruct.SpawnActor, Character->GetMesh()->GetComponentLocation(),
+			Character->GetSpawnActorRotation(), FActorSpawnParameters());
 
 		SpawnActorStruct.GameplayEffectForSpawnActor = GetAbilityGameplayEffect();
-		healingArea->SetData(SpawnActorStruct);
+		HealingArea->SetData(SpawnActorStruct);
 	}
 }

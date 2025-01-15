@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "Engine/DataTable.h"
 #include "SlateBasics.h"
+#include "../UI/Style/MWidgetStyle.h"
 
 #include "MUIDataStruct.generated.h"
 
@@ -11,7 +12,8 @@ enum class ETypeOfWidget : uint8
 	None = 0,
 	LoginIn,
 	Registration,
-	Menu,
+	GameTypeMenu,
+	MultiplayerMenu,
 	CreateSession,
 	FindSession,
 	Inform,
@@ -19,97 +21,30 @@ enum class ETypeOfWidget : uint8
 };
 
 USTRUCT()
-struct FStyleWidgetData
-{
-	GENERATED_USTRUCT_BODY();
-
-	UPROPERTY()
-	FMargin ContentPadding;
-
-	UPROPERTY(EditAnywhere)
-	FMargin ButtontPadding;
-
-	UPROPERTY(EditAnywhere)
-	FSlateFontInfo ButtonTextStyle;
-
-	UPROPERTY(EditAnywhere)
-	FSlateFontInfo TitleTextStyle;
-
-	FStyleWidgetData()
-	{
-		ContentPadding = FMargin(100.0f);
-		ButtontPadding = FMargin(10.0f);
-
-		ButtonTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-		ButtonTextStyle.Size = 40.0f;
-
-		TitleTextStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-		TitleTextStyle.Size = 60.0f;
-	}
-};
-
-USTRUCT()
-struct FInformativeWidgetData
+struct FChatMessageData
 {
 	GENERATED_USTRUCT_BODY();
 
 	UPROPERTY(EditAnywhere)
-	FText Text;
+	FString DateTime;
 
 	UPROPERTY(EditAnywhere)
-	bool bWarning;
+	FString User;
 
 	UPROPERTY(EditAnywhere)
-	bool bWaitingWidget;
+	FString Message;
 
-	UPROPERTY(EditAnywhere)
-	ETypeOfWidget TypeOfNextWidget;
-
-	FInformativeWidgetData()
+	FChatMessageData(FString DateTimeValue = "", FString UserValue = "", FString MessageValue = "")
 	{
-		Text = FText::GetEmpty();
-		bWarning = false;
-		bWaitingWidget = false;
-		TypeOfNextWidget = ETypeOfWidget::None;
+		DateTime = DateTimeValue;
+		User = UserValue;
+		Message = MessageValue;
 	}
 
-	FInformativeWidgetData(FText NewText)
+	FChatMessageData(TMap<FString, FString> Data)
 	{
-		Text = NewText;
-		bWarning = false;
-		bWaitingWidget = false;
-		TypeOfNextWidget = ETypeOfWidget::None;
-	}
-
-	FInformativeWidgetData(FText NewText, bool NewWarning)
-	{
-		Text = NewText;
-		bWarning = NewWarning;
-		bWaitingWidget = false;
-		TypeOfNextWidget = ETypeOfWidget::None;
-	}
-
-	FInformativeWidgetData(FText NewText, ETypeOfWidget NewTypeOfNextWidget)
-	{
-		Text = NewText;
-		bWarning = true;
-		bWaitingWidget = false;
-		TypeOfNextWidget = NewTypeOfNextWidget;
-	}
-
-	FInformativeWidgetData(FText NewText, bool NewWarning, ETypeOfWidget NewTypeOfNextWidget)
-	{
-		Text = NewText;
-		bWarning = NewWarning;
-		bWaitingWidget = false;
-		TypeOfNextWidget = NewTypeOfNextWidget;
-	}
-
-	FInformativeWidgetData(FText NewText, bool NewWarning, bool NewWaitingWidget, ETypeOfWidget NewTypeOfNextWidget)
-	{
-		Text = NewText;
-		bWarning = NewWarning;
-		bWaitingWidget = NewWaitingWidget;
-		TypeOfNextWidget = NewTypeOfNextWidget;
+		DateTime = *Data.Find("DateTime");
+		User = *Data.Find("User");
+		Message = *Data.Find("Message");
 	}
 };

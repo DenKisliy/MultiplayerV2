@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 
+#include "../Data/MUIDataStruct.h"
 #include "../Data/MPlayerDataStruct.h"
 #include "../SQL/MSQLDatabase.h"
 
@@ -28,6 +29,9 @@ private:
 	UPROPERTY()
 	UMSQLDatabase* Database;
 
+	UPROPERTY()
+	FString ChatTableName = "";
+
 public:
 	bool IsPlayerRegistered(FString Login);
 
@@ -43,8 +47,22 @@ public:
 
 	bool IsUserDataCorrect(FString Login, FString Password);
 
+	bool AddMessage(FString Message);
+
+	bool CreateChatTable(FCreateTableStructData* TableData);
+
+	bool DestroyTable(FString TableName);
+
+	void SetChatTableName(FString Value);
+
+	FChatMessageData* GetLastMessageData();
+
 private:
 	void SetDataBase();
 
 	void CloseDataBase();
+
+	bool CreateTable(FCreateTableStructData* TableData);
+
+	FString GetTypeForQuery(ECreatTableFieldType Type);
 };

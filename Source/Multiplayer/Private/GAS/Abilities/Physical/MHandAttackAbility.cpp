@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Physical/MHandAttackAbility.h"
+#include "../../../../Public/Character/MBaseCharacter.h"
 
 UMHandAttackAbility::UMHandAttackAbility()
 {
@@ -13,7 +14,7 @@ void UMHandAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (AMCharacter* character = Cast<AMCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
 		PlayMontage();
 	}
@@ -31,23 +32,23 @@ bool UMHandAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Ha
 
 void UMHandAttackAbility::CalculateEffect(AActor* ActorWhichAttack, AActor* ActorWhichDamaged)
 {
-	if (AMCharacter* characterAttack = Cast<AMCharacter>(ActorWhichAttack))
+	if (AMBaseCharacter* CharacterAttack = Cast<AMBaseCharacter>(ActorWhichAttack))
 	{
-		FGameplayEffectContextHandle EffectContext = characterAttack->GetAbilitySystemComponent()->MakeEffectContext();
+		FGameplayEffectContextHandle EffectContext = CharacterAttack->GetAbilitySystemComponent()->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
-		FGameplayEffectSpecHandle SpecHandle = characterAttack->GetAbilitySystemComponent()->MakeOutgoingSpec(GetAbilityGameplayEffect(), 1, EffectContext);
+		FGameplayEffectSpecHandle SpecHandle = CharacterAttack->GetAbilitySystemComponent()->MakeOutgoingSpec(GetAbilityGameplayEffect(), 1, EffectContext);
 		if (SpecHandle.IsValid())
 		{
 			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
 			if (Spec != nullptr)
 			{
-				float physicalBuff = characterAttack->Attributes->GetPhysicalBuff();
-				float magnitudeValue = physicalBuff > 0 ? (physicalBuff / 100 + 1) * AbilityGameplayEffectInfo.Magnitude : AbilityGameplayEffectInfo.Magnitude;
+				float magnitudeValue = CharacterAttack->Attributes->GetPhysicalBuff() > 0 ? 
+					(CharacterAttack->Attributes->GetPhysicalBuff() / 100 + 1) * AbilityGameplayEffectInfo.Magnitude : AbilityGameplayEffectInfo.Magnitude;
 				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, magnitudeValue);
 			}
 
-			if (AMCharacter* characterDamaged = Cast<AMCharacter>(ActorWhichDamaged))
+			if (AMBaseCharacter* characterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
 			{
 				characterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}

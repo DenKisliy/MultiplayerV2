@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimNotifies/AnimNotifyState.h"
 
-#include "../../AI/Character/MAIBaseCharacter.h"
-#include "../../Character/MBaseCharacter.h"
 #include "../../GAS/Abilities/MBaseAbility.h"
 
 #include "MBiteNotifyState.generated.h"

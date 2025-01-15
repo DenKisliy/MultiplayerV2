@@ -3,6 +3,8 @@
 
 #include "GameFramework/MPlayerHUD.h"
 
+#include "../../Public/GameFramework/MGameMode.h"
+
 AMPlayerHUD::AMPlayerHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
@@ -11,50 +13,6 @@ AMPlayerHUD::AMPlayerHUD(const FObjectInitializer& ObjectInitializer)
 void AMPlayerHUD::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (!GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->IsUserSignIn())
-	{
-		if (GEngine && GEngine->GameViewport)
-		{
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
-
-			LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
-			GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
-		}
-	}
-}
-
-void AMPlayerHUD::SetDelegateForSendMessageEvent(FScriptDelegate Delegate)
-{
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
-	{
-		if (gameInstance->GetPlayerInfoFromGameInstance().CharacterType != ETypeOfCharacter::None)
-		{
-			if (!IsValid(ChatPanelWidget) && IsValid(ChatPanelStatic))
-			{
-				ChatPanelWidget = CreateWidget<UMChatPanelWidget>(this->GetOwningPlayerController(), ChatPanelStatic);
-				if (!ChatPanelWidget->IsInViewport())
-				{
-					ChatPanelWidget->AddToViewport();
-				}
-			}
-
-			if (IsValid(ChatPanelWidget))
-			{
-				ChatPanelWidget->SendMessageDelegate.Clear();
-				ChatPanelWidget->SendMessageDelegate.Add(Delegate);
-			}
-		}
-	}
-}
-
-void AMPlayerHUD::AddMessage(FString PlayerName, FString MessageText)
-{
-	if (IsValid(ChatPanelWidget))
-	{
-		ChatPanelWidget->AddMessage(PlayerName, MessageText);
-	}
 }
 
 void AMPlayerHUD::SetTimeTimerWidget(bool bMain, int Time)
@@ -143,23 +101,7 @@ void AMPlayerHUD::ShowInformText(FString Text)
 	}
 }
 
-void AMPlayerHUD::ShowInformWidget(FInformativeWidgetData* InformWidgetData)
-{
-	if (GEngine && GEngine->GameViewport)
-	{
-		InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(this).WidgetData(InformWidgetData);
-		GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(InformativeContainer, SWeakWidget).PossiblyNullContent(InformativeWidget.ToSharedRef()), 5);
-
-		if (InformWidgetData->bWaitingWidget)
-		{
-			FTimerHandle Timer;
-			CurrentWidgetType = InformWidgetData->TypeOfNextWidget;
-			GetWorld()->GetTimerManager().SetTimer(Timer, this, &AMPlayerHUD::GoToNextWidgetStep, 1.0f, false);
-		}
-	}
-}
-
-void AMPlayerHUD::ShowNextWidget(ETypeOfWidget TypeOfUIWidget)
+void AMPlayerHUD::ShowWidget(ETypeOfWidget TypeOfUIWidget)
 {
 	if (GEngine && GEngine->GameViewport)
 	{
@@ -172,116 +114,133 @@ void AMPlayerHUD::ShowNextWidget(ETypeOfWidget TypeOfUIWidget)
 		{
 		case ETypeOfWidget::LoginIn:
 			{
-				if (LoginInWidget.IsValid() && LoginInContainer.IsValid())
-				{
-					GEngine->GameViewport->AddViewportWidgetContent(LoginInContainer.ToSharedRef());
-				}
-
-				if (!LoginInWidget.IsValid() && !LoginInContainer.IsValid())
+				if (!LoginInWidget.IsValid())
 				{
 					LoginInWidget = SNew(MSLoginInWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(LoginInContainer, SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
 				}
+
+				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(LoginInWidget.ToSharedRef()));
+
+				if (LoginInWidget.IsValid() && LoginInWidget->LoginBoxPtr.IsValid())
+					FSlateApplication::Get().SetKeyboardFocus(LoginInWidget->LoginBoxPtr);
 			}
 			break;
 		case ETypeOfWidget::Registration:
 			{
-				if (RegistrationWidget.IsValid() && RegistrationContainer.IsValid())
-				{
-					GEngine->GameViewport->AddViewportWidgetContent(RegistrationContainer.ToSharedRef());
-				}
-
-				if (!RegistrationWidget.IsValid() && !RegistrationContainer.IsValid())
+				if (!RegistrationWidget.IsValid())
 				{
 					RegistrationWidget = SNew(MSRegistrationWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(RegistrationContainer, SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));
 				}
+
+				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(RegistrationWidget.ToSharedRef()));
+
+				if (RegistrationWidget.IsValid() && RegistrationWidget->LoginBoxPtr.IsValid())
+					FSlateApplication::Get().SetKeyboardFocus(RegistrationWidget->LoginBoxPtr);
 
 			}
 			break;
-		case ETypeOfWidget::Menu:
+		case ETypeOfWidget::MultiplayerMenu:
 			{
-				if (MenuWidget.IsValid() && MenuContainer.IsValid())
+				if (!MultiplayerMenuWidget.IsValid())
 				{
-					GEngine->GameViewport->AddViewportWidgetContent(MenuContainer.ToSharedRef());
+					MultiplayerMenuWidget = SNew(MSMultiplayerMenuWidget).OwnerHUD(this);
 				}
 
-				if (!MenuWidget.IsValid() && !MenuContainer.IsValid())
+				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(MultiplayerMenuWidget.ToSharedRef()));
+			}
+			break;
+		case ETypeOfWidget::GameTypeMenu:
+			{
+				if (!GameTypeMenuWidget.IsValid())
 				{
-					MenuWidget = SNew(MSMenuWidget).OwnerHUD(this);
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(MenuContainer, SWeakWidget).PossiblyNullContent(MenuWidget.ToSharedRef()));
+					GameTypeMenuWidget = SNew(MSGameTypeMenuWidget).OwnerHUD(this);
 				}
+
+				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(GameTypeMenuWidget.ToSharedRef()));
 			}
 			break;
 		case ETypeOfWidget::CreateSession:
 		{
-			if (CreateSessionWidget.IsValid() && CreateSessionContainer.IsValid())
-			{
-				GEngine->GameViewport->AddViewportWidgetContent(CreateSessionContainer.ToSharedRef());
-			}
-
-			if (!CreateSessionWidget.IsValid() && !CreateSessionContainer.IsValid())
+			if (!CreateSessionWidget.IsValid())
 			{
 				CreateSessionWidget = SNew(MSCreateSessionWidget).OwnerHUD(this);
-				GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(CreateSessionContainer, SWeakWidget).PossiblyNullContent(CreateSessionWidget.ToSharedRef()));
 			}
+
+			GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(CreateSessionWidget.ToSharedRef()));
+
+			if (CreateSessionWidget.IsValid() && CreateSessionWidget->SessionNameBoxPtr.IsValid())
+				FSlateApplication::Get().SetKeyboardFocus(CreateSessionWidget->SessionNameBoxPtr);
 		}
 		break;
 		}
 	}
 }
 
-void AMPlayerHUD::OnFindSessions(bool bFindSession)
+void AMPlayerHUD::PostInitializeComponents()
 {
-	if (bFindSession)
+	Super::PostInitializeComponents();
+
+	bool bStandAloneMode = false;
+
+	if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 	{
-		if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+		bStandAloneMode = GameMode->IsStandAloneMode();
+	}
+
+	if (bStandAloneMode)
+	{
+		if (GEngine && GEngine->GameViewport)
 		{
-			if (sessionManager->GetFindSessionsNamesArray().Num() > 0)
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+
+			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);;
+		}
+	}
+	else
+	{
+		if (!GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->IsUserSignIn())
+		{
+			if (GEngine && GEngine->GameViewport)
 			{
-				if (GEngine && GEngine->GameViewport)
-				{
-					CloseWidget(ETypeOfWidget::Inform);
-					FindSessionWidget = SNew(MSFindSessionWidget).OwnerHUD(this).FindSessions(sessionManager->GetFindSessionsNamesArray());
-					GEngine->GameViewport->AddViewportWidgetContent(SAssignNew(FindSessionContainer, SWeakWidget).PossiblyNullContent(FindSessionWidget.ToSharedRef()), 5);
-				}
+				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+
+				ShowWidget(ETypeOfWidget::LoginIn);
+			}
+		}
+		else
+		{
+			if (GEngine && GEngine->GameViewport)
+			{
+				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+				FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+				
+				ChatWidget = SNew(MSChatWidget).OwnerHUD(this);
+				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(ChatWidget.ToSharedRef()));
 			}
 		}
 	}
+
 }
 
-void AMPlayerHUD::GoToNextWidgetStep()
+void AMPlayerHUD::DrawHUD()
 {
-	switch (CurrentWidgetType)
-	{
-	case ETypeOfWidget::CreateSession:
-		if (CreateSessionContainer.IsValid())
-		{
-			CreateSessionWidget.Get()->CreateSession();
-		}
-		break;
-	case ETypeOfWidget::FindSession:
-		if (MenuContainer.IsValid())
-		{
-			if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
-			{
-				SessionManager->ResultOfFindSessionsDelegate.AddDynamic(this, &AMPlayerHUD::OnFindSessions);
-				SessionManager->FindSessions();
-			}
-		}
-		break;
-	case ETypeOfWidget::JoinSession:
-		if (FindSessionContainer.IsValid())
-		{
-			if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
-			{
-				SessionManager->ConnectToSession();
-			}
-		}
-		break;
-	}
+	Super::DrawHUD();
 
-	CurrentWidgetType = ETypeOfWidget::None;
+	if (IsValid(GetOwningPlayerController()))
+	{
+		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
+		{
+			if (ChatWidget.IsValid() && ChatWidget->ChatInput.IsValid())
+			{
+				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+				FSlateApplication::Get().SetKeyboardFocus(ChatWidget->ChatInput);
+			}
+		}
+	}
 }
 
 void AMPlayerHUD::CloseWidget(ETypeOfWidget TypeOfWidget)
@@ -291,17 +250,49 @@ void AMPlayerHUD::CloseWidget(ETypeOfWidget TypeOfWidget)
 		switch (TypeOfWidget)
 		{
 		case ETypeOfWidget::FindSession:
-			if (FindSessionContainer.IsValid())
+			if (FindSessionWidget.IsValid())
 			{
-				GEngine->GameViewport->RemoveViewportWidgetContent(FindSessionContainer.ToSharedRef());
+				GEngine->GameViewport->RemoveViewportWidgetContent(FindSessionWidget.ToSharedRef());
 			}
 			break;
 		case ETypeOfWidget::Inform:
-			if (InformativeContainer.IsValid())
+			if (InformContainer.IsValid())
 			{
-				GEngine->GameViewport->RemoveViewportWidgetContent(InformativeContainer.ToSharedRef());
+				GEngine->GameViewport->RemoveViewportWidgetContent(InformContainer.ToSharedRef());
 			}
 			break;
 		}
 	}
 }
+
+void AMPlayerHUD::SetFocus(ETypeOfWidget TypeOfWidget)
+{
+	if (GEngine && GEngine->GameViewport)
+	{
+		switch (TypeOfWidget)
+		{
+		case ETypeOfWidget::LoginIn:
+		{
+			if (LoginInWidget.IsValid())
+				LoginInWidget->SetFocus();
+		}
+		break;
+		case ETypeOfWidget::Registration:
+		{
+			if (RegistrationWidget.IsValid())
+				RegistrationWidget->SetFocus();
+
+		}
+		break;
+		
+		case ETypeOfWidget::CreateSession:
+		{
+			if (CreateSessionWidget.IsValid() && CreateSessionWidget->SessionNameBoxPtr.IsValid())
+				FSlateApplication::Get().SetKeyboardFocus(CreateSessionWidget->SessionNameBoxPtr);
+		}
+		break;
+		}
+
+	}
+}
+

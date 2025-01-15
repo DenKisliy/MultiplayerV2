@@ -2,6 +2,7 @@
 
 
 #include "UI/Multiplayer/MSSessionInformationFoundWidget.h"
+#include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MPlayerHUD.h"
 
 void MSSessionInformationFoundWidget::Construct(const FArguments& InArgs)
@@ -11,8 +12,6 @@ void MSSessionInformationFoundWidget::Construct(const FArguments& InArgs)
 	OwnerHUD = InArgs._OwnerHUD;
 	SessionName = InArgs._SessionName.Get();
 
-	FStyleWidgetData* StyleData = new FStyleWidgetData();
-
 	ChildSlot
 	[
 		SNew(SOverlay)
@@ -20,7 +19,7 @@ void MSSessionInformationFoundWidget::Construct(const FArguments& InArgs)
 			[
 				SNew(SButton).OnClicked(this, &MSSessionInformationFoundWidget::OnJoinSession)
 				[
-					SNew(STextBlock).Font(StyleData->ButtonTextStyle).Text(FText::FromString(SessionName)).Justification(ETextJustify::Center)
+					SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(FText::FromString(SessionName)).Justification(ETextJustify::Center)
 				]
 			]
 	];
@@ -30,21 +29,40 @@ FReply MSSessionInformationFoundWidget::OnJoinSession() const
 {
 	if (!SessionName.IsEmpty())
 	{
-		if (UMSessionSubsystem* SessionManager = OwnerHUD->GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
-		{
-			SessionManager->SetJoinSessionName(SessionName);
-			ShowInformWidget(new FInformativeWidgetData(FText::FromString("Please wait. Session connection in progress."), false, true, ETypeOfWidget::JoinSession));
-		}
+		ShowInformWidget(FText::FromString("Please wait. Session connection in progress."));
 	}
 
 	return FReply::Handled();
 }
 
-void MSSessionInformationFoundWidget::ShowInformWidget(FInformativeWidgetData* InformWidgetData) const
+void MSSessionInformationFoundWidget::ShowInformWidget(FText Text) const
 {
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(OwnerHUD))
+	if (GEngine && GEngine->GameViewport)
 	{
-		HUD->ShowInformWidget(InformWidgetData);
+		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
+		{
+			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Text(Text).Waiting(true);
+			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
+
+			if (IsValid(HUD->GetWorld()))
+			{
+				if (HUD->GetWorld()->GetGameViewport())
+				{
+					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
+				}
+			}
+
+			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+
+			FTimerHandle JoinSessionTimer;
+				HUD->GetWorld()->GetTimerManager().SetTimer(JoinSessionTimer, [this]()
+					{
+						if (UMSessionSubsystem* SessionManager = OwnerHUD->GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+						{
+							SessionManager->ConnectToSession(SessionName);
+						}
+					}, 1.0f, false);
+		}
 	}
 }
 

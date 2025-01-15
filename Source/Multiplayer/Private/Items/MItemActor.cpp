@@ -2,7 +2,7 @@
 
 
 #include "Items/MItemActor.h"
-#include "Character/MBaseCharacter.h"
+#include "../../Public/Character/MPlayerCharacter.h"
 
 // Sets default values
 AMItemActor::AMItemActor()
@@ -55,21 +55,21 @@ void AMItemActor::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 
 void AMItemActor::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(Other))
 	{
-		if (InsertPlayerArray.Find(player) == INDEX_NONE)
+		if (InsertPlayerArray.Find(Player) == INDEX_NONE)
 		{
-			InsertPlayerArray.Add(player);
+			InsertPlayerArray.Add(Player);
 
-			FString text = "To pick up item press " + player->GetButtonTextForInformWidget("PickUp") + " button";
-			ShowInfoText(player->GetPlayerName(), text);
+			FString text = "To pick up item press " + Player->GetButtonTextForInformWidget("PickUp") + " button";
+			ShowInfoText(Player->GetPlayerName(), text);
 		}
 	}
 }
 
 void AMItemActor::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AMBaseCharacter* player = Cast<AMBaseCharacter>(Other))
+	if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Other))
 	{
 		if (InsertPlayerArray.Find(player) != INDEX_NONE)
 		{

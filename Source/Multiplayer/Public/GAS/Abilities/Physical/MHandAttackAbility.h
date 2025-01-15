@@ -5,8 +5,6 @@
 #include "CoreMinimal.h"
 #include "GAS/Abilities/MBaseAbility.h"
 
-#include "../../../GameFramework/MCharacter.h"
-
 #include "MHandAttackAbility.generated.h"
 
 /**

@@ -7,12 +7,12 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "../AdditionalActor/MCaptureStation.h"
-#include "../GameFramework/MGameState.h"
+#include "../Managers/MBaseManager.h"
 
 #include "MCaptureBaseManager.generated.h"
 
 UCLASS()
-class MULTIPLAYER_API AMCaptureBaseManager : public AActor
+class MULTIPLAYER_API AMCaptureBaseManager : public AMBaseManager
 {
 	GENERATED_BODY()
 
@@ -40,4 +40,6 @@ private:
 
 	UFUNCTION()
 	void SpawnStation(ETypeOfTimer TypeOfFinishTimer);
+
+	void GetCaptureStationArray();
 };

@@ -2,6 +2,7 @@
 
 
 #include "GAS/Abilities/Magic/MBerserkAbility.h"
+#include "../../../../Public/Character/MBaseCharacter.h"
 
 UMBerserkAbility::UMBerserkAbility()
 {
@@ -13,10 +14,10 @@ void UMBerserkAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
-		character->ChangeBuffValues(true, PercentageIncrease);
+		Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+		Character->ChangeBuffValues(true, PercentageIncrease);
 
 		StartTimer();
 	}
@@ -24,9 +25,9 @@ void UMBerserkAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, 
 
 void UMBerserkAbility::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
 {
-	if (AMCharacter* character = Cast<AMCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->ChangeBuffValues(false, PercentageIncrease);
+		Character->ChangeBuffValues(false, PercentageIncrease);
 	}
 
 	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);

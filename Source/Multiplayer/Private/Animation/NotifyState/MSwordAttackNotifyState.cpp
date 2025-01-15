@@ -2,6 +2,7 @@
 
 
 #include "Animation/NotifyState/MSwordAttackNotifyState.h"
+#include "../../../Public/Character/MPlayerCharacter.h"
 
 void UMSwordAttackNotifyState::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, float TotalDuration, const FAnimNotifyEventReference& EventReference)
 {
@@ -25,7 +26,7 @@ void UMSwordAttackNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAni
 
 		if (bHit)
 		{
-			AMBaseCharacter* playerWhichAttack = Cast<AMBaseCharacter>(MeshComp->GetOwner());
+			AMPlayerCharacter* playerWhichAttack = Cast<AMPlayerCharacter>(MeshComp->GetOwner());
 
 			if (playerWhichAttack)
 			{

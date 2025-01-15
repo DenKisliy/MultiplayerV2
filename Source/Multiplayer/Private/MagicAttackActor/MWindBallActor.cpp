@@ -2,6 +2,7 @@
 
 
 #include "MagicAttackActor/MWindBallActor.h"
+#include "../../Public/Character/MPlayerCharacter.h"
 
 // Sets default values
 AMWindBallActor::AMWindBallActor()
@@ -44,9 +45,9 @@ void AMWindBallActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 	{
 		GetWorld()->GetTimerManager().ClearTimer(DestroyTimer);
 
-		if (AMBaseCharacter* hitActor = Cast<AMBaseCharacter>(OtherActor))
+		if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(OtherActor))
 		{
-			hitActor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(DamageGameplayEffect, 1.0f, hitActor->GetAbilitySystemComponent()->MakeEffectContext());
+			HitActor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(DamageGameplayEffect, 1.0f, HitActor->GetAbilitySystemComponent()->MakeEffectContext());
 		}
 
 		Destroy();
