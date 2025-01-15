@@ -26,7 +26,6 @@
 
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Engine/DataTable.h"
 #include "Animation/AnimInstance.h"
 #include "Engine/StreamableManager.h"
 #include "Engine/AssetManager.h"
@@ -37,7 +36,6 @@
 #include "../GAS/Attribute/MAttributeSet.h"
 #include "../GAS/Abilities/MBaseAbility.h"
 
-#include "../GameFramework/MPlayerHUD.h"
 #include "../CharacterComponents/MInventoryComponent.h"
 
 #include "MPlayerCharacter.generated.h"
@@ -152,19 +150,13 @@ protected:
 private:
 	void InitializeInput(AController* NewController);
 
-	void StartTimer();
-
 	void StartPlayerWidgetTimer(FString PlayerName);
 
 	void RotatePlayerNameWidget();
 
 	void BindAllDelegates();
 
-	void OnHealthUpdated(const FOnAttributeChangeData& Data);
-
-	void OnManaUpdated(const FOnAttributeChangeData& Data);
-
-	void OnStaminaUpdated(const FOnAttributeChangeData& Data);
+	void OnUpdateAttributeState(EAttributeType Type, float Value);
 
 	void SetLocalPlayerTag();
 

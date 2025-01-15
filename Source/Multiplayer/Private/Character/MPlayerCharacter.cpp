@@ -2,6 +2,8 @@
 
 
 #include "../../Public/Character/MPlayerCharacter.h"
+#include "../../Public/GameFramework/HUD/MPlayingHUD.h"
+#include "../../Public/Subsystem/MPlayerInfoSubsystem.h"
 
 // Sets default values
 AMPlayerCharacter::AMPlayerCharacter()
@@ -58,37 +60,35 @@ AMPlayerCharacter::AMPlayerCharacter()
 
 FString AMPlayerCharacter::GetPlayerName()
 {
-	FString Name;
-
-	if (UMPlayerInfoWidget* playerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
+	if (UMPlayerInfoWidget* PlayerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
 	{
-		Name = playerTag->GetPlayerName();
+		return PlayerTag->GetPlayerName();
 	}
 
-	return Name;
+	return "";
 }
 
 FString AMPlayerCharacter::GetButtonTextForInformWidget(FString ButtonName)
 {
-	FString result = "";
+	FString Result = "";
 	TArray<FString> Components;
 	const FString DefaultInputPath = FString::Printf(TEXT("%sDefaultInput.ini"), *FPaths::SourceConfigDir());
 	GConfig->GetArray(TEXT("/Script/Engine.InputSettings"), TEXT("+ActionMappings"), Components, DefaultInputPath);
 	
-	FString findStr = *Components.FindByPredicate([](const FString& InItem)
+	FString FindStr = *Components.FindByPredicate([](const FString& InItem)
 		{
 			return InItem.Contains("PickUp");
 		});
 
-	if (!findStr.IsEmpty())
+	if (!FindStr.IsEmpty())
 	{
-		for (int32 j = findStr.Find("Key=") + 4; j < findStr.Len() - 1; j++)
+		for (int32 j = FindStr.Find("Key=") + 4; j < FindStr.Len() - 1; j++)
 		{
-			result = result + findStr[j];
+			Result += FindStr[j];
 		}
 	}
 
-	return result;
+	return Result;
 }
 
 float AMPlayerCharacter::GetTargetArmLength()
@@ -225,36 +225,17 @@ void AMPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void AMPlayerCharacter::SetLocalPlayerTag()
 {
-	if (GetPlayerState())
+	if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 	{
-		if (AMPlayerState* playerState = Cast<AMPlayerState>(GetPlayerState()))
-		{
-			playerState->UpdatePlayerState();
-
-			if (GetPlayerState()->GetPlayerName() != "")
-			{
-				SetPlayerName(GetPlayerState()->GetPlayerName());
-			}
-		}
-		else
-		{
-			StartTimer();
-		}
-
-	}
-	else
-	{
-		StartTimer();
+		SetPlayerName(PlayerInfoSubsystem->GetLoginOfUser());
 	}
 }
 
 void AMPlayerCharacter::SetPlayerTagName(FString PlayerName)
 {
-	UMPlayerInfoWidget* playerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget());
-
-	if (playerTag)
+	if (UMPlayerInfoWidget* PlayerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
 	{
-		playerTag->SetPlayerName(PlayerName);
+		PlayerTag->SetPlayerName(PlayerName);
 	}
 	else
 	{
@@ -267,7 +248,6 @@ void AMPlayerCharacter::OnRep_PlayerState()
 	Super::OnRep_PlayerState();
 
 	InitializeInput(Controller);
-
 }
 
 void AMPlayerCharacter::OnRep_PlayerScaleVector()
@@ -288,18 +268,6 @@ void AMPlayerCharacter::SetPlayerSpeed_Implementation(const float& NewSpeed)
 	}
 
 	WalkSpeed = NewSpeed;
-}
-
-AMPlayerHUD* AMPlayerCharacter::GetHUD()
-{
-	if (AMPlayerController* playerController = Cast<AMPlayerController>(Controller))
-	{
-		if (AMPlayerHUD* hud = Cast<AMPlayerHUD>(playerController->GetHUD()))
-		{
-			return hud;
-		}
-	}
-	return nullptr;
 }
 
 void AMPlayerCharacter::SetPlayerScale_Implementation(const FVector& NewPlayerScale)
@@ -333,16 +301,10 @@ void AMPlayerCharacter::InitializeInput(AController* NewController)
 
 }
 
-void AMPlayerCharacter::StartTimer()
-{
-	FTimerHandle TimerHandle;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMPlayerCharacter::SetLocalPlayerTag, 1.0f, false);
-}
-
 void AMPlayerCharacter::StartPlayerWidgetTimer(FString PlayerName)
 {
-	FTimerDelegate TimerDel;
 	FTimerHandle TimerHandle;
+	FTimerDelegate TimerDel;
 	TimerDel.BindUFunction(this, FName("SetPlayerTagName"), PlayerName);
 
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
@@ -352,9 +314,8 @@ void AMPlayerCharacter::RotatePlayerNameWidget()
 {
 	if (!IsLocallyControlled())
 	{
-		FRotator rotator = UKismetMathLibrary::FindLookAtRotation(PlayerTagComponent->GetComponentLocation(),
-			UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation());
-		PlayerTagComponent->SetWorldRotation(rotator);
+		PlayerTagComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(PlayerTagComponent->GetComponentLocation(),
+			UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
 	}
 }
 
@@ -364,23 +325,48 @@ void AMPlayerCharacter::InitializeAttributes()
 
 	if (AbilitySystemComponent && StartupEffects.Num()>0)
 	{
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetHealthAttribute()).AddUObject(this, &AMPlayerCharacter::OnHealthUpdated);
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetManaAttribute()).AddUObject(this, &AMPlayerCharacter::OnManaUpdated);
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetStaminaAttribute()).AddUObject(this, &AMPlayerCharacter::OnStaminaUpdated);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetHealthAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
+			{
+				OnUpdateAttributeState(EAttributeType::Health, Data.NewValue / Attributes->GetMaxHealth());
+			});
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
+			{
+				OnUpdateAttributeState(EAttributeType::Mana, Data.NewValue / Attributes->GetMaxMana());
+			});
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetStaminaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
+			{
+				OnUpdateAttributeState(EAttributeType::Stamina, Data.NewValue / Attributes->GetMaxStamina());
+			});
 	}
 }
 
 void AMPlayerCharacter::BindAllDelegates()
 {
-	if (AMPlayerController* playerController = Cast<AMPlayerController>(Controller))
+	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
 	{
-		playerController->AddItemToInventoryDelegate.AddDynamic(this, &AMPlayerCharacter::OnAddItemToInventory);
-		playerController->PickUpItemToInventoryDelegate.AddDynamic(this, &AMPlayerCharacter::PickUpItemToInventory);
+		PlayerController->AddItemToInventoryDelegate.AddDynamic(this, &AMPlayerCharacter::OnAddItemToInventory);
+		PlayerController->PickUpItemToInventoryDelegate.AddDynamic(this, &AMPlayerCharacter::PickUpItemToInventory);
 
-		playerController->SetPlayerHUD();
+		PlayerController->SetPlayerHUD();
 	}
 
 	InventoryComponent->UseItemDelegate.AddDynamic(this, &AMPlayerCharacter::UseItemGameplayEffect);
+}
+
+void AMPlayerCharacter::OnUpdateAttributeState(EAttributeType Type, float Value)
+{
+	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
+	{
+		if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(PlayerController->GetHUD()))
+		{
+			HUD->SetValueForAttribute(Type, Value);
+
+			if (Value == 0 && Type == EAttributeType::Health)
+			{
+				PlayerController->CharacterDeath();
+			}
+		}
+	}
 }
 
 void AMPlayerCharacter::OnAddItemToInventory(FItemTypeInfo ItemType)
@@ -391,44 +377,6 @@ void AMPlayerCharacter::OnAddItemToInventory(FItemTypeInfo ItemType)
 void AMPlayerCharacter::PickUpItemToInventory(FItemTypeInfo ItemType, const AActor* Item)
 {
 	InventoryComponent->SetPickUpItem(ItemType, Item);
-}
-
-void AMPlayerCharacter::OnHealthUpdated(const FOnAttributeChangeData& Data)
-{
-	if (AMPlayerController* playerController = Cast<AMPlayerController>(Controller))
-	{
-		if (AMPlayerHUD* hud = Cast<AMPlayerHUD>(playerController->GetHUD()))
-		{
-			hud->SetValueForAttribute(EAttributeType::Health, Data.NewValue / Attributes->GetMaxHealth());
-
-			if (Data.NewValue == 0 && IsValid(DeathMontage))
-			{
-				playerController->CharacterDeath();
-			}
-		}
-	}
-}
-
-void AMPlayerCharacter::OnManaUpdated(const FOnAttributeChangeData& Data)
-{
-	if (APlayerController* playerController = Cast<APlayerController>(Controller))
-	{
-		if (AMPlayerHUD* hud = Cast<AMPlayerHUD>(playerController->GetHUD()))
-		{
-			hud->SetValueForAttribute(EAttributeType::Mana, Data.NewValue / Attributes->GetMaxMana());
-		}
-	}
-}
-
-void AMPlayerCharacter::OnStaminaUpdated(const FOnAttributeChangeData& Data)
-{
-	if (APlayerController* playerController = Cast<APlayerController>(Controller))
-	{
-		if (AMPlayerHUD* hud = Cast<AMPlayerHUD>(playerController->GetHUD()))
-		{
-			hud->SetValueForAttribute(EAttributeType::Stamina, Data.NewValue / Attributes->GetMaxStamina());
-		}
-	}
 }
 
 void AMPlayerCharacter::UseItemGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect)

@@ -57,6 +57,8 @@ public:
 
 	FChatMessageData* GetLastMessageData();
 
+	FString GetLoginOfUser() { return LoginOfUser; }
+
 private:
 	void SetDataBase();
 

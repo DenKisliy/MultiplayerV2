@@ -3,7 +3,7 @@
 
 #include "GameFramework/MGameState.h"
 #include "GameFramework/MGameMode.h"
-#include "GameFramework/MPlayerHUD.h"
+#include "GameFramework/HUD/MPlayingHUD.h"
 #include "GameFramework/MPlayerState.h"
 #include "../../Public/Managers/MBaseManager.h"
 
@@ -70,9 +70,9 @@ void AMGameState::EndSession_Implementation()
 
 void AMGameState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
 {
-	for (APlayerState* PlayerStateBase : PlayerArray)
+	for (APlayerState* BasePS : PlayerArray)
 	{
-		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerStateBase))
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
 		{
 			CharacterPS->SaveResultOfGame(ResultOfGame);
 		}
@@ -108,17 +108,17 @@ void AMGameState::AddPlayerState(APlayerState* PlayerState)
 	{
 		if (PlayerArray.Num() == GetPlayerCountFromGameMode())
 		{
-			for (APlayerState* playerStateBase : PlayerArray)
+			for (APlayerState* BasePS : PlayerArray)
 			{
-				if (AMPlayerState* playerState = Cast<AMPlayerState>(playerStateBase))
+				if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
 				{
-					playerState->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
+					CharacterPS->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
 				}
 			}
 
-			if (UMSessionSubsystem* sessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+			if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 			{
-				if (sessionManager->IsCreateOrStartSession())
+				if (SessionManager->IsCreateOrStartSession())
 				{
 					StartBeginPlayTimer();
 				}
@@ -173,8 +173,6 @@ bool AMGameState::IsStandAloneMode()
 
 int AMGameState::GetTimeForTimerByType()
 {
-	int time = 0;
-
 	if (UGameplayStatics::GetGameMode(GetWorld()))
 	{
 		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
@@ -188,17 +186,15 @@ int AMGameState::GetTimeForTimerByType()
 
 int AMGameState::GetAdditionalTimeForTimerByType()
 {
-	int time = 0;
-
 	if (UGameplayStatics::GetGameMode(GetWorld()))
 	{
-		if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 		{
-			time = *gameMode->AdditionalTimerMap.Find(TypeOfAdditionalTimer);
+			return *GameMode->AdditionalTimerMap.Find(TypeOfAdditionalTimer);
 		}
 	}
 
-	return time;
+	return 0;
 }
 
 void AMGameState::OnRep_TimeChecker()
@@ -332,15 +328,11 @@ void AMGameState::ShowTimeForHUD(bool bMain, int Time)
 {
 	if (IsValid(GetWorld()->GetFirstPlayerController()))
 	{
-		APlayerController* playerController = GetWorld()->GetFirstPlayerController();
-
-		if (IsValid(playerController->GetHUD()))
+		if (APlayerController* playerController = GetWorld()->GetFirstPlayerController())
 		{
-			AMPlayerHUD* playerHUD = Cast<AMPlayerHUD>(playerController->GetHUD());
-
-			if (IsValid(playerHUD))
+			if (AMPlayingHUD* PlayerHUD = Cast<AMPlayingHUD>(playerController->GetHUD()))
 			{
-				playerHUD->SetTimeTimerWidget(bMain, Time);
+				PlayerHUD->SetTimeTimerWidget(bMain, Time);
 			}
 		}
 	}
