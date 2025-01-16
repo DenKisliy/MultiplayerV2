@@ -325,18 +325,9 @@ void AMPlayerCharacter::InitializeAttributes()
 
 	if (AbilitySystemComponent && StartupEffects.Num()>0)
 	{
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetHealthAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
-			{
-				OnUpdateAttributeState(EAttributeType::Health, Data.NewValue / Attributes->GetMaxHealth());
-			});
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetManaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
-			{
-				OnUpdateAttributeState(EAttributeType::Mana, Data.NewValue / Attributes->GetMaxMana());
-			});
-		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetStaminaAttribute()).AddLambda([this](const FOnAttributeChangeData& Data)
-			{
-				OnUpdateAttributeState(EAttributeType::Stamina, Data.NewValue / Attributes->GetMaxStamina());
-			});
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetHealthAttribute()).AddUObject(this, &AMPlayerCharacter::OnHealthUpdated);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetManaAttribute()).AddUObject(this, &AMPlayerCharacter::OnManaUpdated);
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UMAttributeSet::GetStaminaAttribute()).AddUObject(this, &AMPlayerCharacter::OnStaminaUpdated);
 	}
 }
 
@@ -353,18 +344,36 @@ void AMPlayerCharacter::BindAllDelegates()
 	InventoryComponent->UseItemDelegate.AddDynamic(this, &AMPlayerCharacter::UseItemGameplayEffect);
 }
 
+void AMPlayerCharacter::OnHealthUpdated(const FOnAttributeChangeData& Data)
+{
+	OnUpdateAttributeState(EAttributeType::Health, Data.NewValue / Attributes->GetMaxHealth());
+
+	if (Data.NewValue / Attributes->GetMaxHealth() == 0)
+	{
+		if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
+		{
+			PlayerController->CharacterDeath();
+		}
+	}
+}
+
+void AMPlayerCharacter::OnManaUpdated(const FOnAttributeChangeData& Data)
+{
+	OnUpdateAttributeState(EAttributeType::Mana, Data.NewValue / Attributes->GetMaxMana());
+}
+
+void AMPlayerCharacter::OnStaminaUpdated(const FOnAttributeChangeData& Data)
+{
+	OnUpdateAttributeState(EAttributeType::Stamina, Data.NewValue / Attributes->GetMaxStamina());
+}
+
 void AMPlayerCharacter::OnUpdateAttributeState(EAttributeType Type, float Value)
 {
 	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
 	{
-		if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(PlayerController->GetHUD()))
+		if (AMPlayingHUD* HUD = Cast<AMPlayingHUD>(PlayerController->GetHUD()))
 		{
 			HUD->SetValueForAttribute(Type, Value);
-
-			if (Value == 0 && Type == EAttributeType::Health)
-			{
-				PlayerController->CharacterDeath();
-			}
 		}
 	}
 }

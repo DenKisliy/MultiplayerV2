@@ -77,7 +77,7 @@ FReply MSMultiplayerMenuWidget::OnFindSession() const
 
 FReply MSMultiplayerMenuWidget::OnBackToPreviousMenu() const
 {
-	OpenNextWidget(ETypeOfWidget::LoginIn);
+	OpenNextWidget(ETypeOfWidget::GameTypeMenu);
 
 	return FReply::Handled();
 }

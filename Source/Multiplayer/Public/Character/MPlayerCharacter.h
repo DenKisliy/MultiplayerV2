@@ -184,4 +184,10 @@ private:
 
 	UFUNCTION()
 	void PickUpItemToInventory(FItemTypeInfo ItemType, const AActor* Item);
+
+	void OnHealthUpdated(const FOnAttributeChangeData& Data);
+
+	void OnManaUpdated(const FOnAttributeChangeData& Data);
+
+	void OnStaminaUpdated(const FOnAttributeChangeData& Data);
 };
