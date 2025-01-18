@@ -24,6 +24,9 @@ class MULTIPLAYER_API AMMainMenuHUD : public AHUD
 	GENERATED_BODY()
 
 public:
+	TSharedPtr<MSFindSessionWidget> FindSessionWidget;
+
+private:
 	//Inform widget
 	TSharedPtr<MSInformativeWidget> InformativeWidget;
 	TSharedPtr<SWidget> InformContainer;
@@ -40,8 +43,6 @@ public:
 	//Multiplayers widgets
 	TSharedPtr<MSCreateSessionWidget> CreateSessionWidget;
 
-	TSharedPtr<MSFindSessionWidget> FindSessionWidget;
-
 public:
 	AMMainMenuHUD(const FObjectInitializer& ObjectInitializer);
 
@@ -50,6 +51,8 @@ public:
 	void ShowWidget(ETypeOfWidget TypeOfUIWidget);
 
 	void SetFocus(ETypeOfWidget TypeOfWidget);
+
+	void ShowInformWidget(FInformWidgetData& InformWidgetData);
 
 protected:
 	virtual void PostInitializeComponents() override;

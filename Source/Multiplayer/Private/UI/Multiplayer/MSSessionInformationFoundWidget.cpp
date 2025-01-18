@@ -41,16 +41,8 @@ void MSSessionInformationFoundWidget::ShowInformWidget(FText Text) const
 	{
 		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 		{
-			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Text(Text).Waiting(true);
-			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
-
-			if (IsValid(HUD->GetWorld()))
-			{
-				if (HUD->GetWorld()->GetGameViewport())
-				{
-					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
-				}
-			}
+			FInformWidgetData InformWidgetData = FInformWidgetData(Text, false, true);
+			HUD->ShowInformWidget(InformWidgetData);
 
 			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
 

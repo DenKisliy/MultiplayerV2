@@ -96,17 +96,10 @@ void MSMultiplayerMenuWidget::ShowInformWidget(FText Text, bool bWarning, bool b
 	{
 		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 		{
-			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Text(Text).Waiting(bWaiting).Warning(bWarning).PreviousWidget(PreviousWidget);
-			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
-
-			if (IsValid(HUD->GetWorld()))
-			{
-				if (HUD->GetWorld()->GetGameViewport())
-				{
-					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
-				}
-			}
-
+			FInformWidgetData InformWidgetData = FInformWidgetData(Text, bWarning, bWaiting,
+				ETypeOfWidget::None, PreviousWidget);
+			HUD->ShowInformWidget(InformWidgetData);
+			
 			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
 			
 			if (bWaiting)
@@ -138,7 +131,7 @@ void MSMultiplayerMenuWidget::FindSessionsResult(TArray<FOnlineSessionSearchResu
 		{
 			if (HUD->GetWorld()->GetGameViewport())
 			{
-				HUD->GetWorld()->GetGameViewport()->RemoveViewportWidgetContent(HUD->InformContainer.ToSharedRef());
+				HUD->CloseWidget(ETypeOfWidget::Inform);
 
 				if (FindSessions.Num() > 0)
 				{

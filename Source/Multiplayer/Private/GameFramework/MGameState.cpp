@@ -74,7 +74,7 @@ void AMGameState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
 	{
 		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
 		{
-			CharacterPS->SaveResultOfGame(ResultOfGame);
+			//CharacterPS->SaveResultOfGame(ResultOfGame);
 		}
 	}
 }

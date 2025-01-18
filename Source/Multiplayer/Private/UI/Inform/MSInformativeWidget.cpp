@@ -79,25 +79,17 @@ FReply MSInformativeWidget::OnConfirm() const
 {
 	if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 	{
+		HUD->CloseWidget(ETypeOfWidget::Inform);
+
 		if (bWarning)
-			{
-				if (HUD->InformativeWidget.IsValid())
-				{
-					if (IsValid(HUD->GetWorld()))
-					{
-						if (HUD->GetWorld()->GetGameViewport())
-						{
-							HUD->GetWorld()->GetGameViewport()->RemoveViewportWidgetContent(HUD->InformContainer.ToSharedRef());
-							HUD->SetFocus(TypeOfPreviousWidget);
-						}
-					}
-				}
-			}
-			else if (TypeOfNextWidget != ETypeOfWidget::None)
-			{
-				HUD->ShowWidget(TypeOfNextWidget);
-			}
+		{
+			HUD->SetFocus(TypeOfPreviousWidget);
 		}
+		else if (TypeOfNextWidget != ETypeOfWidget::None)
+		{
+			HUD->ShowWidget(TypeOfNextWidget);
+		}
+	}
 
 	return FReply::Handled();
 }

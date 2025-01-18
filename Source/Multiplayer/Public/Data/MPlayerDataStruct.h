@@ -5,6 +5,8 @@
 
 #include "MPlayerDataStruct.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerDeath, bool, bDeathPlayer);
+
 UENUM(BlueprintType)
 enum class ETypeOfCharacter : uint8
 {
@@ -27,14 +29,7 @@ struct FPlayerInfoData : public FTableRowBase
 	UPROPERTY(EditAnywhere)
 	int TypeOfCharacter;
 
-	FPlayerInfoData()
-	{
-		Login = "";
-		Password = "";
-		TypeOfCharacter = 0;
-	}
-
-	FPlayerInfoData(FString NewLogin, FString NewPassword, int NewTypeOfCharacter)
+	FPlayerInfoData(FString NewLogin = "", FString NewPassword = "", int NewTypeOfCharacter = 0)
 	{
 		Login = NewLogin;
 		Password = NewPassword;

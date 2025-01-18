@@ -63,7 +63,7 @@ void AMAIController::OnPerception(AActor* Actor, FAIStimulus Stimulus)
 				{
 					if (AMPlayerState* PlayerCharcterState = Cast<AMPlayerState>(Player->GetPlayerState()))
 					{
-						if (!PlayerCharcterState->IsPlayerInSaveZone())
+						if (!PlayerCharcterState->IsInSaveZone())
 						{
 							BlackboardComponent->SetValueAsObject("DetectPlayer", Actor);
 							if (!Player->InsertInSaveZoneDelegate.IsBound())

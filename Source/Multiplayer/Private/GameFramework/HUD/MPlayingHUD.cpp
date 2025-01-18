@@ -125,7 +125,7 @@ void AMPlayingHUD::PostInitializeComponents()
 	{
 		if (IsValid(GetWorld()))
 		{
-			if (GetWorld()->GetGameViewport())
+			if (IsValid(GetWorld()->GetGameViewport()))
 			{
 				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());

@@ -48,3 +48,34 @@ struct FChatMessageData
 		Message = *Data.Find("Message");
 	}
 };
+
+USTRUCT()
+struct FInformWidgetData
+{
+	GENERATED_USTRUCT_BODY();
+
+	UPROPERTY(EditAnywhere)
+	FText Text;
+	
+	UPROPERTY(EditAnywhere)
+	bool bWarning;
+
+	UPROPERTY(EditAnywhere)
+	bool bWaiting;
+
+	UPROPERTY(EditAnywhere)
+	ETypeOfWidget NextWidgetType;
+
+	UPROPERTY(EditAnywhere)
+	ETypeOfWidget PreviousWidgetType;
+
+	FInformWidgetData(FText TextValue = FText::GetEmpty(), bool bWarningValue = false, bool bWaitingValue = false,
+		ETypeOfWidget NextWidgetTypeValue = ETypeOfWidget::None, ETypeOfWidget PreviousWidgetTypeValue = ETypeOfWidget::None)
+	{
+		Text = TextValue;
+		bWarning = bWarningValue;
+		bWaiting = bWaitingValue;
+		NextWidgetType = NextWidgetTypeValue;
+		PreviousWidgetType = PreviousWidgetTypeValue;
+	}
+};

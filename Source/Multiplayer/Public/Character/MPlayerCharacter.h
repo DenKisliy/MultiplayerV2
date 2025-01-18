@@ -112,8 +112,6 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	AMPlayerHUD* GetHUD();
-
 	FString GetPlayerName();
 
 	FString GetButtonTextForInformWidget(FString ButtonName);
@@ -150,15 +148,11 @@ protected:
 private:
 	void InitializeInput(AController* NewController);
 
-	void StartPlayerWidgetTimer(FString PlayerName);
-
 	void RotatePlayerNameWidget();
 
 	void BindAllDelegates();
 
 	void OnUpdateAttributeState(EAttributeType Type, float Value);
-
-	void SetLocalPlayerTag();
 
 	//Bind function
 	UFUNCTION()

@@ -76,3 +76,5 @@ FString MSFindSessionWidget::GetSessionName(FOnlineSessionSearchResult& SessionD
 
 	return SessionName;
 }
+
+#undef LOCTEXT_NAMESPACE

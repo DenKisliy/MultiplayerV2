@@ -44,8 +44,8 @@ void UMResultGameWidget::CloseWindow()
 	AMPlayerState* playerState = Cast<AMPlayerState>(GetOwningPlayerState());
 	if (playerState)
 	{
-		playerState->SetCharacterInfo(ETypeOfCharacter::None);
-		playerState->SaveResultOfGame(EResultOfGame::None);
+		//playerState->SetCharacterInfo(ETypeOfCharacter::None);
+		//playerState->SaveResultOfGame(EResultOfGame::None);
 	}
 
 	RemoveFromParent();

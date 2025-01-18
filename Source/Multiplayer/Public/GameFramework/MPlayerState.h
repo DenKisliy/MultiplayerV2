@@ -5,13 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
 
-#include "MGameInstance.h"
-#include "../Subsystem/MSessionSubsystem.h"
-#include "../../Multiplayer.h"
+#include "../Data/MPlayerDataStruct.h"
 
 #include "MPlayerState.generated.h"
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerDeath, bool, bDeathPlayer);
 
 /**
  * 
@@ -25,33 +21,19 @@ public:
 	FPlayerDeath PlayerDeathDelegate;
 
 private:
-	FPlayerInfoStruct PlayerInfo;
-
-	bool bPlayerInSaveZone = false;
+	bool bInSaveZone = false;
 
 	bool bPlayerDeath = false;
 
 public:
 	AMPlayerState();
 
-	void SaveNewPlayerName(FString NewPlayerName);
+	virtual void PostInitializeComponents() override;
 
-	UFUNCTION(BlueprintCallable)
-	void UpdatePlayerState();
+	bool IsInSaveZone() { return bInSaveZone; }
 
-	UFUNCTION(Client, Reliable)
-	void SaveResultOfGame(EResultOfGame ResultOfGame);
+	void SetPlayerInSaveZone(bool bValue) { bInSaveZone = bValue; }
 
-	void SetCharacterInfo(ETypeOfCharacter Type);
-
-	void SaveDataInGameInstance();
-
-	UFUNCTION(BlueprintCallable)
-	ETypeOfCharacter GetCharacterType();
-
-	bool IsPlayerInSaveZone();
-
-	void SetPlayerInSaveZone(bool bValue);
-
-	FPlayerInfoStruct& GetPlayerInfo();
+private:
+	void SetPlayerNameByLogin();
 };

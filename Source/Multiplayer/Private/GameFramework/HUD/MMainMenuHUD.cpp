@@ -12,7 +12,7 @@ void AMMainMenuHUD::ShowWidget(ETypeOfWidget TypeOfUIWidget)
 {
 	if (IsValid(GetWorld()))
 	{
-		if (GetWorld()->GetGameViewport())
+		if (IsValid(GetWorld()->GetGameViewport()))
 		{
 			if (TypeOfUIWidget != ETypeOfWidget::None)
 			{
@@ -94,7 +94,7 @@ void AMMainMenuHUD::CloseWidget(ETypeOfWidget TypeOfWidget)
 {
 	if (IsValid(GetWorld()))
 	{
-		if (GetWorld()->GetGameViewport())
+		if (IsValid(GetWorld()->GetGameViewport()))
 		{
 			switch (TypeOfWidget)
 			{
@@ -119,7 +119,7 @@ void AMMainMenuHUD::SetFocus(ETypeOfWidget TypeOfWidget)
 {
 	if (IsValid(GetWorld()))
 	{
-		if (GetWorld()->GetGameViewport())
+		if (IsValid(GetWorld()->GetGameViewport()))
 		{
 			switch (TypeOfWidget)
 			{
@@ -148,13 +148,27 @@ void AMMainMenuHUD::SetFocus(ETypeOfWidget TypeOfWidget)
 	}
 }
 
+void AMMainMenuHUD::ShowInformWidget(FInformWidgetData& InformWidgetData)
+{
+	if (IsValid(GetWorld()))
+	{
+		if (IsValid(GetWorld()->GetGameViewport()))
+		{
+			InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(this).Text(InformWidgetData.Text).Warning(InformWidgetData.bWarning).Waiting(InformWidgetData.bWaiting)
+				.NextWidget(InformWidgetData.NextWidgetType).PreviousWidget(InformWidgetData.PreviousWidgetType);
+
+			GetWorld()->GetGameViewport()->AddViewportWidgetContent(SAssignNew(InformContainer, SWeakWidget).PossiblyNullContent(InformativeWidget.ToSharedRef()), 5);
+		}
+	}
+}
+
 void AMMainMenuHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
 	if (IsValid(GetWorld()))
 	{
-		if (GetWorld()->GetGameViewport())
+		if (IsValid(GetWorld()->GetGameViewport()))
 		{
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());

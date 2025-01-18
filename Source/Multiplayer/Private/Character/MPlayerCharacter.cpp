@@ -223,23 +223,11 @@ void AMPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	DOREPLIFETIME(AMPlayerCharacter, WalkSpeed);
 }
 
-void AMPlayerCharacter::SetLocalPlayerTag()
-{
-	if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
-	{
-		SetPlayerName(PlayerInfoSubsystem->GetLoginOfUser());
-	}
-}
-
 void AMPlayerCharacter::SetPlayerTagName(FString PlayerName)
 {
 	if (UMPlayerInfoWidget* PlayerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
 	{
 		PlayerTag->SetPlayerName(PlayerName);
-	}
-	else
-	{
-		StartPlayerWidgetTimer(PlayerName);
 	}
 }
 
@@ -293,29 +281,28 @@ void AMPlayerCharacter::InitializeInput(AController* NewController)
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
-
-			SetLocalPlayerTag();
 			BindAllDelegates();
 		}
 	}
 
 }
 
-void AMPlayerCharacter::StartPlayerWidgetTimer(FString PlayerName)
-{
-	FTimerHandle TimerHandle;
-	FTimerDelegate TimerDel;
-	TimerDel.BindUFunction(this, FName("SetPlayerTagName"), PlayerName);
-
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDel, 1.f, false);
-}
-
 void AMPlayerCharacter::RotatePlayerNameWidget()
 {
 	if (!IsLocallyControlled())
 	{
-		PlayerTagComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(PlayerTagComponent->GetComponentLocation(),
-			UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
+		if (UMPlayerInfoWidget* PlayerTagWidget = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
+		{
+			if (PlayerTagWidget->GetPlayerName().IsEmpty())
+			{
+				//SetPlayerName(GetPlayerState()->GetPlayerName());
+			}
+			else
+			{
+				PlayerTagComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(PlayerTagComponent->GetComponentLocation(),
+					UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
+			}
+		}
 	}
 }
 

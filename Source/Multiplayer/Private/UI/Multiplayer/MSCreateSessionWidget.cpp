@@ -123,16 +123,9 @@ void MSCreateSessionWidget::ShowInformWidget(FText Text, bool bWarning, bool bWa
 	{
 		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 		{
-			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Text(Text).Warning(bWarning).Waiting(bWaiting).PreviousWidget(PreviousWidget);
-			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
-
-			if (IsValid(HUD->GetWorld()))
-			{
-				if (HUD->GetWorld()->GetGameViewport())
-				{
-					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
-				}
-			}
+			FInformWidgetData InformWidgetData = FInformWidgetData(Text, bWarning, bWaiting,
+				ETypeOfWidget::None, PreviousWidget);
+			HUD->ShowInformWidget(InformWidgetData);
 			
 			if (bWaiting)
 			{

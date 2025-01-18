@@ -16,121 +16,119 @@ void MSRegistrationWidget::Construct(const FArguments& InArgs)
 	SetDefaultValuesForWidgets();
 
 	ChildSlot
-	[
-		SNew(SOverlay)
-			+ SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-			[
-				SNew(SImage).ColorAndOpacity(FColor::Black)
-			]
+		[
+			SNew(SOverlay)
+				+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(UMWidgetStyle::GetContentPadding())
+				[
+					SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
+						[
+							SNew(SVerticalBox)
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+								[
+									SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
+								]
 
-			+ SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center).Padding(UMWidgetStyle::GetContentPadding())
-			[
-				SNew(SVerticalBox)
-					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-					[
-						SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Registration")).Justification(ETextJustify::Center)
-					]
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+								[
+									SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+										[
+											SNew(SVerticalBox)
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
+												]
 
-					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-					[
-						SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
-							[
-								SNew(SVerticalBox)
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Login")).Justification(ETextJustify::Left)
-									]
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
+												]
 
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Password")).Justification(ETextJustify::Left)
-									]
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
+												]
+										]
 
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetTitleTextStyle()).Text(LOCTEXT("Registration", "Character type")).Justification(ETextJustify::Left)
-									]
-							]
+										+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
+										[
+											SNew(SVerticalBox)
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SAssignNew(LoginBoxPtr, SEditableTextBox)
+														.MinDesiredWidth(400.0f)
+														.OnTextCommitted(this, &MSRegistrationWidget::OnTextCommitted)
+														.ClearKeyboardFocusOnCommit(false)
+														.Font(UMWidgetStyle::GetTitleTextStyle())
+														.HintText(LOCTEXT("Registration", "Login"))
+												]
 
-							+ SHorizontalBox::Slot().AutoWidth().Padding(UMWidgetStyle::GetButtontPadding())
-							[
-								SNew(SVerticalBox)
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SAssignNew(LoginBoxPtr, SEditableTextBox)
-											.MinDesiredWidth(400.0f)
-											.OnTextCommitted(this, &MSRegistrationWidget::OnTextCommitted)
-											.ClearKeyboardFocusOnCommit(false)
-											.Font(UMWidgetStyle::GetTitleTextStyle())
-											.HintText(LOCTEXT("Registration", "Login"))
-									]
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SAssignNew(PasswordBoxPtr, SEditableTextBox)
+														.MinDesiredWidth(400.0f)
+														.ClearKeyboardFocusOnCommit(false)
+														.IsPassword(true)
+														.Font(UMWidgetStyle::GetTitleTextStyle())
+														.HintText(LOCTEXT("Registration", "Password"))
+												]
 
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SAssignNew(PasswordBoxPtr, SEditableTextBox)
-											.MinDesiredWidth(400.0f)
-											.ClearKeyboardFocusOnCommit(false)
-											.IsPassword(true)
-											.Font(UMWidgetStyle::GetTitleTextStyle())
-											.HintText(LOCTEXT("Registration", "Password"))
-									]
+												+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+												[
+													SAssignNew(TypeOfCharacterComboBox, SComboBox<TSharedPtr<FText>>).InitiallySelectedItem(SelectedTypeOfCharacter).OptionsSource(&TypeOfCharacterArray)
+														.OnSelectionChanged_Lambda([this](TSharedPtr<FText> NewSelection, ESelectInfo::Type SelectInfo)
+															{
+																SelectedTypeOfCharacter = NewSelection;
+															})
+														.OnGenerateWidget_Lambda([](TSharedPtr<FText> Option)
+															{
+																return SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60)).Text(*Option);
+															})
+																[
+																	SAssignNew(CheckBoxPtr, STextBlock).MinDesiredWidth(400.0f).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60))
+																		.Text_Lambda([this]()
+																			{
+																				return SelectedTypeOfCharacter.IsValid() ? *SelectedTypeOfCharacter : FText::GetEmpty();
+																			})
+																]
+												]
+										]
+								]
 
-									+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-									[
-										SAssignNew(TypeOfCharacterComboBox, SComboBox<TSharedPtr<FText>>).InitiallySelectedItem(SelectedTypeOfCharacter).OptionsSource(&TypeOfCharacterArray)
-											.OnSelectionChanged_Lambda([this](TSharedPtr<FText> NewSelection, ESelectInfo::Type SelectInfo)
-												{
-													SelectedTypeOfCharacter = NewSelection;
-												})
-											.OnGenerateWidget_Lambda([](TSharedPtr<FText> Option)
-												{
-													return SNew(STextBlock).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60)).Text(*Option);
-												})
-													[
-														SAssignNew(CheckBoxPtr, STextBlock).MinDesiredWidth(400.0f).Font(FCoreStyle::GetDefaultFontStyle("EmbossedText", 60))
-															.Text_Lambda([this]()
-																{
-																	return SelectedTypeOfCharacter.IsValid() ? *SelectedTypeOfCharacter : FText::GetEmpty();
-																})
-													]
-									]
-							]
-					]
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+								[
+									SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+										[
+											SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnSingUn)
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
+												]
+										]
 
-					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-					[
-						SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
-							[
-								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnSingUn)
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Registrat")).Justification(ETextJustify::Center)
-									]
-							]
+										+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
+										[
+											SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnCancel)
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
+												]
+										]
+								]
 
-							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding())
-							[
-								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnCancel)
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Cancel")).Justification(ETextJustify::Center)
-									]
-							]
-					]
-
-					+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
-					[
-						SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding()).HAlign(HAlign_Center)
-							[
-								SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnBackToPreviousMenu)
-									[
-										SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
-									]
-							]
+								+ SVerticalBox::Slot().AutoHeight().Padding(UMWidgetStyle::GetButtontPadding())
+								[
+									SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot().Padding(UMWidgetStyle::GetButtontPadding()).HAlign(HAlign_Center)
+										[
+											SNew(SButton).OnClicked(this, &MSRegistrationWidget::OnBackToPreviousMenu)
+												[
+													SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Registration", "Back to previous menu")).Justification(ETextJustify::Center)
+												]
+										]
+								]
+						]
 				]
-			]
-	];
+		];
 }
 
 bool MSRegistrationWidget::SupportsKeyboardFocus() const
@@ -235,16 +233,9 @@ void MSRegistrationWidget::ShowInformWidget(FText Text, bool bWarning, ETypeOfWi
 	{
 		if (AMMainMenuHUD* HUD = Cast<AMMainMenuHUD>(OwnerHUD.Get()))
 		{
-			HUD->InformativeWidget = SNew(MSInformativeWidget).OwnerHUD(HUD).Warning(bWarning).Text(Text).PreviousWidget(PreviousWidget).NextWidget(NextWidget);
-			SAssignNew(HUD->InformContainer, SWeakWidget).PossiblyNullContent(HUD->InformativeWidget.ToSharedRef());
-
-			if (IsValid(HUD->GetWorld()))
-			{
-				if (HUD->GetWorld()->GetGameViewport())
-				{
-					HUD->GetWorld()->GetGameViewport()->AddViewportWidgetContent(HUD->InformContainer.ToSharedRef(), 5);
-				}
-			}
+			FInformWidgetData InformWidgetData = FInformWidgetData(Text, bWarning, false,
+				NextWidget, PreviousWidget);
+			HUD->ShowInformWidget(InformWidgetData);
 		}
 	}
 }

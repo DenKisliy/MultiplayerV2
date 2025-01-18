@@ -47,14 +47,14 @@ void AMPlayerController::ResurrectionCharacter()
 	{
 		if (AMPlayerState* pState = Cast<AMPlayerState>(PlayerState))
 		{
-			FPlayerInfoStruct& playerInfo = pState->GetPlayerInfo();
+			/*FPlayerInfoStruct& playerInfo = pState->GetPlayerInfo();
 
 			if (playerInfo.CharacterType != ETypeOfCharacter::None)
 			{
 				TypeOfCharacter = playerInfo.CharacterType;
 				playerInfo.SetCharacterDeath(!playerInfo.bCharacterDeath);
 				SpawnCharacter(playerInfo.CharacterType);
-			}
+			}*/
 		}
 	}
 }

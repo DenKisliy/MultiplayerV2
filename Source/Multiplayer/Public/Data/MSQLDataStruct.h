@@ -41,20 +41,12 @@ struct FDatabaseData
 	UPROPERTY(EditAnywhere)
 	FString DatabaseName;
 
-	FDatabaseData()
+	FDatabaseData(FString HostValue = "", FString UserValue = "", FString PasswordValue = "", FString DatabaseNameValue = "")
 	{
-		Host = "";
-		User = "";
-		Password = "";
-		DatabaseName = "";
-	}
-
-	FDatabaseData(FString NewHost, FString NewUser, FString NewPassword, FString NewDatabaseName)
-	{
-		Host = NewHost;
-		User = NewUser;
-		Password = NewPassword;
-		DatabaseName = NewDatabaseName;
+		Host = HostValue;
+		User = UserValue;
+		Password = PasswordValue;
+		DatabaseName = DatabaseNameValue;
 	}
 
 	bool IsAllDataSet()
@@ -102,10 +94,13 @@ struct FQueryResult
 struct FResultField
 {
 	FString StringValue;
+
 	double DoubleValue;
+
 	int64 IntValue;
 
 	FString Name;
+
 	EQueryResultValType Type;
 
 	FString ToString()
@@ -114,6 +109,7 @@ struct FResultField
 			return StringValue;
 		if (Type == EQueryResultValType::Int)
 			return FString::Printf(TEXT("%i"), IntValue);
+
 		return StringValue;
 	}
 };
@@ -148,14 +144,9 @@ struct FCreateTableStructData
 	UPROPERTY()
 	TMap<FString, ECreatTableFieldType> Fields;
 
-	FCreateTableStructData()
+	FCreateTableStructData(FString TableNameValue = "")
 	{
-		TableName = "";
-	}
-
-	FCreateTableStructData(FString NewTableName)
-	{
-		TableName = NewTableName;
+		TableName = TableNameValue;
 	}
 
 	void AddField(FString FieldName, ECreatTableFieldType Type)
