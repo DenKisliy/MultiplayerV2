@@ -108,8 +108,6 @@ void UMPlayerInfoSubsystem::SetChatTableName(FString Value)
 
 FChatMessageData* UMPlayerInfoSubsystem::GetLastMessageData()
 {
-	FChatMessageData* MessageData = nullptr;
-
 	if (IsValid(Database))
 	{
 		FQueryResult QueryResult = Database->GetQueryData("SELECT* FROM " + ChatTableName + " WHERE id = (SELECT max(id) FROM " + ChatTableName + ");");

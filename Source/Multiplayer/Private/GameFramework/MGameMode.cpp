@@ -14,9 +14,9 @@ AMGameMode::AMGameMode()
 
 void AMGameMode::SetSpawnItems(FItemTypeInfo TypeInfo, FVector Location)
 {
-	if (AMSpawnItemManager* itemManager = Cast<AMSpawnItemManager>(ItemManager))
+	if (AMSpawnItemManager* SpawnItemManager = Cast<AMSpawnItemManager>(ItemManager))
 	{
-		itemManager->SpawnItem(TypeInfo, Location);
+		SpawnItemManager->SpawnItem(TypeInfo, Location);
 	}
 }
 
@@ -29,27 +29,30 @@ void AMGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (IsValid(CaptureBaseManagerClass))
+	if (IsValid(GetWorld()))
 	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.Instigator = GetInstigator();
-		SpawnInfo.ObjectFlags |= RF_Transient;
-		GetWorld()->SpawnActor<AActor>(CaptureBaseManagerClass, SpawnInfo);
-	}
+		if (IsValid(CaptureBaseManagerClass))
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Instigator = GetInstigator();
+			SpawnInfo.ObjectFlags |= RF_Transient;
+			GetWorld()->SpawnActor<AActor>(CaptureBaseManagerClass, SpawnInfo);
+		}
 
-	if (IsValid(SpawnBotManagerClass))
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.Instigator = GetInstigator();
-		SpawnInfo.ObjectFlags |= RF_Transient;
-		GetWorld()->SpawnActor<AActor>(SpawnBotManagerClass, SpawnInfo);
-	}
+		if (IsValid(SpawnBotManagerClass))
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Instigator = GetInstigator();
+			SpawnInfo.ObjectFlags |= RF_Transient;
+			GetWorld()->SpawnActor<AActor>(SpawnBotManagerClass, SpawnInfo);
+		}
 
-	if (IsValid(ItemManagerClass))
-	{
-		FActorSpawnParameters SpawnInfo;
-		SpawnInfo.Instigator = GetInstigator();
-		SpawnInfo.ObjectFlags |= RF_Transient;
-		ItemManager = GetWorld()->SpawnActor<AActor>(ItemManagerClass, SpawnInfo);
+		if (IsValid(ItemManagerClass))
+		{
+			FActorSpawnParameters SpawnInfo;
+			SpawnInfo.Instigator = GetInstigator();
+			SpawnInfo.ObjectFlags |= RF_Transient;
+			ItemManager = GetWorld()->SpawnActor<AActor>(ItemManagerClass, SpawnInfo);
+		}
 	}
 }

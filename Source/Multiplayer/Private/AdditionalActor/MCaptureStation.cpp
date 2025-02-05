@@ -57,25 +57,22 @@ void AMCaptureStation::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
 void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (AMPlayerCharacter* hitActor = Cast<AMPlayerCharacter>(Other))
+	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
-		FVector center = GetActorLocation();
-		FVector hitActorLocation = hitActor->GetActorLocation();
-
-		if (InsertPlayerArray.Find(hitActor) == INDEX_NONE && FMath::Sqrt(FMath::Pow(center.X - hitActorLocation.X, 2) + FMath::Pow(center.Y - hitActorLocation.Y, 2)) <= CollisionComponent->GetScaledSphereRadius() + hitActor->GetCapsuleComponent()->GetScaledCapsuleRadius())
+		if (InsertPlayerArray.Find(HitActor) == INDEX_NONE)
 		{
 			if (!bCapture)
 			{
-				if (AMPlayerState* playerState = Cast<AMPlayerState>(hitActor->GetPlayerState()))
+				if (AMPlayerState* PlayerState = Cast<AMPlayerState>(HitActor->GetPlayerState()))
 				{
-					hitActor->InsertInSaveZoneDelegate.Broadcast(hitActor);
-					playerState->SetPlayerInSaveZone(true);
-					ActivateGameplayEffectForCharacter(hitActor, true);
+					HitActor->InsertInSaveZoneDelegate.Broadcast(HitActor);
+					PlayerState->SetPlayerInSaveZone(true);
+					ActivateGameplayEffectForCharacter(HitActor, true);
 				}
 			}
 			else
 			{
-				InsertPlayerArray.Add(hitActor);
+				InsertPlayerArray.Add(HitActor);
 				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerArray.Num());
 			}
 		}
@@ -84,21 +81,21 @@ void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overl
 
 void AMCaptureStation::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AMPlayerCharacter* hitActor = Cast<AMPlayerCharacter>(Other))
+	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
 		if (!bCapture)
 		{
-			if (AMPlayerState* playerState = Cast<AMPlayerState>(hitActor->GetPlayerState()))
+			if (AMPlayerState* PlayerState = Cast<AMPlayerState>(HitActor->GetPlayerState()))
 			{
-				playerState->SetPlayerInSaveZone(false);
-				ActivateGameplayEffectForCharacter(hitActor, false);
+				PlayerState->SetPlayerInSaveZone(false);
+				ActivateGameplayEffectForCharacter(HitActor, false);
 			}
 		}
 		else
 		{
-			if (InsertPlayerArray.Find(hitActor) != INDEX_NONE)
+			if (InsertPlayerArray.Find(HitActor) != INDEX_NONE)
 			{
-				InsertPlayerArray.Remove(hitActor);
+				InsertPlayerArray.Remove(HitActor);
 				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerArray.Num() > 0 ? 0 : InsertPlayerArray.Num());
 			}
 		}
@@ -153,26 +150,23 @@ void AMCaptureStation::AddItems_Implementation()
 {
 	if (GetWorld()->GetGameState())
 	{
-		TArray<TObjectPtr<APlayerState>> playerArray = GetWorld()->GetGameState()->PlayerArray;
-		for (int i = 0; i < playerArray.Num(); i++)
+		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 		{
-			if (APlayerState* playerState = playerArray[i].Get())
+			for (AMPlayerCharacter* InsertPlayer : InsertPlayerArray)
 			{
-				for (AMPlayerCharacter* player : InsertPlayerArray)
+				if (InsertPlayer->GetPlayerName() == Player.Get()->GetPlayerName())
 				{
-					if (player->GetPlayerName() == playerState->GetPlayerName())
+					if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player.Get()->GetPlayerController()))
 					{
-						if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
+						for (FItemTypeInfo Item : RewardItemsArray)
 						{
-							for (FItemTypeInfo item : RewardItemsArray)
-							{
-								playerController->AddItemToCharacter(item);
-							}
+							PlayerController->AddItemToCharacter(Item);
 						}
 					}
 				}
 			}
 		}
 	}
+
 	InsertPlayerArray.Empty();
 }

@@ -11,7 +11,6 @@
 #include "GameFramework/GameStateBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "../GameFramework/MGameMode.h"
-#include "MPlayerHUD.h"
 #include "MPlayerState.h"
 #include "MGameInstance.h"
 #include "GameFramework/Character.h"
@@ -24,6 +23,7 @@
  */
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAddItemToInventory, FItemTypeInfo, Type);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FPickUpItemToInventory, FItemTypeInfo, ItemType, const AActor*, Item);
+DECLARE_DYNAMIC_DELEGATE(FUpdateChat);
 
 UCLASS()
 class MULTIPLAYER_API AMPlayerController : public APlayerController
@@ -31,8 +31,6 @@ class MULTIPLAYER_API AMPlayerController : public APlayerController
 	GENERATED_BODY()
 
 private:
-	AMPlayerHUD* PlayerHUD;
-
 	FVector SpawnLocationAfterDeath  = FVector(0);
 
 	FTimerHandle CharacterTypeTimer;
@@ -44,16 +42,12 @@ public:
 
 	FPickUpItemToInventory PickUpItemToInventoryDelegate;
 
+	FUpdateChat UpdateChatWidgetDelegate;
+
 public:
 	AMPlayerController(const FObjectInitializer& ObjectInitializer);
 
 	void BeginPlay();
-
-	UFUNCTION(Server, Reliable)
-	void MessageSubmit();
-
-	UFUNCTION(Client, Reliable)
-	void UpdateChat();
 
 	void CharacterDeath();
 
@@ -76,6 +70,9 @@ public:
 
 	void SetPlayerHUD();
 
+	UFUNCTION(Server, Reliable)
+	void MessageSubmit();
+
 private:
 	UFUNCTION(Server, Reliable)
 	void SpawnCharacter(ETypeOfCharacter SelectTypeOfCharacter);
@@ -83,6 +80,9 @@ private:
 	FString GetPlayerStartByTag();
 
 	void OnSetCharacterType();
+
+	UFUNCTION(Client, Reliable)
+	void OnUpdateChat();
 
 protected:
 	virtual void OnPossess(APawn* aPawn) override;

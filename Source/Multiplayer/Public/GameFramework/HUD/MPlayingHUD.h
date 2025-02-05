@@ -9,6 +9,7 @@
 #include "../../UI/PlayerWidget/GAS/Attribute/MAttributesGroupWidget.h"
 #include "../../UI/PlayerWidget/Item/MInventoryWidget.h"
 #include "../../UI/PlayerWidget/HUD/MInformWidget.h"
+#include "../../UI/PlayerWidget/Chat/MChatWidget.h"
 
 #include "../../UI/PlayerWidget/Chat/MSChatWidget.h"
 
@@ -35,7 +36,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
 	TSubclassOf<UMInformWidget> InformStatic;
 
-	TSharedPtr<MSChatWidget> ChatWidget;
+	UPROPERTY(EditAnywhere, Category = "Widget Static Class")
+	TSubclassOf<UMChatWidget> ChatStatic;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UUserWidget* ChatWidget;
 
 private:
 	UMTimerWidget* TimerWidget;
@@ -60,6 +65,8 @@ public:
 	void ShowInventory(bool bValue);
 
 	void ShowInformText(FString Text);
+
+	void CreateChat();
 
 protected:
 	virtual void PostInitializeComponents() override;

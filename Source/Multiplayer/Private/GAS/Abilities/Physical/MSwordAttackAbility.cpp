@@ -32,25 +32,26 @@ bool UMSwordAttackAbility::CanActivateAbility(const FGameplayAbilitySpecHandle H
 
 void UMSwordAttackAbility::CalculateEffect(AActor* ActorWhichAttack, AActor* ActorWhichDamaged)
 {
-	if (AMBaseCharacter* characterAttack = Cast<AMBaseCharacter>(ActorWhichAttack))
+	if (AMBaseCharacter* CharacterAttack = Cast<AMBaseCharacter>(ActorWhichAttack))
 	{
-		FGameplayEffectContextHandle EffectContext = characterAttack->GetAbilitySystemComponent()->MakeEffectContext();
+		FGameplayEffectContextHandle EffectContext = CharacterAttack->GetAbilitySystemComponent()->MakeEffectContext();
 		EffectContext.AddSourceObject(this);
 
-		FGameplayEffectSpecHandle SpecHandle = characterAttack->GetAbilitySystemComponent()->MakeOutgoingSpec(GetAbilityGameplayEffect(), 1, EffectContext);
+		FGameplayEffectSpecHandle SpecHandle = CharacterAttack->GetAbilitySystemComponent()->MakeOutgoingSpec(GetAbilityGameplayEffect(), 1, EffectContext);
 		if (SpecHandle.IsValid())
 		{
 			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
-			if (Spec !=nullptr)
+			
+			if (Spec != nullptr)
 			{
-				float physicalBuff = characterAttack->Attributes->GetPhysicalBuff();
-				float magnitudeValue = physicalBuff > 0 ? (physicalBuff / 100 + 1) * AbilityGameplayEffectInfo.Magnitude : AbilityGameplayEffectInfo.Magnitude;
-				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, magnitudeValue);
+				float PhysicalBuff = CharacterAttack->Attributes->GetPhysicalBuff();
+				float MagnitudeValue = PhysicalBuff > 0 ? (PhysicalBuff / 100 + 1) * AbilityGameplayEffectInfo.Magnitude : AbilityGameplayEffectInfo.Magnitude;
+				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, MagnitudeValue);
 			}
 
-			if (AMBaseCharacter* characterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
+			if (AMBaseCharacter* CharacterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
 			{
-				characterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				CharacterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}
 	}

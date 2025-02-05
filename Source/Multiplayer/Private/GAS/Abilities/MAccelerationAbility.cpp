@@ -13,12 +13,15 @@ UMAccelerationAbility::UMAccelerationAbility()
 void UMAccelerationAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	
-	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
+
+	if (IsValid(GetWorld()))
 	{
-		ActivateAbilityForCharacter();
-		SetSpeedForCharacter(true);
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UMAccelerationAbility::TimerActiveAbility, TimerInterval, true);
+		if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
+		{
+			ActivateAbilityForCharacter();
+			SetSpeedForCharacter(true);
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UMAccelerationAbility::TimerActiveAbility, TimerInterval, true);
+		}
 	}
 }
 
@@ -26,11 +29,14 @@ void UMAccelerationAbility::InputReleased(const FGameplayAbilitySpecHandle Handl
 {
 	Super::InputReleased(Handle, ActorInfo, ActivationInfo);
 
-	if (ActorInfo != nullptr && ActorInfo->AvatarActor != nullptr)
+	if (IsValid(GetWorld()))
 	{
-		SetSpeedForCharacter(false);
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		if (ActorInfo != nullptr && ActorInfo->AvatarActor != nullptr)
+		{
+			SetSpeedForCharacter(false);
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+			CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		}
 	}
 }
 
@@ -51,25 +57,28 @@ bool UMAccelerationAbility::CanActivateAbility(const FGameplayAbilitySpecHandle 
 
 void UMAccelerationAbility::TimerActiveAbility()
 {
-	if (!IsEnoughStamina(CurrentActorInfo))
+	if (IsValid(GetWorld()))
 	{
-		SetSpeedForCharacter(false);
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
-	}
-	else
-	{
-		ActivateAbilityForCharacter();
+		if (!IsEnoughStamina(CurrentActorInfo))
+		{
+			SetSpeedForCharacter(false);
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+			CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+		}
+		else
+		{
+			ActivateAbilityForCharacter();
+		}
 	}
 }
 
 bool UMAccelerationAbility::IsEnoughStamina(const FGameplayAbilityActorInfo* ActorInfo) const
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(ActorInfo->AvatarActor.Get()))
 	{
-		if (character->Attributes)
+		if (Character->Attributes)
 		{
-			return character->Attributes->GetStamina() >= StaminaCostOfEachSecond;
+			return Character->Attributes->GetStamina() >= StaminaCostOfEachSecond;
 		}
 	}
 
@@ -78,18 +87,18 @@ bool UMAccelerationAbility::IsEnoughStamina(const FGameplayAbilityActorInfo* Act
 
 void UMAccelerationAbility::ActivateAbilityForCharacter()
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		float staminaValue = character->Attributes->GetStamina();
+		float staminaValue = Character->Attributes->GetStamina();
 
-		character->Attributes->SetStamina(staminaValue - StaminaCostOfEachSecond);
+		Character->Attributes->SetStamina(staminaValue - StaminaCostOfEachSecond);
 	}
 }
 
 void UMAccelerationAbility::SetSpeedForCharacter(bool bAcceleration)
 {
-	if (AMBaseCharacter* character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		character->SetCharacterSpeed(bAcceleration ? AccelerationCoefficientSpeed : -1);
+		Character->SetCharacterSpeed(bAcceleration ? AccelerationCoefficientSpeed : -1);
 	}
 }

@@ -37,71 +37,64 @@ void AMResurrectionFlower::BeginPlay()
 
 void AMResurrectionFlower::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!Player)
+	if (!DeathPlayer)
 	{
-		Player = Cast<AMPlayerCharacter>(Other);
-		if (Player)
+		DeathPlayer = Cast<AMPlayerCharacter>(Other);
+		if (DeathPlayer)
 		{
-			IsHaveResurrectionItemInInventory(Player->GetPlayerName());
+			IsHaveResurrectionItemInInventory(DeathPlayer->GetPlayerName());
 		}
 		else
 		{
-			Player = nullptr;
+			DeathPlayer = nullptr;
 		}
 	}
 }
 
 void AMResurrectionFlower::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (Player)
+	if (DeathPlayer && IsValid(GetWorld()))
 	{
-		if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
 		{
-			gameState->StopResurrectionTimer();
-			gameState->AdditionalTimerDelegate.Clear();
+			GameState->StopResurrectionTimer();
+			GameState->AdditionalTimerDelegate.Clear();
 		}
-		Player = nullptr;
+		DeathPlayer = nullptr;
 	}
 }
 
 void AMResurrectionFlower::OnFinishTimer(ETypeOfAdditionalTimer TypeOfAdditionalTimer)
 {
-	if (AMPlayerController* playerController = Cast<AMPlayerController>(Controller))
+	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
 	{
-		RemoveResurrectionItemFromInventory(Player->GetPlayerName());
-		playerController->ResurrectionCharacter();
+		RemoveResurrectionItemFromInventory(DeathPlayer->GetPlayerName());
+		PlayerController->ResurrectionCharacter();
 	}
 }
 
 void AMResurrectionFlower::IsHaveResurrectionItemInInventory_Implementation(const FString& PlayerName)
 {
-	if (GetWorld()->GetGameState())
+	if (IsValid(GetWorld()->GetGameState()))
 	{
-		TArray<TObjectPtr<APlayerState>> playerArray = GetWorld()->GetGameState()->PlayerArray;
-		for (int i = 0; i < playerArray.Num(); i++)
+		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 		{
-			if (APlayerState* playerState = playerArray[i].Get())
+			if (Player->GetPlayerName() == PlayerName)
 			{
-				if (playerState->GetPlayerName() == PlayerName)
+				if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player->GetPlayerController()->GetPawn()))
 				{
-					if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
+					if (PlayerCharacter->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
 					{
-						if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
+						if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
 						{
-							if (player->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
-							{
-								if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
-								{
-									gameState->StartResurrectionTimer();
-									gameState->AdditionalTimerDelegate.Clear();
-									gameState->AdditionalTimerDelegate.AddDynamic(this, &AMResurrectionFlower::OnFinishTimer);
-								}
-							}
-							else
-							{
-								Player = nullptr;
-							}
+							GameState->StartResurrectionTimer();
+							GameState->AdditionalTimerDelegate.Clear();
+							GameState->AdditionalTimerDelegate.AddDynamic(this, &AMResurrectionFlower::OnFinishTimer);
 						}
+					}
+					else
+					{
+						DeathPlayer = nullptr;
 					}
 				}
 			}
@@ -111,22 +104,15 @@ void AMResurrectionFlower::IsHaveResurrectionItemInInventory_Implementation(cons
 
 void  AMResurrectionFlower::RemoveResurrectionItemFromInventory_Implementation(const FString& PlayerName)
 {
-	if (GetWorld()->GetGameState())
+	if (IsValid(GetWorld()->GetGameState()))
 	{
-		TArray<TObjectPtr<APlayerState>> playerArray = GetWorld()->GetGameState()->PlayerArray;
-		for (int i = 0; i < playerArray.Num(); i++)
+		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 		{
-			if (APlayerState* playerState = playerArray[i].Get())
+			if (Player->GetPlayerName() == PlayerName)
 			{
-				if (playerState->GetPlayerName() == PlayerName)
+				if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player->GetPlayerController()->GetPawn()))
 				{
-					if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
-					{
-						if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(playerController->GetPawn()))
-						{
-							player->InventoryComponent->UseItem(ItemForResurrectionInfo);
-						}
-					}
+					PlayerCharacter->InventoryComponent->UseItem(ItemForResurrectionInfo);
 				}
 			}
 		}

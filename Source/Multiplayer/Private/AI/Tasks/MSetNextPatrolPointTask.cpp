@@ -10,24 +10,24 @@ UMSetNextPatrolPointTask::UMSetNextPatrolPointTask(const FObjectInitializer& Obj
 
 EBTNodeResult::Type UMSetNextPatrolPointTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	EBTNodeResult::Type nodeResult = EBTNodeResult::Failed;
+	EBTNodeResult::Type NodeResult = EBTNodeResult::Failed;
 
-	if (AMAIController* botController = Cast<AMAIController>(OwnerComp.GetAIOwner()))
+	if (AMAIController* BotController = Cast<AMAIController>(OwnerComp.GetAIOwner()))
 	{
-		if (UBlackboardComponent* blackboard = OwnerComp.GetBlackboardComponent())
+		if (UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent())
 		{
-			if (USplineComponent* path = botController->GetOwnerPath())
+			if (USplineComponent* Path = BotController->GetOwnerPath())
 			{
-				FVector tangentVector = path->FindTangentClosestToWorldLocation(botController->GetOwnerLocation(), ESplineCoordinateSpace::World);
+				FVector tangentVector = Path->FindTangentClosestToWorldLocation(BotController->GetOwnerLocation(), ESplineCoordinateSpace::World);
 				tangentVector.Normalize();
 
-				botController->MoveToLocation(path->FindLocationClosestToWorldLocation(
-					(tangentVector * (botController->GetOwnerSpeed())) + botController->GetOwnerLocation(),
+				BotController->MoveToLocation(Path->FindLocationClosestToWorldLocation(
+					(tangentVector * (BotController->GetOwnerSpeed())) + BotController->GetOwnerLocation(),
 					ESplineCoordinateSpace::World));
-				nodeResult = EBTNodeResult::Succeeded;
+				NodeResult = EBTNodeResult::Succeeded;
 			}
 		}
 	}
 
-	return nodeResult;
+	return NodeResult;
 }

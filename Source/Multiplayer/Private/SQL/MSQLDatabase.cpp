@@ -64,12 +64,12 @@ bool UMSQLDatabase::InitConnection()
 
 bool UMSQLDatabase::IsCloseConnection()
 {
-	bool result = UMSQLConnection::CloseConnection(DatabaseConnection);
-	if (result)
+	bool Result = UMSQLConnection::CloseConnection(DatabaseConnection);
+	if (Result)
 	{
 		DatabaseConnection = nullptr;
 	}
-	return result;
+	return Result;
 }
 
 bool UMSQLDatabase::ExecuteQuery(FString Query)
@@ -186,37 +186,37 @@ MSQLConnectorQueryResult* UMSQLDatabase::RunQueryAndGetResults(FString Query)
 
 FQueryResult UMSQLDatabase::GetQueryData(const FString& Query)
 {
-	FQueryResult result;
+	FQueryResult Result;
 
 	if (IsValid(DatabaseConnection))
 	{
 		if (!DatabaseConnection)
 		{
-			result.SetErrorMessage("Not connected!");
-			return result;
+			Result.SetErrorMessage("Not connected!");
+			return Result;
 		}
 		
 		if (!DatabaseConnection->CheckConnection())
 		{
-			result.SetErrorMessage("Connection is NULL!");
-			return result;
+			Result.SetErrorMessage("Connection is NULL!");
+			return Result;
 		}
 
-		MSQLConnectorQueryResult* queryResult = RunQueryAndGetResults(Query);
-		result.SetErrorMessage(queryResult->ErrorMessage);
-		result.Success = queryResult->Results.Num() > 0;
+		MSQLConnectorQueryResult* QueryResult = RunQueryAndGetResults(Query);
+		Result.SetErrorMessage(QueryResult->ErrorMessage);
+		Result.Success = QueryResult->Results.Num() > 0;
 
-		for (FResultValue row : queryResult->Results)
+		for (FResultValue Row : QueryResult->Results)
 		{
-			FQueryResultRow outRow;
-			for (auto field : row.Fields)
+			FQueryResultRow OutRow;
+			for (auto Field : Row.Fields)
 			{
-				outRow.Fields.Add(field.Name, field.ToString());
+				OutRow.Fields.Add(Field.Name, Field.ToString());
 			}
-			result.ResultRows.Add(outRow);
+			Result.ResultRows.Add(OutRow);
 		}
 	}
-	return result;
+	return Result;
 }
 
 FDatabaseData* UMSQLDatabase::GetDefaultSettings()

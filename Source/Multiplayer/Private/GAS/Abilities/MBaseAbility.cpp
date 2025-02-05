@@ -6,19 +6,19 @@
 
 FAbilityMontageStruct UMBaseAbility::GetRandomMontageStruct()
 {
-	TArray<int> probabilityArray;
+	TArray<int> ProbabilityArray;
 
 	if (AbilityMontageArray.Num() > 1)
 	{
-		int randomValue = rand() % 100 + 1;
+		int RandomValue = rand() % 100 + 1;
 		for (int i = 0; i < AbilityMontageArray.Num(); i++)
 		{
-			probabilityArray.Add(probabilityArray.Num() > 0 ? (probabilityArray.Last() + AbilityMontageArray[i].Probability) : AbilityMontageArray[i].Probability);
+			ProbabilityArray.Add(ProbabilityArray.Num() > 0 ? (ProbabilityArray.Last() + AbilityMontageArray[i].Probability) : AbilityMontageArray[i].Probability);
 		}
 
-		for (int i = 0; i < probabilityArray.Num(); i++)
+		for (int i = 0; i < ProbabilityArray.Num(); i++)
 		{
-			if (randomValue < probabilityArray[i] + 1)
+			if (RandomValue < ProbabilityArray[i] + 1)
 			{
 				return AbilityMontageArray[i];
 			}
@@ -67,14 +67,14 @@ void UMBaseAbility::PlayMontage()
 {
 	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 	{
-		FAbilityMontageStruct montageStruct = GetRandomMontageStruct();
-		if (montageStruct.GetMontage())
+		FAbilityMontageStruct MontageStruct = GetRandomMontageStruct();
+		if (MontageStruct.GetMontage())
 		{
-			if (UAnimInstance* animInstance = (Character->GetMesh()) ? Character->GetMesh()->GetAnimInstance() : nullptr)
+			if (UAnimInstance* AnimInstance = (Character->GetMesh()) ? Character->GetMesh()->GetAnimInstance() : nullptr)
 			{
-				animInstance->Montage_JumpToSection(montageStruct.GetSectionName(), montageStruct.GetMontage());
-				animInstance->OnMontageEnded.AddDynamic(this, &UMBaseAbility::OnMontageEnded);
-				Character->MulticastPlayMontage(montageStruct);
+				AnimInstance->Montage_JumpToSection(MontageStruct.GetSectionName(), MontageStruct.GetMontage());
+				AnimInstance->OnMontageEnded.AddDynamic(this, &UMBaseAbility::OnMontageEnded);
+				Character->MulticastPlayMontage(MontageStruct);
 			}
 		}
 	}
@@ -82,7 +82,10 @@ void UMBaseAbility::PlayMontage()
 
 void UMBaseAbility::StartTimer()
 {
-	GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &UMBaseAbility::OnTimer, TimerInfo.TimerInterval, TimerInfo.bLoopTimer);
+	if (IsValid(GetWorld()))
+	{
+		GetWorld()->GetTimerManager().SetTimer(AbilityTimer, this, &UMBaseAbility::OnTimer, TimerInfo.TimerInterval, TimerInfo.bLoopTimer);
+	}
 }
 
 void UMBaseAbility::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
@@ -95,19 +98,23 @@ void UMBaseAbility::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 
 void UMBaseAbility::OnTimer()
 {
-	if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
+
+	if (IsValid(GetWorld()))
 	{
-		if (TimerInfo.bLoopTimer)
+		if (AMBaseCharacter* Character = Cast<AMBaseCharacter>(GetCurrentActorInfo()->AvatarActor.Get()))
 		{
-			if (Character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap))
+			if (TimerInfo.bLoopTimer)
 			{
-				Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+				if (Character->IsEnoughAttributesValues(TimerInfo.CostOfActivateAbilityMap))
+				{
+					Character->ChangeAttributesValues(TimerInfo.CostOfActivateAbilityMap);
+				}
 			}
-		}
-		else
-		{
-			GetWorld()->GetTimerManager().ClearTimer(AbilityTimer);
-			CancelAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true);
+			else
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AbilityTimer);
+				CancelAbility(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo(), GetCurrentActivationInfo(), true);
+			}
 		}
 	}
 }

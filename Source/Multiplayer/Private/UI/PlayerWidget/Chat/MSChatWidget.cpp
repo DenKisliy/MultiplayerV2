@@ -13,64 +13,62 @@ void MSChatWidget::Construct(const FArguments& InArgs)
 
 	OwnerHUD = InArgs._OwnerHUD;
 
-	ChildSlot 
+	ChildSlot
 		.VAlign(VAlign_Bottom)
 		.HAlign(HAlign_Left)
 		.Padding(15)
 		[
 			SNew(SBorder).BorderImage(FAppStyle::Get().GetBrush("Brushes.Panel"))
-			[
-
-				SNew(SVerticalBox) 
-					+ SVerticalBox::Slot().AutoHeight().VAlign(VAlign_Bottom)
-					[
-						SNew(SBox).WidthOverride(500.0f).HeightOverride(400.0f)
+				[
+					SNew(SVerticalBox)
+						+ SVerticalBox::Slot().AutoHeight().VAlign(VAlign_Bottom)
 						[
-							SAssignNew(ListViewWidget, SListView<TSharedPtr<FChatMessageData>>)
-									.ListItemsSource(&MessagesArray)
-									.OnGenerateRow(this, &MSChatWidget::OnGenerateRow)
-									.ScrollbarVisibility(EVisibility::Visible)
-						]
-					]
-
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
-					SNew(SBox).WidthOverride(500.0f).HeightOverride(100.0f).Padding(15.0f)
-					[
-						SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot()
-							.VAlign(VAlign_Fill)
-							.HAlign(HAlign_Fill)
-							[
-								SAssignNew(ChatInput, SMultiLineEditableText)
-									.AutoWrapText(false)
-									.WrapTextAt(500)
-									.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
-									.Text(FText::FromString(""))
-									.Font(UMWidgetStyle::GetChatTextStyle())
-									.HintText(LOCTEXT("Chat", "Enter a message"))
-							]
-					]
-				]
-
-				+ SVerticalBox::Slot()
-				.AutoHeight()
-				[
-					SNew(SBox).WidthOverride(500.0f).Padding(15.0f)
-					[
-						SNew(SHorizontalBox)
-							+ SHorizontalBox::Slot().VAlign(VAlign_Fill).HAlign(HAlign_Fill)
-							[
-								SNew(SButton).OnClicked(this, &MSChatWidget::OnSendMessage).ButtonColorAndOpacity(FLinearColor(1, 1, 1))
+							SNew(SBox).WidthOverride(500.0f).HeightOverride(400.0f)
 								[
-									SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Chat", "Send message"))
-										.Justification(ETextJustify::Center).WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
+									SAssignNew(ListViewWidget, SListView<TSharedPtr<FChatMessageData>>)
+										.ListItemsSource(&MessagesArray)
+										.OnGenerateRow(this, &MSChatWidget::OnGenerateRow)
+										.ScrollbarVisibility(EVisibility::Visible)
 								]
-							]
-					]
+						]
+
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(SBox).WidthOverride(500.0f).HeightOverride(100.0f).Padding(15.0f)
+								[
+									SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot()
+										.VAlign(VAlign_Fill)
+										.HAlign(HAlign_Fill)
+										[
+											SAssignNew(ChatInput, SMultiLineEditableText)
+												.AutoWrapText(false)
+												.WrapTextAt(500)
+												.WrappingPolicy(ETextWrappingPolicy::AllowPerCharacterWrapping)
+												.Text(FText::FromString(""))
+												.Font(UMWidgetStyle::GetChatTextStyle())
+												.HintText(LOCTEXT("Chat", "Enter a message"))
+										]
+								]
+						]
+
+						+ SVerticalBox::Slot()
+						.AutoHeight()
+						[
+							SNew(SBox).WidthOverride(500.0f).Padding(15.0f)
+								[
+									SNew(SHorizontalBox)
+										+ SHorizontalBox::Slot().VAlign(VAlign_Fill).HAlign(HAlign_Fill)
+										[
+											SNew(SButton).OnClicked_Raw(this, &MSChatWidget::OnSendMessage)
+											[
+												SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Chat", "Test")).Justification(ETextJustify::Center)
+											]
+										]
+								]
+						]
 				]
-			]
 		];
 }
 
@@ -125,6 +123,12 @@ FReply MSChatWidget::OnSendMessage() const
 		}
 	}
 
+	return FReply::Handled();
+}
+
+FReply MSChatWidget::OnFocusReceived(const FGeometry& MyGeometry, const FFocusEvent& InFocusEvent)
+{
+	FSlateApplication::Get().SetKeyboardFocus(ChatInput);
 	return FReply::Handled();
 }
 

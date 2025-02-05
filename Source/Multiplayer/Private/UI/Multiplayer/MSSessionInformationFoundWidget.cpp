@@ -3,8 +3,6 @@
 
 #include "UI/Multiplayer/MSSessionInformationFoundWidget.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
-#include "../../../Public/GameFramework/MPlayerHUD.h"
-
 void MSSessionInformationFoundWidget::Construct(const FArguments& InArgs)
 {
 	bCanSupportFocus = true;

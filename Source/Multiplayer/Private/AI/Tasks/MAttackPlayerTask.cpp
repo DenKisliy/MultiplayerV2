@@ -5,26 +5,26 @@
 
 EBTNodeResult::Type UMAttackPlayerTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	EBTNodeResult::Type nodeResult = EBTNodeResult::Failed;
+	EBTNodeResult::Type NodeResult = EBTNodeResult::Failed;
 	
 	if (!BehaviorTreeComponent && !AbilityTags.IsEmpty())
 	{
 		BehaviorTreeComponent = &OwnerComp;
 		
-		if (AMAICharacter* ownerCharacter = Cast<AMAICharacter>(OwnerComp.GetAIOwner()->GetPawn()))
+		if (AMAICharacter* OwnerCharacter = Cast<AMAICharacter>(OwnerComp.GetAIOwner()->GetPawn()))
 		{
-			if (UAbilitySystemComponent* abilitySystem = ownerCharacter->GetAbilitySystemComponent())
+			if (UAbilitySystemComponent* AbilitySystem = OwnerCharacter->GetAbilitySystemComponent())
 			{
-				ownerCharacter->EndAbilityDelegate.Clear();
-				ownerCharacter->EndAbilityDelegate.AddDynamic(this, &UMAttackPlayerTask::OnEndAbility);
+				OwnerCharacter->EndAbilityDelegate.Clear();
+				OwnerCharacter->EndAbilityDelegate.AddDynamic(this, &UMAttackPlayerTask::OnEndAbility);
 
-				nodeResult = abilitySystem->TryActivateAbilitiesByTag(AbilityTags)
+				NodeResult = AbilitySystem->TryActivateAbilitiesByTag(AbilityTags)
 					? EBTNodeResult::InProgress : EBTNodeResult::Failed;
 			}
 		}
 	}
 
-	return nodeResult;
+	return NodeResult;
 }
 
 void UMAttackPlayerTask::OnEndAbility()

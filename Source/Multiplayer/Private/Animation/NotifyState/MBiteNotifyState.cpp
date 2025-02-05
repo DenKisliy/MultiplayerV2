@@ -18,42 +18,31 @@ void UMBiteNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAnimSequen
 
 	if (!bBiteCharacter)
 	{
-		TArray<AActor*> actorsToIgnore;
-		actorsToIgnore.Add(MeshComp->GetOwner());
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(MeshComp->GetOwner());
 
 		FHitResult hitResult;
 
 		bool bHit = UKismetSystemLibrary::SphereTraceSingle(MeshComp, MeshComp->GetSocketLocation("Jaw"), MeshComp->GetSocketLocation("Jaw"),
-			20.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, actorsToIgnore, EDrawDebugTrace::None, hitResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
+			20.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::None, hitResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
 
 		if (bHit)
 		{
-			AMPlayerCharacter* characterWhichDamaged = Cast<AMPlayerCharacter>(hitResult.GetActor());
-			AMAICharacter* playerWhichAttack = Cast<AMAICharacter>(MeshComp->GetOwner());
+			AMPlayerCharacter* CharacterWhichDamaged = Cast<AMPlayerCharacter>(hitResult.GetActor());
+			AMAICharacter* PlayerWhichAttack = Cast<AMAICharacter>(MeshComp->GetOwner());
 
-			if (characterWhichDamaged && playerWhichAttack)
+			if (CharacterWhichDamaged && PlayerWhichAttack)
 			{
 				bBiteCharacter = true;
-				TSubclassOf<UMBaseAbility>* ability = playerWhichAttack->DefaultAbilities.FindByPredicate([](const TSubclassOf<UMBaseAbility>& InItem) {
+				TSubclassOf<UMBaseAbility>* Ability = PlayerWhichAttack->DefaultAbilities.FindByPredicate([](const TSubclassOf<UMBaseAbility>& InItem) {
 					return InItem.GetDefaultObject()->GetAbilityInputID() == EGDAbilityInputID::Bite;
 					});
 
-				if (ability)
+				if (Ability)
 				{
-					characterWhichDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(
-						ability->GetDefaultObject()->GetAbilityGameplayEffect().GetDefaultObject(), 1.0f, playerWhichAttack->GetAbilitySystemComponent()->MakeEffectContext());
+					CharacterWhichDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(
+						Ability->GetDefaultObject()->GetAbilityGameplayEffect().GetDefaultObject(), 1.0f, PlayerWhichAttack->GetAbilitySystemComponent()->MakeEffectContext());
 				}
-				/*for (FGameplayAbilitySpec ability : playerWhichAttack->GetAbilitySystemComponent()->GetActivatableAbilities())
-				{
-					if (UMBaseAbility* baseAbility = Cast<UMBaseAbility>(ability.Ability.Get()))
-					{
-						if (baseAbility->GetAbilityInputID() == EGDAbilityInputID::Bite)
-						{
-							characterWhichDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(baseAbility->GetAbilityGameplayEffect().GetDefaultObject(), 1.0f, playerWhichAttack->GetAbilitySystemComponent()->MakeEffectContext());
-							break;
-						}
-					}
-				}*/
 			}
 		}
 	}

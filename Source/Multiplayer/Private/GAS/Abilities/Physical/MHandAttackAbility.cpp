@@ -43,14 +43,14 @@ void UMHandAttackAbility::CalculateEffect(AActor* ActorWhichAttack, AActor* Acto
 			FGameplayEffectSpec* Spec = SpecHandle.Data.Get();
 			if (Spec != nullptr)
 			{
-				float magnitudeValue = CharacterAttack->Attributes->GetPhysicalBuff() > 0 ? 
+				float MagnitudeValue = CharacterAttack->Attributes->GetPhysicalBuff() > 0 ? 
 					(CharacterAttack->Attributes->GetPhysicalBuff() / 100 + 1) * AbilityGameplayEffectInfo.Magnitude : AbilityGameplayEffectInfo.Magnitude;
-				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, magnitudeValue);
+				Spec->SetSetByCallerMagnitude(AbilityGameplayEffectInfo.Tag, MagnitudeValue);
 			}
 
-			if (AMBaseCharacter* characterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
+			if (AMBaseCharacter* CharacterDamaged = Cast<AMBaseCharacter>(ActorWhichDamaged))
 			{
-				characterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				CharacterDamaged->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 			}
 		}
 	}

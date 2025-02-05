@@ -13,15 +13,15 @@ AMSpawnItemManager::AMSpawnItemManager()
 
 void AMSpawnItemManager::SpawnItem(FItemTypeInfo ItemType, FVector SpawnLocation)
 {
-	if (IsValid(ItemStatic))
+	if (IsValid(ItemStatic) && IsValid(GetWorld()))
 	{
-		if (FItemData* itemData = GetDataFromDataTable(ItemType))
+		if (FItemData* ItemData = GetDataFromDataTable(ItemType))
 		{
-			if (AMItemActor* item = GetWorld()->SpawnActor<AMItemActor>(ItemStatic, SpawnLocation, FRotator(0), FActorSpawnParameters()))
+			if (AMItemActor* Item = GetWorld()->SpawnActor<AMItemActor>(ItemStatic, SpawnLocation, FRotator(0), FActorSpawnParameters()))
 			{
-				if (itemData)
+				if (ItemData)
 				{
-					item->InitializeItemData(itemData);
+					Item->InitializeItemData(ItemData);
 				}
 			}
 		}
@@ -36,25 +36,22 @@ void AMSpawnItemManager::BeginPlay()
 
 FItemData* AMSpawnItemManager::GetDataFromDataTable(FItemTypeInfo ItemType)
 {
-	FItemData* itemData = nullptr;
 	if (DataTable)
 	{
-		FString contextString;
-		TArray<FName> RowNames;
-		RowNames = DataTable->GetRowNames();
-
-		for (auto& name : RowNames)
+		FString ContextString;
+		
+		for (auto& Name : DataTable->GetRowNames())
 		{
-			FItemData* row = DataTable->FindRow<FItemData>(name, contextString);
-			if (row)
+			FItemData* Row = DataTable->FindRow<FItemData>(Name, ContextString);
+			if (Row)
 			{
-				if (row->TypeInfo.Type == ItemType.Type && row->TypeInfo.Index == ItemType.Index)
+				if (Row->TypeInfo.Type == ItemType.Type && Row->TypeInfo.Index == ItemType.Index)
 				{
-					return row;
+					return Row;
 				}
 			}
 		}
 	}
-	return itemData;
+	return nullptr;
 }
 

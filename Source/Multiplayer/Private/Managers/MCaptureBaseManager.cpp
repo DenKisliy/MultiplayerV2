@@ -30,9 +30,12 @@ void AMCaptureBaseManager::BeginPlay()
 
 void AMCaptureBaseManager::OnSetCaptureStation(int CountOfPlayer)
 {
-	if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+	if (IsValid(GetWorld()))
 	{
-		gameState->TimerAccelerationFactorDelegate.Broadcast((CountOfPlayer == 0) ? 0 : (1.0f / CountOfPlayer));
+		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		{
+			GameState->TimerAccelerationFactorDelegate.Broadcast((CountOfPlayer == 0) ? 0 : (1.0f / CountOfPlayer));
+		}
 	}
 }
 
@@ -56,7 +59,8 @@ void AMCaptureBaseManager::SpawnStation(ETypeOfTimer TypeOfFinishTimer)
 				CaptureStation = nullptr;
 			}
 
-			CaptureStation = GetWorld()->SpawnActor<AMCaptureStation>(SpawnStationStatic, CaptureStationArray[0]->GetActorLocation(), CaptureStationArray[0]->GetActorRotation(), FActorSpawnParameters());
+			CaptureStation = GetWorld()->SpawnActor<AMCaptureStation>(SpawnStationStatic, CaptureStationArray[0]->GetActorLocation(), 
+				CaptureStationArray[0]->GetActorRotation(), FActorSpawnParameters());
 			CaptureStation->ChangeCountOfCapturePlayerDelegate.AddDynamic(this, &AMCaptureBaseManager::OnSetCaptureStation);
 			CaptureStationArray.RemoveAt(0);
 		}

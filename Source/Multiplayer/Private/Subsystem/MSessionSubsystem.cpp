@@ -14,7 +14,7 @@ void UMSessionSubsystem::Deinitialize()
 
 void UMSessionSubsystem::SetSessionInfoFromGameMode()
 {
-	if (OpenLevelURL.IsEmpty())
+	if (OpenLevelURL.IsEmpty() && IsValid(GetWorld()))
 	{
 		if (UGameplayStatics::GetGameMode(GetWorld()))
 		{
@@ -34,24 +34,30 @@ TArray<FOnlineSessionSearchResult> UMSessionSubsystem::GetFindSessionsArray()
 
 void UMSessionSubsystem::StartSession()
 {
-	if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+		if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 		{
-			sessionsPtrRef->OnStartSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnStartSessionComplete);
-			sessionsPtrRef->StartSession(GameSessionName);
+			if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+			{
+				SessionsPtrRef->OnStartSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnStartSessionComplete);
+				SessionsPtrRef->StartSession(GameSessionName);
+			}
 		}
 	}
 }
 
 void UMSessionSubsystem::EndSession()
 {
-	if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+		if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 		{
-			sessionsPtrRef->OnEndSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnEndSessionCompleted);
-			sessionsPtrRef->EndSession(GameSessionName);
+			if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+			{
+				SessionsPtrRef->OnEndSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnEndSessionCompleted);
+				SessionsPtrRef->EndSession(GameSessionName);
+			}
 		}
 	}
 }
@@ -75,27 +81,30 @@ void UMSessionSubsystem::ConnectToSession(FString JoinSessionName)
 
 void UMSessionSubsystem::CreateSession(FName SessionName, bool bIsLAN, bool bIsDedicatedServer)
 {
-	if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+		if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 		{
-			SetSessionInfoFromGameMode();
+			if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+			{
+				SetSessionInfoFromGameMode();
 
-			FOnlineSessionSettings sessionSettings;
-			sessionSettings.bIsDedicated = bIsDedicatedServer;
-			sessionSettings.bAllowInvites = true;
-			sessionSettings.bIsLANMatch = bIsLAN;
-			sessionSettings.NumPublicConnections = CountOfMaxNumPlayers > 0 ? CountOfMaxNumPlayers : 2;
-			sessionSettings.bUseLobbiesIfAvailable = false;
-			sessionSettings.bUsesPresence = false;
-			sessionSettings.bShouldAdvertise = true;
-			sessionSettings.Set(FName("SESSION_NAME_KEY"), SessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
+				FOnlineSessionSettings SessionSettings;
+				SessionSettings.bIsDedicated = bIsDedicatedServer;
+				SessionSettings.bAllowInvites = true;
+				SessionSettings.bIsLANMatch = bIsLAN;
+				SessionSettings.NumPublicConnections = CountOfMaxNumPlayers > 0 ? CountOfMaxNumPlayers : 2;
+				SessionSettings.bUseLobbiesIfAvailable = false;
+				SessionSettings.bUsesPresence = false;
+				SessionSettings.bShouldAdvertise = true;
+				SessionSettings.Set(FName("SESSION_NAME_KEY"), SessionName.ToString(), EOnlineDataAdvertisementType::ViaOnlineService);
 
-			sessionsPtrRef->OnCreateSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnCreateSessionComplete);
+				SessionsPtrRef->OnCreateSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnCreateSessionComplete);
 
-			const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+				const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 
-			sessionsPtrRef->CreateSession(*localPlayer->GetPreferredUniqueNetId(), SessionName, sessionSettings);
+				SessionsPtrRef->CreateSession(*LocalPlayer->GetPreferredUniqueNetId(), SessionName, SessionSettings);
+			}
 		}
 	}
 }
@@ -104,43 +113,43 @@ void UMSessionSubsystem::OnCreateSessionComplete(FName SessionName, bool bWasSuc
 {
 	if (bWasSuccessful)
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				GameSessionName = SessionName;
-				bCreateSession = true;
-				if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
-					if (PlayerInfo->CreateChatTable(new FCreateTableStructData("Chat_" + SessionName.ToString())))
+					GameSessionName = SessionName;
+					bCreateSession = true;
+					if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, "CreateChatTable");
+						PlayerInfo->CreateChatTable(new FCreateTableStructData("Chat_" + SessionName.ToString()));
 					}
-					else
-					{
-						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "CreateChatTable false");
-					}
+
+					SessionsPtrRef->OnCreateSessionCompleteDelegates.Clear();
+					GetWorld()->GetGameViewport()->RemoveAllViewportWidgets();
+					GetWorld()->ServerTravel(OpenLevelURL.Contains("?listen") ? OpenLevelURL : OpenLevelURL + "?listen");
 				}
-				sessionsPtrRef->OnCreateSessionCompleteDelegates.Clear();
-				GetWorld()->ServerTravel(OpenLevelURL.Contains("?listen") ? OpenLevelURL : OpenLevelURL + "?listen");
 			}
 		}
 	}
-
 }
 
 void UMSessionSubsystem::DestroySession()
 {
 	if (!GameSessionName.ToString().IsEmpty())
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnDestroySessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnDestroySessionComplete);
-				if (!GameSessionName.ToString().IsEmpty() && GameSessionName != "None")
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
-					sessionsPtrRef->DestroySession(GameSessionName);
+					SessionsPtrRef->OnDestroySessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnDestroySessionComplete);
+					if (!GameSessionName.ToString().IsEmpty() && GameSessionName != "None")
+					{
+						SessionsPtrRef->DestroySession(GameSessionName);
+					}
 				}
 			}
 		}
@@ -151,15 +160,18 @@ void UMSessionSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSu
 {
 	if (bWasSuccessful)
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnDestroySessionCompleteDelegates.Clear();
-				GameSessionName = "";
-				bJoinToSession = false;
-				bCreateSession = false;
-				UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap", true);
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+				{
+					SessionsPtrRef->OnDestroySessionCompleteDelegates.Clear();
+					GameSessionName = "";
+					bJoinToSession = false;
+					bCreateSession = false;
+					UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap", true);
+				}
 			}
 		}
 	}
@@ -167,21 +179,24 @@ void UMSessionSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSu
 
 void UMSessionSubsystem::FindSessions()
 {
-	if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+		if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 		{
-			SessionSearch.Reset();
-			SessionSearch = MakeShareable(new FOnlineSessionSearch());
-			SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, false, EOnlineComparisonOp::Equals);
-			SessionSearch->MaxSearchResults = 20;
-			SessionSearch->bIsLanQuery = true;
+			if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+			{
+				SessionSearch.Reset();
+				SessionSearch = MakeShareable(new FOnlineSessionSearch());
+				SessionSearch->QuerySettings.Set(SEARCH_PRESENCE, false, EOnlineComparisonOp::Equals);
+				SessionSearch->MaxSearchResults = 20;
+				SessionSearch->bIsLanQuery = true;
 
-			sessionsPtrRef->OnFindSessionsCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnFindSessionsComplete);
+				SessionsPtrRef->OnFindSessionsCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnFindSessionsComplete);
 
-			const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+				const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
 
-			sessionsPtrRef->FindSessions(*localPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+				SessionsPtrRef->FindSessions(*localPlayer->GetPreferredUniqueNetId(), SessionSearch.ToSharedRef());
+			}
 		}
 	}
 }
@@ -192,20 +207,23 @@ void UMSessionSubsystem::OnFindSessionsComplete(bool bWasSuccessful)
 
 	if (bWasSuccessful)
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnFindSessionsCompleteDelegates.Clear();
-				for (FOnlineSessionSearchResult Result : SessionSearch->SearchResults)
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
-					if (Result.IsValid())
+					SessionsPtrRef->OnFindSessionsCompleteDelegates.Clear();
+					for (FOnlineSessionSearchResult Result : SessionSearch->SearchResults)
 					{
-						ArrayOfFindSessions.Add(Result);
+						if (Result.IsValid())
+						{
+							ArrayOfFindSessions.Add(Result);
+						}
 					}
+
+					ResultOfFindSessionsDelegate.ExecuteIfBound(ArrayOfFindSessions);
 				}
-				
-				ResultOfFindSessionsDelegate.ExecuteIfBound(ArrayOfFindSessions);
 			}
 		}
 	}
@@ -215,28 +233,19 @@ void UMSessionSubsystem::JoinToSession(FName SessionName, const FOnlineSessionSe
 {
 	if (SearchResult.IsValid())
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnJoinSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnJoinSessionComplete);
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+				{
+					SessionsPtrRef->OnJoinSessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnJoinSessionComplete);
 
-				const ULocalPlayer* localPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-				sessionsPtrRef->JoinSession(*localPlayer->GetPreferredUniqueNetId(), SessionName, SearchResult);
-			}
-			else
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld())");
+					const ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+					SessionsPtrRef->JoinSession(*LocalPlayer->GetPreferredUniqueNetId(), SessionName, SearchResult);
+				}
 			}
 		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface()");
-		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "JoinToSession");
 	}
 }
 
@@ -244,36 +253,35 @@ void UMSessionSubsystem::OnJoinSessionComplete(FName SessionName, EOnJoinSession
 {
 	if (Result == EOnJoinSessionCompleteResult::Success)
 	{
-		if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
+			if (APlayerController* PlayerController = GetWorld()->GetFirstPlayerController())
 			{
-				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+				if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 				{
-					FString joinAdress = "";
-					if (SessionsPtrRef->GetResolvedConnectString(SessionName, joinAdress))
+					if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 					{
-
-						if (!joinAdress.IsEmpty())
+						FString JoinAdress = "";
+						if (SessionsPtrRef->GetResolvedConnectString(SessionName, JoinAdress))
 						{
-							if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+							if (!JoinAdress.IsEmpty())
 							{
-								PlayerInfo->SetChatTableName("Chat_" + SessionName.ToString());
-							}
+								if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+								{
+									PlayerInfo->SetChatTableName("Chat_" + SessionName.ToString());
+								}
 
-							GameSessionName = SessionName;
-							bJoinToSession = true;
-							SessionsPtrRef->OnJoinSessionCompleteDelegates.Clear();
-							PlayerController->ClientTravel(joinAdress, ETravelType::TRAVEL_Absolute);
+								GameSessionName = SessionName;
+								bJoinToSession = true;
+								SessionsPtrRef->OnJoinSessionCompleteDelegates.Clear();
+								GetWorld()->GetGameViewport()->RemoveAllViewportWidgets();
+								PlayerController->ClientTravel(JoinAdress, ETravelType::TRAVEL_Absolute);
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	else
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, "OnJoinSessionComplete");
 	}
 }
 
@@ -281,11 +289,14 @@ void UMSessionSubsystem::OnStartSessionComplete(FName SessionName, bool bWasSucc
 {
 	if (bWasSuccessful)
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnStartSessionCompleteDelegates.Clear();
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
+				{
+					SessionsPtrRef->OnStartSessionCompleteDelegates.Clear();
+				}
 			}
 		}
 	}
@@ -295,14 +306,17 @@ void UMSessionSubsystem::OnEndSessionCompleted(FName SessionName, bool bWasSucce
 {
 	if (bWasSuccessful)
 	{
-		if (IOnlineSubsystem* onlineSub = Online::GetSubsystem(GetWorld()))
+		if (IsValid(GetWorld()))
 		{
-			if (IOnlineSessionPtr sessionsPtrRef = onlineSub->GetSessionInterface())
+			if (IOnlineSubsystem* OnlineSub = Online::GetSubsystem(GetWorld()))
 			{
-				sessionsPtrRef->OnEndSessionCompleteDelegates.Clear();
-				if (!GameSessionName.ToString().IsEmpty())
+				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
-					DestroySession();
+					SessionsPtrRef->OnEndSessionCompleteDelegates.Clear();
+					if (!GameSessionName.ToString().IsEmpty())
+					{
+						DestroySession();
+					}
 				}
 			}
 		}

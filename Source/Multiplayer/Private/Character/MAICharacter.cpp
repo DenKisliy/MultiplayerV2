@@ -36,10 +36,10 @@ void AMAICharacter::BeginPlay()
 	
 	if (IsValid(AIWidgetComponent->GetWidget()))
 	{
-		if (UMAttributeWidget* widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
+		if (UMAttributeWidget* Widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
 		{
-			widget->SetColor(FLinearColor::Red);
-			widget->SetPercent(1.0f);
+			Widget->SetColor(FLinearColor::Red);
+			Widget->SetPercent(1.0f);
 		}
 	}
 }
@@ -87,19 +87,24 @@ void AMAICharacter::OnHealthUpdated(const FOnAttributeChangeData& Data)
 
 void AMAICharacter::RotateAIWidgetComponent()
 {
-	FRotator rotator = UKismetMathLibrary::FindLookAtRotation(AIWidgetComponent->GetComponentLocation(),
-		UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation());
-	AIWidgetComponent->SetWorldRotation(rotator);
+	if (IsValid(GetWorld()))
+	{
+		AIWidgetComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(AIWidgetComponent->GetComponentLocation(),
+			UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
+	}
 }
 
 void AMAICharacter::SetHealthValue_Implementation(const float& NewHealthValue)
 {
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	if (IsValid(GetWorld()))
 	{
-		SetPercentForHealthWidget(NewHealthValue);
-	}
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			SetPercentForHealthWidget(NewHealthValue);
+		}
 
-	HealthValue = NewHealthValue;
+		HealthValue = NewHealthValue;
+	}
 }
 
 void AMAICharacter::OnRep_HealthValue()
@@ -109,8 +114,8 @@ void AMAICharacter::OnRep_HealthValue()
 
 void AMAICharacter::SetPercentForHealthWidget(float NewHealthPercent)
 {
-	if (UMAttributeWidget* widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
+	if (UMAttributeWidget* Widget = Cast<UMAttributeWidget>(AIWidgetComponent->GetWidget()))
 	{
-		widget->SetPercent(NewHealthPercent);
+		Widget->SetPercent(NewHealthPercent);
 	}
 }

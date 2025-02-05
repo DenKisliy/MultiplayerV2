@@ -206,12 +206,15 @@ void AMPlayerCharacter::OnRep_PlayerNameWidget()
 
 void AMPlayerCharacter::SetPlayerName_Implementation(const FString& NewPlayerName)
 {
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	if (IsValid(GetWorld()))
 	{
-		SetPlayerTagName(NewPlayerName);
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			SetPlayerTagName(NewPlayerName);
+		}
+
+		PlayerNameWidget = NewPlayerName;
 	}
-	
-	PlayerNameWidget = NewPlayerName;
 }
 
 void AMPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -250,25 +253,32 @@ void AMPlayerCharacter::OnRep_WalkSpeed()
 
 void AMPlayerCharacter::SetPlayerSpeed_Implementation(const float& NewSpeed)
 {
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	if (IsValid(GetWorld()))
 	{
-		GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
-	}
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+		}
 
-	WalkSpeed = NewSpeed;
+		WalkSpeed = NewSpeed;
+	}
 }
 
 void AMPlayerCharacter::SetPlayerScale_Implementation(const FVector& NewPlayerScale)
 {
-	CameraBoom->TargetArmLength = NewPlayerScale == FVector(1) ? CameraBoom->TargetArmLength * GetCapsuleComponent()->GetRelativeScale3D().X : 
+	if (IsValid(GetWorld()))
+	{
+
+		CameraBoom->TargetArmLength = NewPlayerScale == FVector(1) ? CameraBoom->TargetArmLength * GetCapsuleComponent()->GetRelativeScale3D().X :
 			CameraBoom->TargetArmLength / GetCapsuleComponent()->GetRelativeScale3D().X;
 
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
-	{
-		GetCapsuleComponent()->SetRelativeScale3D(NewPlayerScale);
-	}
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			GetCapsuleComponent()->SetRelativeScale3D(NewPlayerScale);
+		}
 
-	PlayerScaleVector = NewPlayerScale;
+		PlayerScaleVector = NewPlayerScale;
+	}
 }
 
 void AMPlayerCharacter::InitializeInput(AController* NewController)

@@ -7,25 +7,22 @@
 bool UMIsDistanceEnoughForAttack::CalculateRawConditionValue(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) const
 {
 	bool bValue = Super::CalculateRawConditionValue(OwnerComp, NodeMemory);
-	
-	const UBlackboardComponent* blackboardComp = OwnerComp.GetBlackboardComponent();
-	if (!blackboardComp)
+
+	const UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
+	if (!BlackboardComp)
 	{
 		return false;
 	}
 
-	if (AMAIController* controller = Cast<AMAIController>(OwnerComp.GetAIOwner()))
-	{
-		AMAICharacter* OwnerCharacter = Cast<AMAICharacter>(controller->GetPawn());
-		AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(blackboardComp->GetValueAsObject("DetectPlayer"));
-		
-		if (OwnerCharacter && DetectPlayer)
-		{
-			float dist = FVector::DistXY(OwnerCharacter->GetActorLocation(), DetectPlayer->GetActorLocation()) -
-				OwnerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius() + DetectPlayer->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+	AMAICharacter* OwnerCharacter = Cast<AMAICharacter>(OwnerComp.GetAIOwner()->GetPawn());
+	AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(BlackboardComp->GetValueAsObject("DetectPlayer"));
 
-			bValue = (dist <= MaxDistance && dist >= MinDistance);
-		}
+	if (OwnerCharacter && DetectPlayer)
+	{
+		float Distance = FVector::DistXY(OwnerCharacter->GetActorLocation(), DetectPlayer->GetActorLocation()) -
+			OwnerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius() + DetectPlayer->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+
+		return (Distance <= MaxDistance && Distance >= MinDistance);
 	}
 
 	return bValue;

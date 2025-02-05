@@ -3,7 +3,6 @@
 
 #include "UI/Multiplayer/MSCreateSessionWidget.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
-#include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "CreateSession"
 

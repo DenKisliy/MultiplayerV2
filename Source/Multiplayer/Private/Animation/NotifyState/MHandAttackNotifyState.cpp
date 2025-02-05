@@ -17,35 +17,30 @@ void UMHandAttackNotifyState::NotifyTick(USkeletalMeshComponent* MeshComp, UAnim
 
 	if (!bHitByCharacter)
 	{
-		TArray<AActor*> actorsToIgnore;
-		actorsToIgnore.Add(MeshComp->GetOwner());
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(MeshComp->GetOwner());
 
-		FHitResult hitLeftResult;
-		FHitResult hitRightResult;
+		FHitResult HitLeftResult;
+		FHitResult HitRightResult;
 
 		bool bHitRight = UKismetSystemLibrary::SphereTraceSingle(MeshComp, MeshComp->GetSocketLocation("ik_hand_r_center"), MeshComp->GetSocketLocation("ik_hand_r"),
-			12.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, actorsToIgnore, EDrawDebugTrace::None, hitRightResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
-		
+			12.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::None, HitRightResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
+
 		bool bHitLeft = UKismetSystemLibrary::SphereTraceSingle(MeshComp, MeshComp->GetSocketLocation("ik_hand_l_center"), MeshComp->GetSocketLocation("ik_hand_l"),
-			12.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, actorsToIgnore, EDrawDebugTrace::None, hitLeftResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
+			12.f, UEngineTypes::ConvertToTraceType(ECC_Camera), false, ActorsToIgnore, EDrawDebugTrace::None, HitLeftResult, true, FLinearColor::Gray, FLinearColor::Blue, 1.f);
 
 		if (bHitRight || bHitLeft)
 		{
-			AMPlayerCharacter* playerWhichAttack = Cast<AMPlayerCharacter>(MeshComp->GetOwner());
-
-			if (playerWhichAttack)
+			if (AMPlayerCharacter* PlayerWhichAttack = Cast<AMPlayerCharacter>(MeshComp->GetOwner()))
 			{
-				if (playerWhichAttack)
-				{
-					bHitByCharacter = true;
-					TSubclassOf<UMBaseAbility>* ability = playerWhichAttack->DefaultAbilities.FindByPredicate([](const TSubclassOf<UMBaseAbility>& InItem) {
-						return InItem.GetDefaultObject()->GetAbilityInputID() == EGDAbilityInputID::HandAttack;
-						});
+				bHitByCharacter = true;
+				TSubclassOf<UMBaseAbility>* Ability = PlayerWhichAttack->DefaultAbilities.FindByPredicate([](const TSubclassOf<UMBaseAbility>& InItem) {
+					return InItem.GetDefaultObject()->GetAbilityInputID() == EGDAbilityInputID::HandAttack;
+					});
 
-					if (ability)
-					{
-						ability->GetDefaultObject()->CalculateEffect(playerWhichAttack, bHitRight ? hitRightResult.GetActor() : hitLeftResult.GetActor());
-					}
+				if (Ability)
+				{
+					Ability->GetDefaultObject()->CalculateEffect(PlayerWhichAttack, bHitRight ? HitRightResult.GetActor() : HitLeftResult.GetActor());
 				}
 			}
 		}

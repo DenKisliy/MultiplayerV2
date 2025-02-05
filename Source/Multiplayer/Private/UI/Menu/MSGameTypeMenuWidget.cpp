@@ -5,7 +5,6 @@
 #include "SlateOptMacros.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
 #include "../../../Public/GameFramework/MGameMode.h"
-#include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "GameTypeMenu"
 
@@ -69,6 +68,7 @@ FReply MSGameTypeMenuWidget::OnLaunchStandAloneMode() const
 	{
 		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(OwnerHUD->GetWorld())))
 		{
+			OwnerHUD->GetWorld()->GetGameViewport()->RemoveAllViewportWidgets();
 			UGameplayStatics::OpenLevel(OwnerHUD->GetWorld(), FName(*GameMode->StandAloneLevelURL), true);
 		}
 	}

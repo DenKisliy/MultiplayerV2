@@ -30,8 +30,8 @@ void AMItemActor::GetStaticMesh()
 {
 	CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &AMItemActor::OnUpdatedComponentOverlapBegin);
 	CollisionComponent->OnComponentEndOverlap.AddDynamic(this, &AMItemActor::OnUpdatedComponentOverlapEnd);
-	FStreamableManager& streamableManager = UAssetManager::GetStreamableManager();
-	streamableManager.RequestAsyncLoad(StaticMeshAsset.ToSoftObjectPath(), [this]() {
+	FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+	StreamableManager.RequestAsyncLoad(StaticMeshAsset.ToSoftObjectPath(), [this]() {
 		SetStaticMesh(StaticMeshAsset.Get());
 		});
 }
@@ -61,21 +61,19 @@ void AMItemActor::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overlapped
 		{
 			InsertPlayerArray.Add(Player);
 
-			FString text = "To pick up item press " + Player->GetButtonTextForInformWidget("PickUp") + " button";
-			ShowInfoText(Player->GetPlayerName(), text);
+			ShowInfoText(Player->GetPlayerName(), "To pick up item press " + Player->GetButtonTextForInformWidget("PickUp") + " button");
 		}
 	}
 }
 
 void AMItemActor::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Other))
+	if (AMPlayerCharacter* Player = Cast<AMPlayerCharacter>(Other))
 	{
-		if (InsertPlayerArray.Find(player) != INDEX_NONE)
+		if (InsertPlayerArray.Find(Player) != INDEX_NONE)
 		{
-			FString text = "";
-			ShowInfoText(player->GetPlayerName(), text);
-			InsertPlayerArray.Remove(player);
+			ShowInfoText(Player->GetPlayerName(), "");
+			InsertPlayerArray.Remove(Player);
 		}
 	}
 }
@@ -93,21 +91,17 @@ void AMItemActor::OnRep_ScaleVector()
 
 void AMItemActor::ShowInfoText_Implementation(const FString& PlayerName, const FString& Text)
 {
-	if (GetWorld()->GetGameState())
+	if (IsValid(GetWorld()->GetGameState()))
 	{
-		TArray<TObjectPtr<APlayerState>> playerArray = GetWorld()->GetGameState()->PlayerArray;
-		for (int i = 0; i < playerArray.Num(); i++)
+		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 		{
-			if (APlayerState* playerState = playerArray[i].Get())
+			if (Player.Get()->GetPlayerName() == PlayerName)
 			{
-				if (playerState->GetPlayerName() == PlayerName)
+				if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player.Get()->GetPlayerController()))
 				{
-					if (AMPlayerController* playerController = Cast<AMPlayerController>(playerState->GetPlayerController()))
-					{
-						playerController->ShowInfoForCharacter(Text);
+					PlayerController->ShowInfoForCharacter(Text);
 
-						playerController->SetPickUpItemToInventory(Text.IsEmpty() ? FItemTypeInfo() : TypeInfo, this);
-					}
+					PlayerController->SetPickUpItemToInventory(Text.IsEmpty() ? FItemTypeInfo() : TypeInfo, this);
 				}
 			}
 		}
@@ -116,21 +110,27 @@ void AMItemActor::ShowInfoText_Implementation(const FString& PlayerName, const F
 
 void AMItemActor::SetStaticMesh_Implementation(const UStaticMesh* NewStaticMesh)
 {
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	if (IsValid(GetWorld()))
 	{
-		MeshComponent->SetStaticMesh(const_cast<UStaticMesh*>(NewStaticMesh));
-		CollisionComponent->SetSphereRadius(MeshComponent->GetStaticMesh()->GetBounds().SphereRadius * 4);
-	}
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			MeshComponent->SetStaticMesh(const_cast<UStaticMesh*>(NewStaticMesh));
+			CollisionComponent->SetSphereRadius(MeshComponent->GetStaticMesh()->GetBounds().SphereRadius * 4);
+		}
 
-	StaticMesh = const_cast<UStaticMesh*>(NewStaticMesh);
+		StaticMesh = const_cast<UStaticMesh*>(NewStaticMesh);
+	}
 }
 
 void AMItemActor::SetScale_Implementation(const FVector& NewScale)
 {
-	if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+	if (IsValid(GetWorld()))
 	{
-		SetActorScale3D(NewScale);
-	}
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		{
+			SetActorScale3D(NewScale);
+		}
 
-	ScaleVector = NewScale;
+		ScaleVector = NewScale;
+	}
 }

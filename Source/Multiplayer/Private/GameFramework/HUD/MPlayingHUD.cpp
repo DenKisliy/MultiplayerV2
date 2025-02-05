@@ -100,40 +100,32 @@ void AMPlayingHUD::ShowInformText(FString Text)
 		InformWidget->SetText(Text);
 	}
 }
+
+void AMPlayingHUD::CreateChat()
+{
+	if (!IsValid(ChatWidget) && IsValid(ChatStatic))
+	{
+		ChatWidget = CreateWidget(GetWorld()->GetFirstPlayerController(), ChatStatic);
+		ChatWidget->AddToViewport();
+	}
+
+}
+
 void AMPlayingHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
-	bool bStandAloneMode = false;
-	
-	if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	if (IsValid(GetWorld()) && IsValid(GetWorld()->GetFirstPlayerController()))
 	{
-		bStandAloneMode = GameMode->IsStandAloneMode();
-	}
+		bool bStandAloneMode = false;
 
-	if (bStandAloneMode)
-	{
-		if (IsValid(GetWorld()))
+		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+		FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 		{
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
-
-			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);;
-		}
-	}
-	else
-	{
-		if (IsValid(GetWorld()))
-		{
-			if (IsValid(GetWorld()->GetGameViewport()))
-			{
-				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
-				FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
-
-				ChatWidget = SNew(MSChatWidget).OwnerHUD(this);
-				GEngine->GameViewport->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(ChatWidget.ToSharedRef()));
-			}
+			bStandAloneMode = GameMode->IsStandAloneMode();
 		}
 	}
 
@@ -148,12 +140,9 @@ void AMPlayingHUD::DrawHUD()
 	{
 		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
 		{
-			if (ChatWidget.IsValid() && ChatWidget->ChatInput.IsValid())
-			{
-				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
-				FSlateApplication::Get().SetKeyboardFocus(ChatWidget->ChatInput);
-			}
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+			ChatWidget->SetFocus();
 		}
 	}
 }

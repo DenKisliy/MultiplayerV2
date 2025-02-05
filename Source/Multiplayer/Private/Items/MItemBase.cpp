@@ -12,8 +12,8 @@ void UMItemBase::GetIconTexture()
 {
 	if (IconPath.ToSoftObjectPath().IsValid())
 	{
-		FStreamableManager& streamableManager = UAssetManager::GetStreamableManager();
-		streamableManager.RequestAsyncLoad(IconPath.ToSoftObjectPath(), [this]() {
+		FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+		StreamableManager.RequestAsyncLoad(IconPath.ToSoftObjectPath(), [this]() {
 			OnIconTextureLoadDelegate.ExecuteIfBound(
 				IconPath.Get());
 			});

@@ -83,7 +83,7 @@ void AMGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 
-	if (IsStandAloneMode())
+	if (IsStandAloneMode() && IsValid(GetWorld()))
 	{
 		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
 		{
@@ -173,11 +173,14 @@ bool AMGameState::IsStandAloneMode()
 
 int AMGameState::GetTimeForTimerByType()
 {
-	if (UGameplayStatics::GetGameMode(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		if(UGameplayStatics::GetGameMode(GetWorld()))
 		{
-			return *GameMode->MainTimerMap.Find(TypeOfTimer);
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				return *GameMode->MainTimerMap.Find(TypeOfTimer);
+			}
 		}
 	}
 
@@ -186,11 +189,14 @@ int AMGameState::GetTimeForTimerByType()
 
 int AMGameState::GetAdditionalTimeForTimerByType()
 {
-	if (UGameplayStatics::GetGameMode(GetWorld()))
+	if (IsValid(GetWorld()))
 	{
-		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		if (UGameplayStatics::GetGameMode(GetWorld()))
 		{
-			return *GameMode->AdditionalTimerMap.Find(TypeOfAdditionalTimer);
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				return *GameMode->AdditionalTimerMap.Find(TypeOfAdditionalTimer);
+			}
 		}
 	}
 
@@ -209,59 +215,65 @@ void AMGameState::OnRep_TimeChecker()
 
 void AMGameState::SetTimeForPlayers()
 {
-	GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-
-	if (TimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
+	if (IsValid(GetWorld()))
 	{
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMGameState::OnTimerCounter, TimerInterval, true);
-	}
-
-	ShowTimeForHUD(true, TimerCounter);
-
-	if (TimerCounter == -1 && TypeOfTimer != ETypeOfTimer::None)
-	{
-		switch (TypeOfTimer)
-		{
-		case ETypeOfTimer::StartMatch:
-			StartSession();
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
-			TimerAccelerationFactorDelegate.AddDynamic(this, &AMGameState::OnTimerAccelerationFactor);
-			break;
-		}
-		TimerFinishDelegate.Broadcast(TypeOfTimer);
-		TypeOfTimer = ETypeOfTimer::None;
-		TimerInterval = 0;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-	}
 
+		if (TimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
+		{
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMGameState::OnTimerCounter, TimerInterval, true);
+		}
+
+
+		ShowTimeForHUD(true, TimerCounter);
+
+		if (TimerCounter == -1 && TypeOfTimer != ETypeOfTimer::None)
+		{
+			switch (TypeOfTimer)
+			{
+			case ETypeOfTimer::StartMatch:
+				StartSession();
+				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
+				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+				TimerAccelerationFactorDelegate.AddDynamic(this, &AMGameState::OnTimerAccelerationFactor);
+				break;
+			}
+			TimerFinishDelegate.Broadcast(TypeOfTimer);
+			TypeOfTimer = ETypeOfTimer::None;
+			TimerInterval = 0;
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		}
+	}
 }
 
 void AMGameState::OnTimerAccelerationFactor(float NewTimerPeriod)
 {
-	if (NewTimerPeriod == 0)
+	if (IsValid(GetWorld()))
 	{
-		TimerCounter = -5;
-
-		TimeChecker = TimerCounter;
-
-		TypeOfTimer = ETypeOfTimer::None;
-		TimerInterval = 0;
-
-		SetTimeForPlayers();
-	}
-
-	if (NewTimerPeriod != 0 && TimerInterval != NewTimerPeriod)
-	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-		
-		if (TypeOfTimer == ETypeOfTimer::None)
+		if (NewTimerPeriod == 0)
 		{
-			StartCaptureStationTimer();
-		}
-		TimerInterval = NewTimerPeriod;
+			TimerCounter = -5;
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMGameState::OnTimerCounter, TimerInterval, true);
+			TimeChecker = TimerCounter;
+
+			TypeOfTimer = ETypeOfTimer::None;
+			TimerInterval = 0;
+
+			SetTimeForPlayers();
+		}
+
+		if (NewTimerPeriod != 0 && TimerInterval != NewTimerPeriod)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+
+			if (TypeOfTimer == ETypeOfTimer::None)
+			{
+				StartCaptureStationTimer();
+			}
+			TimerInterval = NewTimerPeriod;
+
+			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMGameState::OnTimerCounter, TimerInterval, true);
+		}
 	}
 }
 
@@ -298,20 +310,23 @@ void AMGameState::OnRep_AdditionalTimerChecker()
 
 void AMGameState::SetAdditionalTimeForPlayers()
 {
-	GetWorld()->GetTimerManager().ClearTimer(AdditionalTimerHandle);
-
-	if (AdditionalTimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
+	if (IsValid(GetWorld()))
 	{
-		GetWorld()->GetTimerManager().SetTimer(AdditionalTimerHandle, this, &AMGameState::OnAdditionalTimerCounter, AdditionalTimerInterval, true);
-	}
-
-	ShowTimeForHUD(false, AdditionalTimerCounter);
-
-	if (AdditionalTimerCounter == -1 && TypeOfAdditionalTimer != ETypeOfAdditionalTimer::None)
-	{
-		AdditionalTimerDelegate.Broadcast(TypeOfAdditionalTimer);
-		TypeOfAdditionalTimer = ETypeOfAdditionalTimer::None;
 		GetWorld()->GetTimerManager().ClearTimer(AdditionalTimerHandle);
+
+		if (AdditionalTimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
+		{
+			GetWorld()->GetTimerManager().SetTimer(AdditionalTimerHandle, this, &AMGameState::OnAdditionalTimerCounter, AdditionalTimerInterval, true);
+		}
+
+		ShowTimeForHUD(false, AdditionalTimerCounter);
+
+		if (AdditionalTimerCounter == -1 && TypeOfAdditionalTimer != ETypeOfAdditionalTimer::None)
+		{
+			AdditionalTimerDelegate.Broadcast(TypeOfAdditionalTimer);
+			TypeOfAdditionalTimer = ETypeOfAdditionalTimer::None;
+			GetWorld()->GetTimerManager().ClearTimer(AdditionalTimerHandle);
+		}
 	}
 }
 
@@ -326,13 +341,16 @@ void AMGameState::OnAdditionalTimerCounter()
 
 void AMGameState::ShowTimeForHUD(bool bMain, int Time)
 {
-	if (IsValid(GetWorld()->GetFirstPlayerController()))
+	if (IsValid(GetWorld()))
 	{
-		if (APlayerController* playerController = GetWorld()->GetFirstPlayerController())
+		if (IsValid(GetWorld()->GetFirstPlayerController()))
 		{
-			if (AMPlayingHUD* PlayerHUD = Cast<AMPlayingHUD>(playerController->GetHUD()))
+			if (APlayerController* playerController = GetWorld()->GetFirstPlayerController())
 			{
-				PlayerHUD->SetTimeTimerWidget(bMain, Time);
+				if (AMPlayingHUD* PlayerHUD = Cast<AMPlayingHUD>(playerController->GetHUD()))
+				{
+					PlayerHUD->SetTimeTimerWidget(bMain, Time);
+				}
 			}
 		}
 	}
@@ -340,30 +358,33 @@ void AMGameState::ShowTimeForHUD(bool bMain, int Time)
 
 void AMGameState::OnCheckManagerState()
 {
-	TArray<AActor*> FindManagers;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMBaseManager::StaticClass(), FindManagers);
-
-	int CountOfReadyManager = 0;
-
-	for (AActor* Manager : FindManagers)
+	if (IsValid(GetWorld()))
 	{
-		if (AMBaseManager* FindManager = Cast<AMBaseManager>(Manager))
+		TArray<AActor*> FindManagers;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AMBaseManager::StaticClass(), FindManagers);
+
+		int CountOfReadyManager = 0;
+
+		for (AActor* Manager : FindManagers)
 		{
-			if (FindManager->IsFinishBind())
+			if (AMBaseManager* FindManager = Cast<AMBaseManager>(Manager))
 			{
-				CountOfReadyManager = CountOfReadyManager + 1;
+				if (FindManager->IsFinishBind())
+				{
+					CountOfReadyManager = CountOfReadyManager + 1;
+				}
 			}
 		}
-	}
 
-	if (FindManagers.Num() == CountOfReadyManager)
-	{
-		TimerFinishDelegate.Broadcast(ETypeOfTimer::StartMatch);
-		GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
-	}
-	else
-	{
-		GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
-		GetWorld()->GetTimerManager().SetTimer(ManagerTiner, this, &AMGameState::OnCheckManagerState, 1.0f, false);
+		if (FindManagers.Num() == CountOfReadyManager)
+		{
+			TimerFinishDelegate.Broadcast(ETypeOfTimer::StartMatch);
+			GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+		}
+		else
+		{
+			GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+			GetWorld()->GetTimerManager().SetTimer(ManagerTiner, this, &AMGameState::OnCheckManagerState, 1.0f, false);
+		}
 	}
 }

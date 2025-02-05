@@ -36,4 +36,7 @@ public:
 
 private:
 	FReply OnSendMessage() const;
+
+protected:
+	virtual FReply OnFocusReceived(const FGeometry& MyGeometry, const FFocusEvent& InFocusEvent) override;
 };

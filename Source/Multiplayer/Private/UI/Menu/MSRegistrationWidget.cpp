@@ -3,7 +3,6 @@
 
 #include "UI/Menu/MSRegistrationWidget.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
-#include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "Registration"
 

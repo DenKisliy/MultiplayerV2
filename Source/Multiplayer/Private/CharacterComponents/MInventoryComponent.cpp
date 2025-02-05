@@ -16,13 +16,13 @@ bool UMInventoryComponent::IsAddItemToInventory(FItemTypeInfo TypeInfo)
 	{
 		if (!IsHaveItemInInventoryAdd(TypeInfo))
 		{
-			UMItemBase* newItem = NewObject<UMItemBase>(UMItemBase::StaticClass(), FName(*FString::FromInt(ItemArray.Num() + 1)));
-			if (IsValid(newItem))
+			UMItemBase* NewItem = NewObject<UMItemBase>(UMItemBase::StaticClass(), FName(*FString::FromInt(ItemArray.Num() + 1)));
+			if (IsValid(NewItem))
 			{
-				if (FItemData* data = GetDataFromDataTable(TypeInfo))
+				if (FItemData* Data = GetDataFromDataTable(TypeInfo))
 				{
-					newItem->InitializeItemData(data);
-					ItemArray.Add(newItem);
+					NewItem->InitializeItemData(Data);
+					ItemArray.Add(NewItem);
 					bResult = true;
 					UpdateInventoryDelegate.Broadcast();
 				}
@@ -39,20 +39,20 @@ bool UMInventoryComponent::IsAddItemToInventory(FItemTypeInfo TypeInfo)
 
 void UMInventoryComponent::RemoveItemFromInventory(FItemTypeInfo TypeInfo)
 {
-	int findItemIndex = ItemArray.IndexOfByPredicate([this, TypeInfo](const UMItemBase* InItem)
+	int FindItemIndex = ItemArray.IndexOfByPredicate([this, TypeInfo](const UMItemBase* InItem)
 		{
 			return InItem->TypeInfo.Index == TypeInfo.Index && InItem->TypeInfo.Type == TypeInfo.Type;
 		});
 
-	if (ItemArray.IsValidIndex(findItemIndex))
+	if (ItemArray.IsValidIndex(FindItemIndex))
 	{
-		if (ItemArray[findItemIndex]->GetCount() > 1)
+		if (ItemArray[FindItemIndex]->GetCount() > 1)
 		{
-			ItemArray[findItemIndex]->ChangeCount(false);
+			ItemArray[FindItemIndex]->ChangeCount(false);
 		}
 		else
 		{
-			ItemArray.RemoveAt(findItemIndex);
+			ItemArray.RemoveAt(FindItemIndex);
 		}
 		SpawnItemAfterRemove(TypeInfo);
 	}
@@ -60,25 +60,25 @@ void UMInventoryComponent::RemoveItemFromInventory(FItemTypeInfo TypeInfo)
 
 void UMInventoryComponent::UseItem(FItemTypeInfo TypeInfo)
 {
-	int findItemIndex = ItemArray.IndexOfByPredicate([this, TypeInfo](const UMItemBase* InItem)
+	int FindItemIndex = ItemArray.IndexOfByPredicate([this, TypeInfo](const UMItemBase* InItem)
 		{
 			return InItem->TypeInfo.Type == TypeInfo.Type && InItem->TypeInfo.Index == TypeInfo.Index;
 		});
 
-	if (ItemArray.IsValidIndex(findItemIndex))
+	if (ItemArray.IsValidIndex(FindItemIndex))
 	{
-		if (IsValid(ItemArray[findItemIndex]->GameplayEffect))
+		if (IsValid(ItemArray[FindItemIndex]->GameplayEffect))
 		{
-			UseItemDelegate.Broadcast(ItemArray[findItemIndex]->GameplayEffect);
+			UseItemDelegate.Broadcast(ItemArray[FindItemIndex]->GameplayEffect);
 		}
 
-		if (ItemArray[findItemIndex]->GetCount() > 1)
+		if (ItemArray[FindItemIndex]->GetCount() > 1)
 		{
-			ItemArray[findItemIndex]->ChangeCount(false);
+			ItemArray[FindItemIndex]->ChangeCount(false);
 		}
 		else
 		{
-			ItemArray.RemoveAt(findItemIndex);
+			ItemArray.RemoveAt(FindItemIndex);
 		}
 
 		UpdateInventoryDelegate.Broadcast();
@@ -87,26 +87,22 @@ void UMInventoryComponent::UseItem(FItemTypeInfo TypeInfo)
 
 FItemData* UMInventoryComponent::GetDataFromDataTable(FItemTypeInfo ItemType)
 {
-	FItemData* itemData = nullptr;
 	if (DataTable)
 	{
-		FString contextString;
-		TArray<FName> RowNames;
-		RowNames = DataTable->GetRowNames();
+		FString ContextString;
 
-		for (auto& name : RowNames)
+		for (auto& Name : DataTable->GetRowNames())
 		{
-			FItemData* row = DataTable->FindRow<FItemData>(name, contextString);
-			if (row)
+			if (FItemData* Row = DataTable->FindRow<FItemData>(Name, ContextString))
 			{
-				if (row->TypeInfo.Type == ItemType.Type && row->TypeInfo.Index == ItemType.Index)
+				if (Row->TypeInfo.Type == ItemType.Type && Row->TypeInfo.Index == ItemType.Index)
 				{
-					return row;
+					return Row;
 				}
 			}
 		}
 	}
-	return itemData;
+	return nullptr;
 }
 
 TArray<UMItemBase*> UMInventoryComponent::GetItemsArray()
@@ -126,41 +122,38 @@ void UMInventoryComponent::AddPickUpItemToInventory()
 	{
 		if (IsAddItemToInventory(PickUpItemType))
 		{
-			if (APawn* pawn = Cast<APawn>(GetOwner()))
-			{
-				if (AMPlayerState* playerState = Cast<AMPlayerState>(pawn->GetPlayerState()))
-				{
-					DestroyPickUpItem(PickUpItemActor);
-					PickUpItemType = FItemTypeInfo();
-				}
-			}
+			DestroyPickUpItem(PickUpItemActor);
+			PickUpItemType = FItemTypeInfo();
 		}
 	}
 }
 
 void UMInventoryComponent::DestroyPickUpItem_Implementation(const AActor* ItemActor)
 {
-	if (AActor* item = const_cast<AActor*>(ItemActor))
+	if (AActor* Item = const_cast<AActor*>(ItemActor))
 	{
-		item->Destroy();
+		Item->Destroy();
 	}
 }
 
 void UMInventoryComponent::SpawnItemAfterRemove_Implementation(const FItemTypeInfo& Type)
 {
-	if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	if (IsValid(GetWorld()))
 	{
-		gameMode->SetSpawnItems(Type, GetOwner()->GetActorLocation());
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+		{
+			GameMode->SetSpawnItems(Type, GetOwner()->GetActorLocation());
+		}
 	}
 }
 
 bool UMInventoryComponent::IsHaveItemInInventoryAdd(FItemTypeInfo ItemType)
 {
-	for (UMItemBase* newItem : ItemArray)
+	for (UMItemBase* Item : ItemArray)
 	{
-		if (newItem->IsTypeMatches(ItemType))
+		if (Item->IsTypeMatches(ItemType))
 		{
-			newItem->ChangeCount(true);
+			Item->ChangeCount(true);
 			UpdateInventoryDelegate.Broadcast();
 			return true;
 		}
@@ -170,9 +163,9 @@ bool UMInventoryComponent::IsHaveItemInInventoryAdd(FItemTypeInfo ItemType)
 
 bool UMInventoryComponent::IsHaveItem(FItemTypeInfo ItemInfo)
 {
-	for (UMItemBase* newItem : ItemArray)
+	for (UMItemBase* Item : ItemArray)
 	{
-		if (newItem->IsTypeMatches(ItemInfo))
+		if (Item->IsTypeMatches(ItemInfo))
 		{
 			return true;
 		}

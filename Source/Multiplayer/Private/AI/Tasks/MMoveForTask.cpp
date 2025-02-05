@@ -11,20 +11,19 @@ UMMoveForTask::UMMoveForTask(const FObjectInitializer& ObjectInitializer) : Supe
 
 EBTNodeResult::Type UMMoveForTask::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+	EBTNodeResult::Type NodeResult = EBTNodeResult::Failed;
 
-	EBTNodeResult::Type nodeResult = EBTNodeResult::Failed;
-
-	if (AMAIController* botController = Cast<AMAIController>(OwnerComp.GetAIOwner()))
+	if (AMAIController* BotController = Cast<AMAIController>(OwnerComp.GetAIOwner()))
 	{
-		if (UBlackboardComponent* blackboard = OwnerComp.GetBlackboardComponent())
+		if (UBlackboardComponent* Blackboard = OwnerComp.GetBlackboardComponent())
 		{
-			if (AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(blackboard->GetValueAsObject("DetectPlayer")))
+			if (AMPlayerCharacter* DetectPlayer = Cast<AMPlayerCharacter>(Blackboard->GetValueAsObject("DetectPlayer")))
 			{
-				botController->MoveToLocation(DetectPlayer->GetActorLocation());
-				nodeResult = EBTNodeResult::Succeeded;
+				BotController->MoveToLocation(DetectPlayer->GetActorLocation());
+				NodeResult = EBTNodeResult::Succeeded;
 			}
 		}
 	}
 
-	return nodeResult;
+	return NodeResult;
 }

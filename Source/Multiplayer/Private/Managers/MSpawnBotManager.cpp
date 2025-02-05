@@ -38,16 +38,17 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 
 			if (FindPathes.Num() > 0)
 			{
-				for (AActor* path : FindPathes)
+				for (AActor* Path : FindPathes)
 				{
-					if (AMPatrolPath* patrolPath = Cast<AMPatrolPath>(path))
+					if (AMPatrolPath* PatrolPath = Cast<AMPatrolPath>(Path))
 					{
-						if (!patrolPath->IsSetOwner())
+						if (!PatrolPath->IsSetOwner())
 						{
-							if (AMAICharacter* AICharacter = GetWorld()->SpawnActor<AMAICharacter>(AICharacterStatic, patrolPath->GetStartPoint(), patrolPath->GetRotatorForStartPoint(), FActorSpawnParameters()))
+							if (AMAICharacter* AICharacter = GetWorld()->SpawnActor<AMAICharacter>(AICharacterStatic, 
+								PatrolPath->GetStartPoint(), PatrolPath->GetRotatorForStartPoint(), FActorSpawnParameters()))
 							{
-								patrolPath->SetOwner(AICharacter);
-								AICharacter->StartMove(patrolPath);
+								PatrolPath->SetOwner(AICharacter);
+								AICharacter->StartMove(PatrolPath);
 								AICharacter->DetectPlayerDelegate.AddDynamic(this, &AMSpawnBotManager::DetectPlayerByBot);
 								AICharacter->AIDeathDelegate.AddDynamic(this, &AMSpawnBotManager::OnActorDeath);
 							}
@@ -56,11 +57,14 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 				}
 			}
 
-			if (AMGameState* gameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+			if (IsValid(GetWorld()))
 			{
-				FScriptDelegate Delegate;
-				Delegate.BindUFunction(this, "SpawnBot");
-				gameState->TimerFinishDelegate.Remove(Delegate);
+				if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+				{
+					FScriptDelegate Delegate;
+					Delegate.BindUFunction(this, "SpawnBot");
+					GameState->TimerFinishDelegate.Remove(Delegate);
+				}
 			}
 		}
 	}
@@ -68,24 +72,24 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 
 void AMSpawnBotManager::DetectPlayerByBot(AActor* Bot, AActor* Player)
 {
-	if (AMAICharacter* bot = Cast<AMAICharacter>(Bot))
+	if (AMAICharacter* AICharacter = Cast<AMAICharacter>(Bot))
 	{
-		if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Player))
+		if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player))
 		{
-			if (!DetectPlayer.Find(bot))
+			if (!DetectPlayer.Find(AICharacter))
 			{
-				if (!player->InsertInSaveZoneDelegate.IsBound())
+				if (!PlayerCharacter->InsertInSaveZoneDelegate.IsBound())
 				{
-					player->InsertInSaveZoneDelegate.AddDynamic(this, &AMSpawnBotManager::PlayerRemoveSaveZone);
+					PlayerCharacter->InsertInSaveZoneDelegate.AddDynamic(this, &AMSpawnBotManager::PlayerRemoveSaveZone);
 				}
-				DetectPlayer.Add(bot, player);
+				DetectPlayer.Add(AICharacter, PlayerCharacter);
 			}
 		}
 		else
 		{
-			if (DetectPlayer.Find(bot))
+			if (DetectPlayer.Find(AICharacter))
 			{
-				DetectPlayer.Remove(bot);
+				DetectPlayer.Remove(AICharacter);
 			}
 		}
 	}
@@ -93,22 +97,22 @@ void AMSpawnBotManager::DetectPlayerByBot(AActor* Bot, AActor* Player)
 
 void AMSpawnBotManager::PlayerRemoveSaveZone(AActor* Player)
 {
-	if (AMPlayerCharacter* player = Cast<AMPlayerCharacter>(Player))
+	if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player))
 	{
-		TArray<AMAICharacter*> stalkingBots;
-		for (auto value : DetectPlayer)
+		TArray<AMAICharacter*> StalkingBots;
+		for (auto Value : DetectPlayer)
 		{
-			if (value.Value == player)
+			if (Value.Value == Player)
 			{
-				stalkingBots.Add(value.Key);
+				StalkingBots.Add(Value.Key);
 			}
 		}
 
-		if (stalkingBots.Num() > 0)
+		if (StalkingBots.Num() > 0)
 		{
-			for (AMAICharacter* bot : stalkingBots)
+			for (AMAICharacter* Bot : StalkingBots)
 			{
-				stalkingBots.Remove(bot);
+				StalkingBots.Remove(Bot);
 			}
 		}
 	}
@@ -116,11 +120,14 @@ void AMSpawnBotManager::PlayerRemoveSaveZone(AActor* Player)
 
 void AMSpawnBotManager::OnActorDeath(FVector Location)
 {
-	if (AMGameMode* gameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	if (IsValid(GetWorld()))
 	{
-		for (FItemTypeInfo item : RewardItemsArray)
+		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
 		{
-			gameMode->SetSpawnItems(item, Location);
+			for (FItemTypeInfo Item : RewardItemsArray)
+			{
+				GameMode->SetSpawnItems(Item, Location);
+			}
 		}
 	}
 }

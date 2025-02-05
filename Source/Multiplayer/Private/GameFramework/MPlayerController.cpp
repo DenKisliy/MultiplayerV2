@@ -2,7 +2,7 @@
 
 
 #include "GameFramework/MPlayerController.h"
-#include "../../Public/GameFramework/MPlayerHUD.h"
+#include "../Public/GameFramework/HUD/MPlayingHUD.h"
 
 AMPlayerController::AMPlayerController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,12 +19,15 @@ void AMPlayerController::BeginPlay()
 
 void AMPlayerController::CharacterDeath()
 {
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-		playerInfo.SetCharacterDeath(true);
+		FPlayerInfoStruct& PlayerInfo = GameInstance->GetPlayerInfoFromGameInstance();
+		PlayerInfo.SetCharacterDeath(true);
 
-		PlayerHUD->SetRemoveOrAddAttributesGroupWidget(false);
+		if (AMPlayingHUD* HUD = Cast<AMPlayingHUD>(GetHUD()))
+		{
+			HUD->SetRemoveOrAddAttributesGroupWidget(false);
+		}
 		SpawnResurrectionFlower(true);
 	}
 
@@ -32,30 +35,31 @@ void AMPlayerController::CharacterDeath()
 
 FPlayerInfoStruct& AMPlayerController::GetPlayerInfo()
 {
-	FPlayerInfoStruct playerInfo;
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	FPlayerInfoStruct PlayerInfo = FPlayerInfoStruct();
+
+	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		return gameInstance->GetPlayerInfoFromGameInstance();
+		return GameInstance->GetPlayerInfoFromGameInstance();
 	}
 	
-	return playerInfo;
+	return PlayerInfo;
 }
 
 void AMPlayerController::ResurrectionCharacter()
 {
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		if (AMPlayerState* pState = Cast<AMPlayerState>(PlayerState))
+		/*if (AMPlayerState* PlayerState = Cast<AMPlayerState>(PlayerState))
 		{
-			/*FPlayerInfoStruct& playerInfo = pState->GetPlayerInfo();
+			FPlayerInfoStruct& playerInfo = pState->GetPlayerInfo();
 
 			if (playerInfo.CharacterType != ETypeOfCharacter::None)
 			{
 				TypeOfCharacter = playerInfo.CharacterType;
 				playerInfo.SetCharacterDeath(!playerInfo.bCharacterDeath);
 				SpawnCharacter(playerInfo.CharacterType);
-			}*/
-		}
+			}
+		}*/
 	}
 }
 
@@ -71,16 +75,16 @@ void AMPlayerController::SetPickUpItemToInventory_Implementation(const FItemType
 
 FString AMPlayerController::GetPlayerStartByTag()
 {
-	int32 index;
-	int findIndex = 0;
-	if (GetName().FindLastChar('_', index))
+	int32 Index;
+	int FindIndex = 0;
+	if (GetName().FindLastChar('_', Index))
 	{
-		FString indexText = "";
-		for (int i = index + 1; i < GetName().Len(); i++)
+		FString IndexText = "";
+		for (int i = Index + 1; i < GetName().Len(); i++)
 		{
-			indexText = indexText + GetName()[i];
+			IndexText = IndexText + GetName()[i];
 		}
-		return FString::FromInt(FCString::Atoi(*indexText) + 1);
+		return FString::FromInt(FCString::Atoi(*IndexText) + 1);
 	}
 
 	return FString();
@@ -98,10 +102,9 @@ void AMPlayerController::OnSetCharacterType()
 
 				if (ETypeOfCharacter(CharacterTypeIndex) != ETypeOfCharacter::None)
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Get CharacterTypeIndex  %d"), CharacterTypeIndex);
-					if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
+					if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
 					{
-						playerState->PlayerDeathDelegate.Broadcast(false);
+						CharacterPS->PlayerDeathDelegate.Broadcast(false);
 					}
 
 					TypeOfCharacter = ETypeOfCharacter(CharacterTypeIndex);
@@ -115,16 +118,9 @@ void AMPlayerController::OnSetCharacterType()
 
 void AMPlayerController::SetPlayerHUD()
 {
-	if (Cast<AMPlayerHUD>(GetHUD()))
+	if (AMPlayingHUD* HUD = Cast<AMPlayingHUD>(GetHUD()))
 	{
-		PlayerHUD = Cast<AMPlayerHUD>(GetHUD());
-
-		FScriptDelegate Delegate;
-		Delegate.BindUFunction(this, "SubmitMessage");
-
-		//PlayerHUD->SetDelegateForSendMessageEvent(Delegate);
-
-		PlayerHUD->SetRemoveOrAddAttributesGroupWidget(true);
+		HUD->SetRemoveOrAddAttributesGroupWidget(true);
 	}
 }
 
@@ -145,11 +141,11 @@ void AMPlayerController::OnPossess(APawn* aPawn)
 void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTypeOfCharacter)
 {
 	TypeOfCharacter = SelectTypeOfCharacter;
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-		playerInfo.SetCharacterType(SelectTypeOfCharacter);
-		playerInfo.SetCharacterDeath(false);
+		FPlayerInfoStruct& PlayerInfo = GameInstance->GetPlayerInfoFromGameInstance();
+		PlayerInfo.SetCharacterType(SelectTypeOfCharacter);
+		PlayerInfo.SetCharacterDeath(false);
 
 		if (GetWorld())
 		{
@@ -158,14 +154,14 @@ void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTy
 				GetPawn()->Destroy();
 			}
 
-			if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
+			if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
 			{
-				playerState->PlayerDeathDelegate.Broadcast(false);
+				CharacterPS->PlayerDeathDelegate.Broadcast(false);
 			}
 
-			if (AActor* playerStart = GetWorld()->GetAuthGameMode()->FindPlayerStart(this, GetPlayerStartByTag()))
+			if (AActor* PlayerStart = GetWorld()->GetAuthGameMode()->FindPlayerStart(this, GetPlayerStartByTag()))
 			{
-				GetWorld()->GetAuthGameMode()->RestartPlayerAtPlayerStart(this, playerStart);
+				GetWorld()->GetAuthGameMode()->RestartPlayerAtPlayerStart(this, PlayerStart);
 			}
 			else
 			{
@@ -175,37 +171,12 @@ void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTy
 	}
 }
 
-void AMPlayerController::MessageSubmit_Implementation()
-{
-	if (GetWorld()->GetGameState())
-	{
-		for (auto PlayerStateInfo : GetWorld()->GetGameState()->PlayerArray)
-		{
-			if (APlayerState* State = Cast<APlayerState>(PlayerStateInfo.Get()))
-			{
-				if (AMPlayerController* PlayerController = Cast<AMPlayerController>(State->GetPlayerController()))
-				{
-					PlayerController->UpdateChat();
-				}
-			}
-		}
-	}
-}
-
-void AMPlayerController::UpdateChat_Implementation()
-{
-	if (AMPlayerHUD* HUD = Cast<AMPlayerHUD>(GetHUD()))
-	{
-		HUD->ChatWidget.Get()->UpdateChatBox();
-	}
-}
-
 void AMPlayerController::SpawnResurrectionFlower_Implementation(bool bValue)
 {
-	if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
+	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-		playerInfo.SetCharacterDeath(bValue);
+		FPlayerInfoStruct& PlayerInfo = GameInstance->GetPlayerInfoFromGameInstance();
+		PlayerInfo.SetCharacterDeath(bValue);
 
 		if (IsValid(GetPawn()))
 		{
@@ -213,9 +184,9 @@ void AMPlayerController::SpawnResurrectionFlower_Implementation(bool bValue)
 			GetPawn()->Destroy();
 		}
 
-		if (AMPlayerState* playerState = Cast<AMPlayerState>(PlayerState))
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
 		{
-			playerState->PlayerDeathDelegate.Broadcast(true);
+			CharacterPS->PlayerDeathDelegate.Broadcast(true);
 		}
 
 		GetWorld()->GetAuthGameMode()->RestartPlayer(this);
@@ -224,8 +195,28 @@ void AMPlayerController::SpawnResurrectionFlower_Implementation(bool bValue)
 
 void AMPlayerController::ShowInfoForCharacter_Implementation(const FString& Text)
 {
-	if (IsValid(PlayerHUD))
+	/*if (IsValid(PlayerHUD))
 	{
 		PlayerHUD->ShowInformText(Text);
+	}*/
+}
+
+void AMPlayerController::MessageSubmit_Implementation()
+{
+	if (IsValid(GetWorld()->GetGameState()))
+	{
+		for (auto PlayerStateInfo : GetWorld()->GetGameState()->PlayerArray)
+		{
+			if (AMPlayerController* PlayerController = Cast<AMPlayerController>(PlayerStateInfo.Get()->GetPlayerController()))
+			{
+				PlayerController->OnUpdateChat();
+			}
+		}
 	}
 }
+
+void AMPlayerController::OnUpdateChat_Implementation()
+{
+	UpdateChatWidgetDelegate.ExecuteIfBound();
+}
+

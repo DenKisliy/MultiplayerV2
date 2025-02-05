@@ -33,7 +33,7 @@ public:
 	FItemTypeInfo ItemForResurrectionInfo;
 
 private:
-	AMPlayerCharacter* Player = nullptr;
+	AMPlayerCharacter* DeathPlayer = nullptr;
 
 public:	
 	// Sets default values for this actor's properties

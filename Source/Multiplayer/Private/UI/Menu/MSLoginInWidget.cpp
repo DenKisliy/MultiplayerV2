@@ -2,7 +2,6 @@
 
 #include "UI/Menu/MSLoginInWidget.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
-#include "../../../Public/GameFramework/MPlayerHUD.h"
 
 #define LOCTEXT_NAMESPACE "LoginInMenu"
 
