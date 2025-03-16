@@ -82,4 +82,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	FPlayerInfoStruct& GetPlayerInfoFromGameInstance();
+
+	virtual void Init() override;
+
+	UFUNCTION()
+	virtual void BeginLoadingScreen(const FWorldContext& FWorldContext, const FString& MapName);
+
+	UFUNCTION()
+	virtual void EndLoadingScreen(UWorld* InLoadedWorld);
 };

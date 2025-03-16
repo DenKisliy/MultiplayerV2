@@ -8,7 +8,6 @@
 #include "../Character/MAICharacter.h"
 #include "../AI/Move/MPatrolPath.h"
 #include "../Character/MPlayerCharacter.h"
-#include "../GameFramework/MGameState.h"
 #include "../Managers/MBaseManager.h"
 
 #include "MSpawnBotManager.generated.h"
@@ -40,7 +39,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	UFUNCTION()
 	void SpawnBot(ETypeOfTimer TypeOfFinishTimer);
 
 	UFUNCTION()

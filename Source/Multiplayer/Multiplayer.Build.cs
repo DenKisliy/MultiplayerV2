@@ -36,6 +36,8 @@ public class Multiplayer : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "Networking", "Sockets" });
 
+		PrivateDependencyModuleNames.AddRange(new string[] { "MoviePlayer" });
+
 		PublicIncludePaths.Add("../DataBaseConnectorC64/include");
 
 		bool LibSupportedBool = false;

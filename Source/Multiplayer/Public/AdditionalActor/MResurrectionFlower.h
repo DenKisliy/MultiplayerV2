@@ -8,7 +8,6 @@
 #include "Components/SphereComponent.h"
 #include "Particles/ParticleSystemComponent.h"
 
-#include "../GameFramework/MGameState.h"
 #include "../GameFramework/MPlayerController.h"
 #include "../Character/MPlayerCharacter.h"
 

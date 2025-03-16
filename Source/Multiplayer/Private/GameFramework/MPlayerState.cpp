@@ -3,24 +3,19 @@
 
 #include "GameFramework/MPlayerState.h"
 #include "../../Public/Subsystem/MPlayerInfoSubsystem.h"
+#include "../../Public/GameFramework/MPlayerController.h"
 
 AMPlayerState::AMPlayerState()
 {
 	NetUpdateFrequency = 30.0f;
 }
 
-void AMPlayerState::PostInitializeComponents()
+void AMPlayerState::UpdateUserNameByLogin(FString UserLogin)
 {
-	Super::PostInitializeComponents();
+	SetPlayerName(UserLogin);
+
+	bUserNameByLogin = true;
 }
 
-void AMPlayerState::SetPlayerNameByLogin()
-{
-	if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
-	{
-		if (!PlayerInfoSubsystem->GetLoginOfUser().IsEmpty())
-		{
-			SetPlayerName(PlayerInfoSubsystem->GetLoginOfUser());
-		}
-	}
-}
+
+

@@ -4,6 +4,8 @@
 #include "GameFramework/HUD/MPlayingHUD.h"
 #include "GameFramework/MGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "../../../Public/GameFramework/MPlayerState.h"
+#include "../../../Public/Subsystem/MPlayerInfoSubsystem.h"
 
 AMPlayingHUD::AMPlayingHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -12,11 +14,15 @@ AMPlayingHUD::AMPlayingHUD(const FObjectInitializer& ObjectInitializer)
 
 void AMPlayingHUD::SetTimeTimerWidget(bool bMain, int Time)
 {
-	if (!IsValid(TimerWidget))
+	if (!IsValid(TimerWidget) && IsValid(TimerStatic))
 	{
 		TimerWidget = CreateWidget<UMTimerWidget>(this->GetOwningPlayerController(), TimerStatic);
 		TimerWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.0f));
 		TimerWidget->SetAlignmentInViewport(FVector2D(double(0.5), 0));
+	}
+
+	if(!TimerWidget->IsInViewport())
+	{
 		TimerWidget->AddToViewport(2);
 	}
 
@@ -65,9 +71,9 @@ void AMPlayingHUD::SetRemoveOrAddAttributesGroupWidget(bool bAdd)
 	}
 }
 
-void AMPlayingHUD::ShowInventory(bool bValue)
+void AMPlayingHUD::ShowInventory()
 {
-	if (bValue)
+	if (!IsValid(InventoryWidget))
 	{
 		if (IsValid(InventoryStatic))
 		{
@@ -85,11 +91,8 @@ void AMPlayingHUD::ShowInventory(bool bValue)
 	}
 	else
 	{
-		if (IsValid(InventoryWidget))
-		{
-			InventoryWidget->RemoveFromParent();
-			InventoryWidget = nullptr;
-		}
+		InventoryWidget->RemoveFromParent();
+		InventoryWidget = nullptr;
 	}
 }
 
@@ -103,33 +106,31 @@ void AMPlayingHUD::ShowInformText(FString Text)
 
 void AMPlayingHUD::CreateChat()
 {
-	if (!IsValid(ChatWidget) && IsValid(ChatStatic))
+	if (!IsStandAloneMode())
 	{
-		ChatWidget = CreateWidget(GetWorld()->GetFirstPlayerController(), ChatStatic);
-		ChatWidget->AddToViewport();
+		if (!IsValid(ChatWidget) && IsValid(ChatStatic))
+		{
+			ChatWidget = CreateWidget(GetWorld()->GetFirstPlayerController(), ChatStatic);
+			ChatWidget->AddToViewport();
+		}
 	}
-
 }
 
 void AMPlayingHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
+	UpdatePlyerName();
+
 	if (IsValid(GetWorld()) && IsValid(GetWorld()->GetFirstPlayerController()))
 	{
-		bool bStandAloneMode = false;
-
 		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
 		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
 		FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
-
-		if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
-		{
-			bStandAloneMode = GameMode->IsStandAloneMode();
-		}
 	}
 
 	SetRemoveOrAddAttributesGroupWidget(true);
+	CreateChat();
 }
 
 void AMPlayingHUD::DrawHUD()
@@ -138,11 +139,47 @@ void AMPlayingHUD::DrawHUD()
 
 	if (IsValid(GetOwningPlayerController()))
 	{
-		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
+		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadZero))
 		{
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 			ChatWidget->SetFocus();
 		}
+		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
+		{
+			ShowInventory();
+		}
+	}
+}
+
+bool AMPlayingHUD::IsStandAloneMode()
+{
+	if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		return GameMode->IsStandAloneMode();
+	}
+
+	return false;
+}
+
+void AMPlayingHUD::UpdatePlyerName()
+{
+	if (!IsStandAloneMode())
+	{
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+
+		if (AMPlayerState* PS = Cast<AMPlayerState>(GetOwningPlayerController()->PlayerState))
+		{
+			if (!PS->IsUserNameByLogin())
+			{
+				if (UMPlayerInfoSubsystem* PlayerInfoManager = this->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+				{
+					PS->UpdateUserNameByLogin(PlayerInfoManager->GetLoginOfUser());
+					return;
+				}
+			}
+		}
+
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMPlayingHUD::UpdatePlyerName, 1.0f, false);
 	}
 }

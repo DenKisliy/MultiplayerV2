@@ -73,6 +73,8 @@ public:
 	UFUNCTION(Server, Reliable)
 	void MessageSubmit();
 
+	virtual void InitPlayerState() override;
+
 private:
 	UFUNCTION(Server, Reliable)
 	void SpawnCharacter(ETypeOfCharacter SelectTypeOfCharacter);
@@ -83,6 +85,8 @@ private:
 
 	UFUNCTION(Client, Reliable)
 	void OnUpdateChat();
+
+	void SetPlayerNameAfterSpawn();
 
 protected:
 	virtual void OnPossess(APawn* aPawn) override;

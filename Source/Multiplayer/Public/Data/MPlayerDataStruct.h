@@ -7,6 +7,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerDeath, bool, bDeathPlayer);
 
+
 UENUM(BlueprintType)
 enum class ETypeOfCharacter : uint8
 {

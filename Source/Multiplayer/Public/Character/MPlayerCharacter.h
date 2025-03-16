@@ -8,7 +8,6 @@
 
 #include "Net/UnrealNetwork.h"
 #include "Components/WidgetComponent.h"
-#include "../UI/MPlayerInfoWidget.h"
 #include "../GameFramework/MPlayerController.h"
 
 #include "Components/CapsuleComponent.h"
@@ -80,13 +79,10 @@ public:
 	UArrowComponent* SpawnArrowComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* PlayerTagComponent;
+	UTextRenderComponent* PlayerNameComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Components)
 	UMInventoryComponent* InventoryComponent;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Montages)
-	UAnimMontage* DeathMontage;
 
 	FInsertInSaveZone InsertInSaveZoneDelegate;
 
@@ -123,11 +119,11 @@ public:
 	UFUNCTION(Server, Reliable)
 	void SetPlayerSpeed(const float& NewSpeed);
 
-	float GetTargetArmLength();
+	float GetTargetArmLength() { return CameraBoom->TargetArmLength; }
 
-	FVector GetSpawnActorLocation();
+	FVector GetSpawnActorLocation() { return SpawnArrowComponent->GetComponentLocation(); }
 
-	FRotator GetSpawnActorRotation();
+	FRotator GetSpawnActorRotation() { return SpawnArrowComponent->GetComponentRotation(); }
 
 protected:
 	// Called when the game starts or when spawned
@@ -168,7 +164,7 @@ private:
 	void OnRep_PlayerNameWidget();
 
 	UFUNCTION(Server, Reliable)
-	void SetPlayerName(const FString& NewPlayerName);
+	void SetPlayerCharacterName(const FString& NewPlayerName);
 
 	UFUNCTION()
 	void UseItemGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect);
@@ -184,4 +180,6 @@ private:
 	void OnManaUpdated(const FOnAttributeChangeData& Data);
 
 	void OnStaminaUpdated(const FOnAttributeChangeData& Data);
+
+	void SetUserNameForLocalPlayer();
 };

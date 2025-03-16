@@ -4,6 +4,7 @@
 #include "../../Public/Character/MPlayerCharacter.h"
 #include "../../Public/GameFramework/HUD/MPlayingHUD.h"
 #include "../../Public/Subsystem/MPlayerInfoSubsystem.h"
+#include "../../Public/GameFramework/MPlayerState.h"
 
 // Sets default values
 AMPlayerCharacter::AMPlayerCharacter()
@@ -52,20 +53,16 @@ AMPlayerCharacter::AMPlayerCharacter()
 		SpawnArrowComponent->SetupAttachment(RootComponent);
 	}
 
-	PlayerTagComponent = CreateDefaultSubobject<UWidgetComponent>(FName("Player Tag Widget"));
-	PlayerTagComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	PlayerNameComponent = CreateDefaultSubobject<UTextRenderComponent>(FName("Player Name"));
+	PlayerNameComponent->SetText(FText::FromString(""));
+	PlayerNameComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	InventoryComponent = CreateDefaultSubobject<UMInventoryComponent>(TEXT("Inventory"));
 }
 
 FString AMPlayerCharacter::GetPlayerName()
 {
-	if (UMPlayerInfoWidget* PlayerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
-	{
-		return PlayerTag->GetPlayerName();
-	}
-
-	return "";
+	return PlayerNameComponent->Text.ToString();
 }
 
 FString AMPlayerCharacter::GetButtonTextForInformWidget(FString ButtonName)
@@ -89,21 +86,6 @@ FString AMPlayerCharacter::GetButtonTextForInformWidget(FString ButtonName)
 	}
 
 	return Result;
-}
-
-float AMPlayerCharacter::GetTargetArmLength()
-{
-	return CameraBoom->TargetArmLength;
-}
-
-FVector AMPlayerCharacter::GetSpawnActorLocation()
-{
-	return SpawnArrowComponent->GetComponentLocation();
-}
-
-FRotator AMPlayerCharacter::GetSpawnActorRotation()
-{
-	return SpawnArrowComponent->GetComponentRotation();
 }
 
 // Called when the game starts or when spawned
@@ -204,11 +186,11 @@ void AMPlayerCharacter::OnRep_PlayerNameWidget()
 	SetPlayerTagName(PlayerNameWidget);
 }
 
-void AMPlayerCharacter::SetPlayerName_Implementation(const FString& NewPlayerName)
+void AMPlayerCharacter::SetPlayerCharacterName_Implementation(const FString& NewPlayerName)
 {
 	if (IsValid(GetWorld()))
 	{
-		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
+		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer/* || GetWorld()->GetNetMode() == ENetMode::NM_Standalone*/)
 		{
 			SetPlayerTagName(NewPlayerName);
 		}
@@ -228,10 +210,7 @@ void AMPlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 void AMPlayerCharacter::SetPlayerTagName(FString PlayerName)
 {
-	if (UMPlayerInfoWidget* PlayerTag = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
-	{
-		PlayerTag->SetPlayerName(PlayerName);
-	}
+	PlayerNameComponent->SetText(FText::FromString(PlayerName));
 }
 
 void AMPlayerCharacter::OnRep_PlayerState()
@@ -268,7 +247,6 @@ void AMPlayerCharacter::SetPlayerScale_Implementation(const FVector& NewPlayerSc
 {
 	if (IsValid(GetWorld()))
 	{
-
 		CameraBoom->TargetArmLength = NewPlayerScale == FVector(1) ? CameraBoom->TargetArmLength * GetCapsuleComponent()->GetRelativeScale3D().X :
 			CameraBoom->TargetArmLength / GetCapsuleComponent()->GetRelativeScale3D().X;
 
@@ -292,6 +270,11 @@ void AMPlayerCharacter::InitializeInput(AController* NewController)
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 			BindAllDelegates();
+
+			if (IsValid(GetPlayerState()))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *GetPlayerState()->GetPlayerName());
+			}
 		}
 	}
 
@@ -299,21 +282,10 @@ void AMPlayerCharacter::InitializeInput(AController* NewController)
 
 void AMPlayerCharacter::RotatePlayerNameWidget()
 {
-	if (!IsLocallyControlled())
-	{
-		if (UMPlayerInfoWidget* PlayerTagWidget = Cast<UMPlayerInfoWidget>(PlayerTagComponent->GetWidget()))
-		{
-			if (PlayerTagWidget->GetPlayerName().IsEmpty())
-			{
-				//SetPlayerName(GetPlayerState()->GetPlayerName());
-			}
-			else
-			{
-				PlayerTagComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(PlayerTagComponent->GetComponentLocation(),
-					UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
-			}
-		}
-	}
+	SetUserNameForLocalPlayer();
+
+	PlayerNameComponent->SetWorldRotation(UKismetMathLibrary::FindLookAtRotation(PlayerNameComponent->GetComponentLocation(),
+			UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0)->GetCameraLocation()));
 }
 
 void AMPlayerCharacter::InitializeAttributes()
@@ -362,6 +334,23 @@ void AMPlayerCharacter::OnManaUpdated(const FOnAttributeChangeData& Data)
 void AMPlayerCharacter::OnStaminaUpdated(const FOnAttributeChangeData& Data)
 {
 	OnUpdateAttributeState(EAttributeType::Stamina, Data.NewValue / Attributes->GetMaxStamina());
+}
+
+void AMPlayerCharacter::SetUserNameForLocalPlayer()
+{
+	if (IsLocallyControlled())
+	{
+		if (PlayerNameComponent->Text.IsEmpty())
+		{
+			if (AMPlayerState* PS = Cast<AMPlayerState>(GetController()->PlayerState))
+			{
+				if (PS->IsUserNameByLogin())
+				{
+					SetPlayerCharacterName(PS->GetPlayerName());
+				}
+			}
+		}
+	}
 }
 
 void AMPlayerCharacter::OnUpdateAttributeState(EAttributeType Type, float Value)

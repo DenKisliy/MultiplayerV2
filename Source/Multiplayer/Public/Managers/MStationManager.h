@@ -9,10 +9,10 @@
 #include "../AdditionalActor/MCaptureStation.h"
 #include "../Managers/MBaseManager.h"
 
-#include "MCaptureBaseManager.generated.h"
+#include "MStationManager.generated.h"
 
 UCLASS()
-class MULTIPLAYER_API AMCaptureBaseManager : public AMBaseManager
+class MULTIPLAYER_API AMStationManager : public AMBaseManager
 {
 	GENERATED_BODY()
 
@@ -21,14 +21,16 @@ public:
 	TSubclassOf<AMCaptureStation> SpawnStationStatic;
 
 private:
+	UPROPERTY(meta = (AllowPrivateAccess = true))
 	TArray<AActor*> CaptureStationArray;
 
 	AMCaptureStation* CaptureStation;
 
+	UPROPERTY(meta = (AllowPrivateAccess = true))
 	int32 CaptureStationCount = -1;
 public:	
 	// Sets default values for this actor's properties
-	AMCaptureBaseManager();
+	AMStationManager();
 
 protected:
 	// Called when the game starts or when spawned
@@ -39,7 +41,13 @@ private:
 	void OnSetCaptureStation(int32 CountOfPlayer);
 
 	UFUNCTION()
-	void SpawnStation(ETypeOfTimer TypeOfFinishTimer);
+	void OnTimeFinished(ETypeOfTimer TypeOfFinishTimer);
 
-	void GetCaptureStationArray();
+	void FindCaptureStationArray();
+
+	void CheckCountOfCaptureStations();
+
+	void SpawnStation();
+
+	void OnStationCaptured();
 };

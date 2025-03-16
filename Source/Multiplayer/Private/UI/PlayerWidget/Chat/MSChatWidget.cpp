@@ -63,7 +63,7 @@ void MSChatWidget::Construct(const FArguments& InArgs)
 										[
 											SNew(SButton).OnClicked_Raw(this, &MSChatWidget::OnSendMessage)
 											[
-												SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Chat", "Test")).Justification(ETextJustify::Center)
+												SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("Chat", "Send a message")).Justification(ETextJustify::Center)
 											]
 										]
 								]
@@ -102,6 +102,14 @@ void MSChatWidget::UpdateChatBox()
 			ListViewWidget->RequestListRefresh(); 
 			ListViewWidget->ScrollToBottom();
 		}
+	}
+}
+
+void MSChatWidget::CheckOwnerHUD(AHUD* HUD)
+{
+	if (!OwnerHUD.IsValid())
+	{
+		OwnerHUD = HUD;
 	}
 }
 

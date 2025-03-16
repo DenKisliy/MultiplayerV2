@@ -92,24 +92,27 @@ FString AMPlayerController::GetPlayerStartByTag()
 
 void AMPlayerController::OnSetCharacterType()
 {
-	if (IsLocalController())
+	if (TypeOfCharacter == ETypeOfCharacter::None)
 	{
-		if (IsValid(GetGameInstance()))
+		if (IsLocalController())
 		{
-			if (IsValid(GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()))
+			if (IsValid(GetGameInstance()))
 			{
-				int CharacterTypeIndex = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->GetCharacterType();
-
-				if (ETypeOfCharacter(CharacterTypeIndex) != ETypeOfCharacter::None)
+				if (IsValid(GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()))
 				{
-					if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
+					int CharacterTypeIndex = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>()->GetCharacterType();
+
+					if (ETypeOfCharacter(CharacterTypeIndex) != ETypeOfCharacter::None)
 					{
-						CharacterPS->PlayerDeathDelegate.Broadcast(false);
+						if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(PlayerState))
+						{
+							CharacterPS->PlayerDeathDelegate.Broadcast(false);
+						}
+
+						TypeOfCharacter = ETypeOfCharacter(CharacterTypeIndex);
+
+						SpawnCharacter(TypeOfCharacter);
 					}
-
-					TypeOfCharacter = ETypeOfCharacter(CharacterTypeIndex);
-
-					SpawnCharacter(TypeOfCharacter);
 				}
 			}
 		}
@@ -124,9 +127,30 @@ void AMPlayerController::SetPlayerHUD()
 	}
 }
 
+void AMPlayerController::InitPlayerState()
+{
+	Super::InitPlayerState();
+}
+
+void AMPlayerController::SetPlayerNameAfterSpawn()
+{
+	if (IsLocalController())
+	{
+		if (IsValid(GetGameInstance()) && IsValid(PlayerState))
+		{
+			if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+			{
+				PlayerState->SetPlayerName(PlayerInfoSubsystem->GetLoginOfUser());
+			}
+		}
+	}
+}
+
 void AMPlayerController::OnPossess(APawn* aPawn)
 {
 	Super::OnPossess(aPawn);
+
+	OnSetCharacterType();
 
 	//if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	//{

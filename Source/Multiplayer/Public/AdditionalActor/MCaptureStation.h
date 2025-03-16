@@ -55,10 +55,13 @@ public:
 	FChangeCountOfCapturePlayer ChangeCountOfCapturePlayerDelegate;
 
 private:
+	UPROPERTY(meta = (AllowPrivateAccess = true))
 	bool bCapture = true;
 
+	UPROPERTY(meta = (AllowPrivateAccess = true))
 	int CountOfPlayer = 0;
 
+	UPROPERTY(meta = (AllowPrivateAccess = true))
 	TArray<AMPlayerCharacter*> InsertPlayerArray;
 
 public:	

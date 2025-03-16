@@ -136,11 +136,8 @@ void AMCaptureStation::CaptureFinish()
 	{
 		NewStatueMesh = RestoredStatueMesh;
 
-		if (GetWorld()->GetNetMode() == ENetMode::NM_ListenServer)
-		{
-			NavModifierComponent->SetAreaClass(UNavArea_Null::StaticClass());
-			StatueComponent->SetStaticMesh(NewStatueMesh);
-		}
+		NavModifierComponent->SetAreaClass(UNavArea_Null::StaticClass());
+		StatueComponent->SetStaticMesh(NewStatueMesh);
 
 		AddItems();
 	}
@@ -148,25 +145,28 @@ void AMCaptureStation::CaptureFinish()
 
 void AMCaptureStation::AddItems_Implementation()
 {
-	if (GetWorld()->GetGameState())
+	if (IsValid(GetWorld()))
 	{
-		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
+		if (IsValid(GetWorld()->GetGameState()))
 		{
-			for (AMPlayerCharacter* InsertPlayer : InsertPlayerArray)
+			for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 			{
-				if (InsertPlayer->GetPlayerName() == Player.Get()->GetPlayerName())
+				for (AMPlayerCharacter* InsertPlayer : InsertPlayerArray)
 				{
-					if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player.Get()->GetPlayerController()))
+					if (InsertPlayer->GetPlayerName() == Player.Get()->GetPlayerName())
 					{
-						for (FItemTypeInfo Item : RewardItemsArray)
+						if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player.Get()->GetPlayerController()))
 						{
-							PlayerController->AddItemToCharacter(Item);
+							for (FItemTypeInfo Item : RewardItemsArray)
+							{
+								PlayerController->AddItemToCharacter(Item);
+							}
 						}
 					}
 				}
 			}
+
+			InsertPlayerArray.Empty();
 		}
 	}
-
-	InsertPlayerArray.Empty();
 }

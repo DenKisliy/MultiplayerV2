@@ -25,15 +25,17 @@ private:
 
 	bool bPlayerDeath = false;
 
+	bool bUserNameByLogin = false;
+
 public:
 	AMPlayerState();
-
-	virtual void PostInitializeComponents() override;
 
 	bool IsInSaveZone() { return bInSaveZone; }
 
 	void SetPlayerInSaveZone(bool bValue) { bInSaveZone = bValue; }
 
-private:
-	void SetPlayerNameByLogin();
+	bool IsUserNameByLogin() { return bUserNameByLogin; }
+
+	void UpdateUserNameByLogin(FString UserLogin);
+
 };

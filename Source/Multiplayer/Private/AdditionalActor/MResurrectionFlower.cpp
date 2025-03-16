@@ -2,6 +2,7 @@
 
 
 #include "AdditionalActor/MResurrectionFlower.h"
+#include "../../Public/GameFramework/GameState/MMultiplayerGameState.h"
 
 // Sets default values
 AMResurrectionFlower::AMResurrectionFlower()
@@ -55,9 +56,9 @@ void AMResurrectionFlower::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* Ove
 {
 	if (DeathPlayer && IsValid(GetWorld()))
 	{
-		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
 		{
-			GameState->StopResurrectionTimer();
+			GameState->ResurrectionTimer(false);
 			GameState->AdditionalTimerDelegate.Clear();
 		}
 		DeathPlayer = nullptr;
@@ -85,11 +86,11 @@ void AMResurrectionFlower::IsHaveResurrectionItemInInventory_Implementation(cons
 				{
 					if (PlayerCharacter->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
 					{
-						if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+						if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
 						{
-							GameState->StartResurrectionTimer();
+							GameState->ResurrectionTimer(true);
 							GameState->AdditionalTimerDelegate.Clear();
-							GameState->AdditionalTimerDelegate.AddDynamic(this, &AMResurrectionFlower::OnFinishTimer);
+							GameState->AdditionalTimerDelegate.BindDynamic(this, &AMResurrectionFlower::OnFinishTimer);
 						}
 					}
 					else

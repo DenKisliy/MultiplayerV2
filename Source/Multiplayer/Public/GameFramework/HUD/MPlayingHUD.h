@@ -51,6 +51,8 @@ private:
 
 	UMInformWidget* InformWidget;
 
+	FTimerHandle TimerHandle;
+
 public:
 	AMPlayingHUD(const FObjectInitializer& ObjectInitializer);
 
@@ -61,15 +63,19 @@ public:
 
 	void SetRemoveOrAddAttributesGroupWidget(bool bAdd);
 
-	UFUNCTION(BlueprintCallable)
-	void ShowInventory(bool bValue);
-
 	void ShowInformText(FString Text);
-
-	void CreateChat();
 
 protected:
 	virtual void PostInitializeComponents() override;
 
 	virtual void DrawHUD() override;
+
+private:
+	bool IsStandAloneMode();
+
+	void UpdatePlyerName();
+
+	void ShowInventory();
+
+	void CreateChat();
 };

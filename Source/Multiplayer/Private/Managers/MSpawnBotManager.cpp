@@ -3,6 +3,7 @@
 
 #include "Managers/MSpawnBotManager.h"
 #include "../../Public/GameFramework/MGameMode.h"
+#include "../../Public/GameFramework/GameState/MBaseGameState.h"
 
 // Sets default values
 AMSpawnBotManager::AMSpawnBotManager()
@@ -19,9 +20,9 @@ void AMSpawnBotManager::BeginPlay()
 
 	if (IsValid(GetWorld()))
 	{
-		if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
+		if (AMBaseGameState* GameState = Cast<AMBaseGameState>(GetWorld()->GetGameState()))
 		{
-			GameState->TimerFinishDelegate.AddDynamic(this, &AMSpawnBotManager::SpawnBot);
+			GameState->TimerFinishDelegate.AddUObject(this, &AMSpawnBotManager::SpawnBot);
 			SetFinishBind();
 		}
 	}
@@ -54,16 +55,6 @@ void AMSpawnBotManager::SpawnBot(ETypeOfTimer TypeOfFinishTimer)
 							}
 						}
 					}
-				}
-			}
-
-			if (IsValid(GetWorld()))
-			{
-				if (AMGameState* GameState = Cast<AMGameState>(GetWorld()->GetGameState()))
-				{
-					FScriptDelegate Delegate;
-					Delegate.BindUFunction(this, "SpawnBot");
-					GameState->TimerFinishDelegate.Remove(Delegate);
 				}
 			}
 		}

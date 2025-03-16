@@ -26,23 +26,48 @@ void UMChatWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	bIsFocusable = true;
+	SetIsFocusable(true);
 
 	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(GetOwningPlayer()))
 	{
 		PlayerController->UpdateChatWidgetDelegate.BindDynamic(this, &UMChatWidget::OnUpdateChat);
+	}
+
+	if (IsValid(GetOwningPlayer()))
+	{
+		if (IsValid(GetOwningPlayer()->GetHUD()))
+		{
+			ChatWidget = SNew(MSChatWidget).OwnerHUD(GetOwningPlayer()->GetHUD());
+		}
 	}
 }
 
 FReply UMChatWidget::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
 	FReply Result = Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
+	
+	if (IsValid(GetOwningPlayer()))
+	{
+		if (IsValid(GetOwningPlayer()->GetHUD()))
+		{
+			ChatWidget->CheckOwnerHUD(GetOwningPlayer()->GetHUD());
+		}
+	}
+
 	FSlateApplication::Get().SetKeyboardFocus(ChatWidget);
 	return Result;
 }
 
 void UMChatWidget::OnUpdateChat()
 {
+	if (IsValid(GetOwningPlayer()))
+	{
+		if (IsValid(GetOwningPlayer()->GetHUD()))
+		{
+			ChatWidget->CheckOwnerHUD(GetOwningPlayer()->GetHUD());
+		}
+	}
+
 	if (ChatWidget.IsValid())
 	{
 		ChatWidget->UpdateChatBox();
