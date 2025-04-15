@@ -51,7 +51,9 @@ private:
 
 	UMInformWidget* InformWidget;
 
-	FTimerHandle TimerHandle;
+	FTimerHandle UpdatePlayerNameTimer;
+
+	FTimerHandle UpdateSetHUDTimer;
 
 public:
 	AMPlayingHUD(const FObjectInitializer& ObjectInitializer);
@@ -78,4 +80,6 @@ private:
 	void ShowInventory();
 
 	void CreateChat();
+
+	void OnHUDSet();
 };

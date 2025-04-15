@@ -38,4 +38,6 @@ public:
 
 	void UpdateUserNameByLogin(FString UserLogin);
 
+	UFUNCTION(Client, Reliable)
+	void SaveResultOfGame(EResultOfGame ResultOfGame);
 };

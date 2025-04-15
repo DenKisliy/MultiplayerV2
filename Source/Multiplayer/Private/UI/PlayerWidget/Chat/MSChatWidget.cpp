@@ -105,14 +105,6 @@ void MSChatWidget::UpdateChatBox()
 	}
 }
 
-void MSChatWidget::CheckOwnerHUD(AHUD* HUD)
-{
-	if (!OwnerHUD.IsValid())
-	{
-		OwnerHUD = HUD;
-	}
-}
-
 FReply MSChatWidget::OnSendMessage() const
 {
 	if (UMPlayerInfoSubsystem* PlayerInfoManager = OwnerHUD->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())

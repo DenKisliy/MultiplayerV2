@@ -29,12 +29,18 @@ protected:
 
 	ETypeOfTimer TypeOfTimer = ETypeOfTimer::None;
 
+	int CaptureStationCounter = 0;
+
 public:
 	FTimerFinish TimerFinishDelegate;
 
 	FTimerAccelerationFactor TimerAccelerationFactorDelegate;
 
 	FAdditionalTimerFinish AdditionalTimerDelegate;
+
+public:
+	UFUNCTION(Server, Reliable)
+	void SaveResultOfGame(EResultOfGame ResultOfGame);
 
 protected:
 	int GetTimeForTimerByType(ETypeOfTimer Type);

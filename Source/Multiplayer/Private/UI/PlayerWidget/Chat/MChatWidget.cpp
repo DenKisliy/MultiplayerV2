@@ -6,17 +6,17 @@
 
 TSharedRef<SWidget> UMChatWidget::RebuildWidget()
 {
-	if (!ChatWidget)
-	{
-		ChatWidget = SNew(MSChatWidget).OwnerHUD(nullptr);
-	}
-
 	if (IsValid(GetOwningPlayer()))
 	{
 		if (IsValid(GetOwningPlayer()->GetHUD()))
 		{
 			ChatWidget = SNew(MSChatWidget).OwnerHUD(GetOwningPlayer()->GetHUD());
 		}
+	};
+
+	if (!ChatWidget)
+	{
+		ChatWidget = SNew(MSChatWidget).OwnerHUD(nullptr);
 	}
 
 	return ChatWidget.ToSharedRef();
@@ -32,42 +32,18 @@ void UMChatWidget::NativeConstruct()
 	{
 		PlayerController->UpdateChatWidgetDelegate.BindDynamic(this, &UMChatWidget::OnUpdateChat);
 	}
-
-	if (IsValid(GetOwningPlayer()))
-	{
-		if (IsValid(GetOwningPlayer()->GetHUD()))
-		{
-			ChatWidget = SNew(MSChatWidget).OwnerHUD(GetOwningPlayer()->GetHUD());
-		}
-	}
 }
 
 FReply UMChatWidget::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
 	FReply Result = Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
-	
-	if (IsValid(GetOwningPlayer()))
-	{
-		if (IsValid(GetOwningPlayer()->GetHUD()))
-		{
-			ChatWidget->CheckOwnerHUD(GetOwningPlayer()->GetHUD());
-		}
-	}
-
 	FSlateApplication::Get().SetKeyboardFocus(ChatWidget);
+
 	return Result;
 }
 
 void UMChatWidget::OnUpdateChat()
 {
-	if (IsValid(GetOwningPlayer()))
-	{
-		if (IsValid(GetOwningPlayer()->GetHUD()))
-		{
-			ChatWidget->CheckOwnerHUD(GetOwningPlayer()->GetHUD());
-		}
-	}
-
 	if (ChatWidget.IsValid())
 	{
 		ChatWidget->UpdateChatBox();

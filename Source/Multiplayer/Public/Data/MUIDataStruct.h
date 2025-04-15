@@ -17,7 +17,8 @@ enum class ETypeOfWidget : uint8
 	CreateSession,
 	FindSession,
 	Inform,
-	JoinSession
+	JoinSession,
+	ResultOfGame
 };
 
 USTRUCT()
@@ -46,6 +47,40 @@ struct FChatMessageData
 		DateTime = *Data.Find("DateTime");
 		User = *Data.Find("User");
 		Message = *Data.Find("Message");
+	}
+};
+
+USTRUCT()
+struct FUserRatingData
+{
+	GENERATED_USTRUCT_BODY();
+
+	UPROPERTY(EditAnywhere)
+	FString User;
+
+	UPROPERTY(EditAnywhere)
+	int CountOfWin;
+
+	UPROPERTY(EditAnywhere)
+	int CountOfLost;
+
+	UPROPERTY(EditAnywhere)
+	int ResultOfLastGame;
+
+	FUserRatingData(FString UserValue = "", int CountOfWinValue = 0, int CountOfLostValue = 0, int ResultOfLastGameValue = 0)
+	{
+		User = UserValue;
+		CountOfWin = CountOfWinValue;
+		CountOfLost = CountOfLostValue;
+		ResultOfLastGame = ResultOfLastGameValue;
+	}
+
+	FUserRatingData(TMap<FString, FString> Data)
+	{
+		User = *Data.Find("User");
+		CountOfWin = FCString::Atoi(**Data.Find("CountOfWin"));
+		CountOfLost = FCString::Atoi(**Data.Find("CountOfLost"));
+		ResultOfLastGame = FCString::Atoi(**Data.Find("ResultOfLastGame"));
 	}
 };
 

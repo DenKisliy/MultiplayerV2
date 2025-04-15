@@ -116,6 +116,21 @@ void AMPlayingHUD::CreateChat()
 	}
 }
 
+void AMPlayingHUD::OnHUDSet()
+{
+	GetWorld()->GetTimerManager().ClearTimer(UpdateSetHUDTimer);
+
+	if (IsValid(GetOwningPlayerController()))
+	{
+		if (IsValid(GetOwningPlayerController()->GetHUD()))
+		{
+			CreateChat();
+		}
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(UpdateSetHUDTimer, this, &AMPlayingHUD::OnHUDSet, 1.0f, false);
+}
+
 void AMPlayingHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -130,7 +145,7 @@ void AMPlayingHUD::PostInitializeComponents()
 	}
 
 	SetRemoveOrAddAttributesGroupWidget(true);
-	CreateChat();
+	OnHUDSet();
 }
 
 void AMPlayingHUD::DrawHUD()
@@ -145,6 +160,7 @@ void AMPlayingHUD::DrawHUD()
 			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 			ChatWidget->SetFocus();
 		}
+
 		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
 		{
 			ShowInventory();
@@ -166,7 +182,7 @@ void AMPlayingHUD::UpdatePlyerName()
 {
 	if (!IsStandAloneMode())
 	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(UpdatePlayerNameTimer);
 
 		if (AMPlayerState* PS = Cast<AMPlayerState>(GetOwningPlayerController()->PlayerState))
 		{
@@ -180,6 +196,6 @@ void AMPlayingHUD::UpdatePlyerName()
 			}
 		}
 
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMPlayingHUD::UpdatePlyerName, 1.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(UpdatePlayerNameTimer, this, &AMPlayingHUD::UpdatePlyerName, 1.0f, false);
 	}
 }

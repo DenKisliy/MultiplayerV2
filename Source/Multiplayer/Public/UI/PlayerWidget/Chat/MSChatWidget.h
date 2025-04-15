@@ -34,8 +34,6 @@ public:
 
 	void UpdateChatBox();
 
-	void CheckOwnerHUD(AHUD* HUD);
-
 private:
 	FReply OnSendMessage() const;
 

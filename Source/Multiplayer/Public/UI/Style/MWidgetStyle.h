@@ -23,5 +23,4 @@ public:
 	static FSlateFontInfo GetTitleTextStyle();
 
 	static FSlateFontInfo GetChatTextStyle();
-
 };

@@ -8,6 +8,8 @@ void UMPlayerInfoSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Super::Initialize(Collection);
 
 	SetDataBase();
+
+	CreatePlayerRatingTable();
 }
 
 void UMPlayerInfoSubsystem::Deinitialize()
@@ -64,12 +66,9 @@ bool UMPlayerInfoSubsystem::AddMessage(FString Message)
 {
 	if (IsValid(Database) && !Message.IsEmpty())
 	{
-		if (Database->ExecuteQuery("INSERT INTO " + ChatTableName + " (User, Message) VALUES('"
+		return Database->ExecuteQuery("INSERT INTO " + ChatTableName + " (User, Message) VALUES('"
 			+ LoginOfUser + "' , '" +
-			Message + "' );"))
-		{
-			return true;
-		}
+			Message + "' );");
 	}
 
 	return false;
@@ -134,13 +133,66 @@ bool UMPlayerInfoSubsystem::RegisterPlayerData(FPlayerInfoData* NewPlayerData)
 {
 	if (IsValid(Database))
 	{
-		if (Database->ExecuteQuery("INSERT INTO Users (Login, Password, CharacterType) VALUES("
-			+ NewPlayerData->Login + " , " + 
+		return Database->ExecuteQuery("INSERT INTO Users (Login, Password, CharacterType) VALUES("
+			+ NewPlayerData->Login + " , " +
 			NewPlayerData->Password + " , " +
-			FString::FromInt(NewPlayerData->TypeOfCharacter) + " );"))
+			FString::FromInt(NewPlayerData->TypeOfCharacter) + " );");
+	}
+
+	return false;
+}
+
+bool UMPlayerInfoSubsystem::CreatePlayerRatingTable()
+{
+	if (IsValid(Database))
+	{
+		FCreateTableStructData* TableData = new FCreateTableStructData();
+
+		TableData->TableName = PlayerRatingTableName;
+
+		TableData->AddField("User", ECreatTableFieldType::Varchar);
+		TableData->AddField("CountOfWin", ECreatTableFieldType::Int);
+		TableData->AddField("CountOfLost", ECreatTableFieldType::Int);
+		TableData->AddField("ResultOfLastGame", ECreatTableFieldType::Int);
+
+		bool result = CreateTable(TableData);
+		
+		delete TableData;
+		return result;
+	}
+
+	return false;
+}
+
+int UMPlayerInfoSubsystem::GetResultOfLastGame()
+{
+	if (IsValid(Database))
+	{
+		FQueryResult QueryResult = Database->GetQueryData("SELECT * FROM " + PlayerRatingTableName + " Where User = " + LoginOfUser + " ;");
+		if (QueryResult.Success)
 		{
-			return true;
+			if (QueryResult.ResultRows.Num() == 1)
+			{
+				TMap<FString, FString> Row = QueryResult.ResultRows[0].Fields;
+				return FCString::Atoi(**Row.Find("ResultOfLastGame"));
+
+			}
 		}
+		else
+		{
+			Database->ExecuteQuery("INSERT INTO " + PlayerRatingTableName + " (User, CountOfWin, CountOfLost, ResultOfLastGame) VALUES("
+				+ LoginOfUser + " , 0 ,  0, -1 );");
+		}
+	}
+
+	return -1;
+}
+
+bool UMPlayerInfoSubsystem::ResetResultOfLastGame()
+{
+	if (IsValid(Database))
+	{
+		return Database->ExecuteQuery("UPDATE " + PlayerRatingTableName + " SET ResultOfLastGame = -1 Where User = " + LoginOfUser + " ;");
 	}
 
 	return false;

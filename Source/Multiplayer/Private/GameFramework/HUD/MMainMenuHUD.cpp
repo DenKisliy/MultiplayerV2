@@ -2,6 +2,7 @@
 
 
 #include "GameFramework/HUD/MMainMenuHUD.h"
+#include "../../../Public/Subsystem/MPlayerInfoSubsystem.h"
 
 AMMainMenuHUD::AMMainMenuHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -69,6 +70,8 @@ void AMMainMenuHUD::ShowWidget(ETypeOfWidget TypeOfUIWidget)
 				}
 
 				GetWorld()->GetGameViewport()->AddViewportWidgetContent(SNew(SWeakWidget).PossiblyNullContent(GameTypeMenuWidget.ToSharedRef()));
+
+				ShowResultOfGame();
 			}
 			break;
 
@@ -108,6 +111,12 @@ void AMMainMenuHUD::CloseWidget(ETypeOfWidget TypeOfWidget)
 				if (InformContainer.IsValid())
 				{
 					GetWorld()->GetGameViewport()->RemoveViewportWidgetContent(InformContainer.ToSharedRef());
+				}
+				break;
+			case ETypeOfWidget::ResultOfGame:
+				if (ResultOfGameContainer.IsValid())
+				{
+					GetWorld()->GetGameViewport()->RemoveViewportWidgetContent(ResultOfGameContainer.ToSharedRef());
 				}
 				break;
 			}
@@ -174,6 +183,26 @@ void AMMainMenuHUD::PostInitializeComponents()
 			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 
 			ShowWidget(ETypeOfWidget::LoginIn);
+		}
+	}
+}
+
+void AMMainMenuHUD::ShowResultOfGame()
+{
+	if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+	{
+		int ResultOfLastGame = PlayerInfoSubsystem->GetResultOfLastGame();
+		if (ResultOfLastGame != -1)
+		{
+			if (IsValid(GetWorld()))
+			{
+				if (IsValid(GetWorld()->GetGameViewport()))
+				{
+					ResultOfGameWidget = SNew(MSResultGameWidget).OwnerHUD(this).bResultOfGame(static_cast<bool>(ResultOfLastGame));
+
+					GetWorld()->GetGameViewport()->AddViewportWidgetContent(SAssignNew(ResultOfGameContainer, SWeakWidget).PossiblyNullContent(ResultOfGameWidget.ToSharedRef()), 5);
+				}
+			}
 		}
 	}
 }

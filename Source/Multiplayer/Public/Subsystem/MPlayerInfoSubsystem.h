@@ -32,6 +32,9 @@ private:
 	UPROPERTY()
 	FString ChatTableName = "";
 
+	UPROPERTY()
+	FString PlayerRatingTableName = "PlayerRating";
+
 public:
 	bool IsPlayerRegistered(FString Login);
 
@@ -58,6 +61,14 @@ public:
 	FChatMessageData* GetLastMessageData();
 
 	FString GetLoginOfUser() { return LoginOfUser; }
+
+	void LogOutOfAccount() { LoginOfUser = ""; }
+
+	bool CreatePlayerRatingTable();
+
+	int GetResultOfLastGame();
+
+	bool ResetResultOfLastGame();
 
 private:
 	void SetDataBase();

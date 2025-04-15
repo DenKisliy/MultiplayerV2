@@ -4,6 +4,7 @@
 #include "GameFramework/GameState/MBaseGameState.h"
 #include "../../../Public/GameFramework/MGameMode.h"
 #include "../../../Public/GameFramework/HUD/MPlayingHUD.h"
+#include "../../../Public/GameFramework/MPlayerState.h"
 #include "Kismet/GameplayStatics.h"
 
 void AMBaseGameState::StartCaptureStationTimer()
@@ -39,6 +40,17 @@ void AMBaseGameState::ShowTimeForHUD(bool bMain, int Time)
 			{
 				PlayerHUD->SetTimeTimerWidget(bMain, Time);
 			}
+		}
+	}
+}
+
+void AMBaseGameState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
+{
+	for (APlayerState* BasePS : PlayerArray)
+	{
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
+		{
+			CharacterPS->SaveResultOfGame(ResultOfGame);
 		}
 	}
 }

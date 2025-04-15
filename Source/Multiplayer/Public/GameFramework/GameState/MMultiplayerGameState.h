@@ -17,8 +17,6 @@ class MULTIPLAYER_API AMMultiplayerGameState : public AMBaseGameState
 public:
 	void ResurrectionTimer(bool bStart);
 
-	void SaveResultOfMatch(EResultOfGame Result);
-
 protected:
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 

@@ -12,6 +12,7 @@
 #include "../../UI/Multiplayer/MSCreateSessionWidget.h"
 #include "../../UI/Multiplayer/MSFindSessionWidget.h"
 #include "../../UI/Inform/MSInformativeWidget.h"
+#include "../../UI/Inform/MSResultGameWidget.h"
 
 #include "MMainMenuHUD.generated.h"
 
@@ -29,7 +30,12 @@ public:
 private:
 	//Inform widget
 	TSharedPtr<MSInformativeWidget> InformativeWidget;
+
 	TSharedPtr<SWidget> InformContainer;
+
+	TSharedPtr<MSResultGameWidget> ResultOfGameWidget;
+
+	TSharedPtr<SWidget> ResultOfGameContainer;
 
 	//Menu widgets
 	TSharedPtr<MSLoginInWidget> LoginInWidget;
@@ -56,4 +62,7 @@ public:
 
 protected:
 	virtual void PostInitializeComponents() override;
+
+private:
+	void ShowResultOfGame();
 };

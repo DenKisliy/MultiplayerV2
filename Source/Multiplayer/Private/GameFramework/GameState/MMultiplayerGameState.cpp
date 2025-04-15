@@ -19,10 +19,6 @@ void AMMultiplayerGameState::ResurrectionTimer(bool bStart)
 	}
 }
 
-void AMMultiplayerGameState::SaveResultOfMatch(EResultOfGame Result)
-{
-}
-
 void AMMultiplayerGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);

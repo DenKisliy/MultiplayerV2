@@ -17,5 +17,10 @@ void AMPlayerState::UpdateUserNameByLogin(FString UserLogin)
 	bUserNameByLogin = true;
 }
 
+void AMPlayerState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
+{
+
+}
+
 
 

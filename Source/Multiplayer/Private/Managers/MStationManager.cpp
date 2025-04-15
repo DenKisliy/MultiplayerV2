@@ -2,7 +2,7 @@
 
 
 #include "Managers/MStationManager.h"
-#include "../../Public/GameFramework/GameState/MMultiplayerGameState.h"
+#include "../../Public/GameFramework/GameState/MBaseGameState.h"
 
 // Sets default values
 AMStationManager::AMStationManager()
@@ -101,10 +101,9 @@ void AMStationManager::CheckCountOfCaptureStations()
 
 	if (CaptureStationCount >= 1 && StationCheck.Num() == CaptureStationCount)
 	{
-		if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
+		if (AMBaseGameState* GameState = Cast<AMBaseGameState>(GetWorld()->GetGameState()))
 		{
-			GameState->SaveResultOfMatch(EResultOfGame::Win);
-			return;
+			GameState->SaveResultOfGame(EResultOfGame::Win);
 		}
 	}
 }

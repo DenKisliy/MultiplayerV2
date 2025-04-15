@@ -48,7 +48,7 @@ void MSGameTypeMenuWidget::Construct(const FArguments& InArgs)
 								[
 									SNew(SButton).OnClicked(this, &MSGameTypeMenuWidget::OnBackToPreviousMenu)
 										[
-											SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("GameTypeMenu", "Back to previous menu")).Justification(ETextJustify::Center)
+											SNew(STextBlock).Font(UMWidgetStyle::GetButtonTextStyle()).Text(LOCTEXT("GameTypeMenu", "Sign up")).Justification(ETextJustify::Center)
 										]
 								]
 						]
@@ -85,6 +85,14 @@ FReply MSGameTypeMenuWidget::OnGoToNextMultiplayerMenu() const
 
 FReply MSGameTypeMenuWidget::OnBackToPreviousMenu() const
 {
+	if (IsValid(OwnerHUD->GetGameInstance()))
+	{
+		if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = OwnerHUD->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+		{
+			PlayerInfoSubsystem->LogOutOfAccount();
+		}
+	}
+
 	OpenNextWidget(ETypeOfWidget::LoginIn);
 
 	return FReply::Handled();
