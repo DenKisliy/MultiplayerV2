@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState/MBaseGameState.h"
+
+#include "Net/UnrealNetwork.h"
+
 #include "MMultiplayerGameState.generated.h"
 
 /**
@@ -14,14 +17,41 @@ class MULTIPLAYER_API AMMultiplayerGameState : public AMBaseGameState
 {
 	GENERATED_BODY()
 	
+private:
+	//main timer
+	float TimerInterval;
+
+	FTimerHandle TimerHandle;
+
+	UPROPERTY(ReplicatedUsing = OnRep_TimeChecker)
+	int TimeChecker;
+
 public:
 	void ResurrectionTimer(bool bStart);
 
 protected:
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 
+	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLifetimeProps) const;
+
 private:
 	int GetPlayerCountFromGameMode();
 
 	void BindDelegateForDeath();
+
+	void StartBeginPlayTimer();
+
+	UFUNCTION()
+	void OnRep_TimeChecker();
+
+	void SetTimeForPlayers();
+
+	UFUNCTION()
+	void OnTimerCounter();
+
+	UFUNCTION(Server, Reliable)
+	void StartSession();
+
+	UFUNCTION()
+	void OnTimerAccelerationFactor(float NewTimerPeriod);
 };

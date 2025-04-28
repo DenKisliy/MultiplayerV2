@@ -59,7 +59,7 @@ void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overl
 {
 	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
-		if (InsertPlayerArray.Find(HitActor) == INDEX_NONE)
+		if (InsertPlayerNameArray.Find(HitActor->GetPlayerName()) == INDEX_NONE)
 		{
 			if (!bCapture)
 			{
@@ -72,8 +72,8 @@ void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overl
 			}
 			else
 			{
-				InsertPlayerArray.Add(HitActor);
-				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerArray.Num());
+				InsertPlayerNameArray.Add(HitActor->GetPlayerName());
+				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerNameArray.Num());
 			}
 		}
 	}
@@ -93,10 +93,11 @@ void AMCaptureStation::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* Overlap
 		}
 		else
 		{
-			if (InsertPlayerArray.Find(HitActor) != INDEX_NONE)
+			UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *HitActor->GetPlayerName());
+			if (InsertPlayerNameArray.Find(HitActor->GetPlayerName()) != INDEX_NONE)
 			{
-				InsertPlayerArray.Remove(HitActor);
-				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerArray.Num() > 0 ? 0 : InsertPlayerArray.Num());
+				InsertPlayerNameArray.Remove(HitActor->GetPlayerName());
+				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerNameArray.Num() > 0 ? InsertPlayerNameArray.Num() : 0);
 			}
 		}
 	}
@@ -151,9 +152,9 @@ void AMCaptureStation::AddItems_Implementation()
 		{
 			for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 			{
-				for (AMPlayerCharacter* InsertPlayer : InsertPlayerArray)
+				for (FString PlayerName : InsertPlayerNameArray)
 				{
-					if (InsertPlayer->GetPlayerName() == Player.Get()->GetPlayerName())
+					if (Player.Get()->GetPlayerName() == PlayerName)
 					{
 						if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player.Get()->GetPlayerController()))
 						{
@@ -166,7 +167,7 @@ void AMCaptureStation::AddItems_Implementation()
 				}
 			}
 
-			InsertPlayerArray.Empty();
+			InsertPlayerNameArray.Empty();
 		}
 	}
 }

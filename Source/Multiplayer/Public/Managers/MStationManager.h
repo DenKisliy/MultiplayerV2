@@ -28,6 +28,8 @@ private:
 
 	UPROPERTY(meta = (AllowPrivateAccess = true))
 	int32 CaptureStationCount = -1;
+
+	int32 CountOfStation = 0;
 public:	
 	// Sets default values for this actor's properties
 	AMStationManager();

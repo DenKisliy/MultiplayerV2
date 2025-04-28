@@ -62,7 +62,7 @@ private:
 	int CountOfPlayer = 0;
 
 	UPROPERTY(meta = (AllowPrivateAccess = true))
-	TArray<AMPlayerCharacter*> InsertPlayerArray;
+	TArray<FString> InsertPlayerNameArray;
 
 public:	
 	// Sets default values for this actor's properties

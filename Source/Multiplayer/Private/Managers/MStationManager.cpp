@@ -57,6 +57,11 @@ void AMStationManager::FindCaptureStationArray()
 	if (CaptureStationArray.IsEmpty())
 	{
 		UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), CaptureStationArray);
+		
+		if (CaptureStationArray.Num() > 0)
+		{
+			CountOfStation = CaptureStationArray.Num();
+		}
 
 		if (CaptureStationArray.Num() > 1)
 		{
@@ -96,10 +101,7 @@ void AMStationManager::FindCaptureStationArray()
 
 void AMStationManager::CheckCountOfCaptureStations()
 {
-	TArray<AActor*> StationCheck;
-	UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("CaptureStation"), StationCheck);
-
-	if (CaptureStationCount >= 1 && StationCheck.Num() == CaptureStationCount)
+	if (CaptureStationCount == CountOfStation)
 	{
 		if (AMBaseGameState* GameState = Cast<AMBaseGameState>(GetWorld()->GetGameState()))
 		{
