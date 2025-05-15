@@ -106,3 +106,7 @@ void AMStandaloneGameState::OnTimerCounter()
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 	}
 }
+
+void AMStandaloneGameState::SetResultOfGame(bool bWin)
+{
+}

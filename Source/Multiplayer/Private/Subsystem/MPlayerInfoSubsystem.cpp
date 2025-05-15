@@ -198,6 +198,55 @@ bool UMPlayerInfoSubsystem::ResetResultOfLastGame()
 	return false;
 }
 
+bool UMPlayerInfoSubsystem::SaveResultOfLastGame(int32 ResultOfLastGame)
+{
+	if (FPlayerResultGameData* UserResultsOfGames = GetResultOfGameOfUser(LoginOfUser))
+	{
+		UserResultsOfGames->ResultOfLastGame = ResultOfLastGame;
+		if (ResultOfLastGame)
+		{
+			UserResultsOfGames->CountOfWin = UserResultsOfGames->CountOfWin + 1;
+		}
+		else
+		{
+			UserResultsOfGames->CountOfLost = UserResultsOfGames->CountOfLost + 1;
+		}
+
+		return UpdateResultOfGameOfUser(UserResultsOfGames);
+	}
+	return false;
+}
+
+FPlayerResultGameData* UMPlayerInfoSubsystem::GetResultOfGameOfUser(FString PlayerName)
+{
+	if (IsValid(Database))
+	{
+		FQueryResult QueryResult = Database->GetQueryData("SELECT * FROM " + PlayerRatingTableName + " Where User = " + LoginOfUser + " ;");
+		if (QueryResult.ResultRows.Num() == 1 && QueryResult.Success)
+		{
+			return new FPlayerResultGameData(QueryResult.ResultRows[0].Fields);
+		}
+	}
+
+	return nullptr;
+}
+
+bool UMPlayerInfoSubsystem::UpdateResultOfGameOfUser(FPlayerResultGameData* ResultGameData)
+{
+	if (IsValid(Database))
+	{
+		bool bResult =  Database->ExecuteQuery("UPDATE " + PlayerRatingTableName + " SET ResultOfLastGame = " 
+			+ FString::FromInt(ResultGameData->ResultOfLastGame) + ", CountOfWin = " + FString::FromInt(ResultGameData->CountOfWin ) + 
+			", CountOfLost= " + FString::FromInt(ResultGameData->CountOfLost) + " Where User = " + ResultGameData->UserName + " ;");
+
+		delete ResultGameData;
+
+		return bResult;
+	}
+
+	return false;
+}
+
 void UMPlayerInfoSubsystem::SetDataBase()
 {
 	Database = NewObject<UMSQLDatabase>();

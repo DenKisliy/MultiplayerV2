@@ -23,6 +23,9 @@ private:
 
 	FTimerHandle TimerHandle;
 
+public:
+	virtual void SetResultOfGame(bool bWin) override;
+
 protected:
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 

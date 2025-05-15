@@ -8,6 +8,7 @@
 #include "../../../Public/GameFramework/MPlayerState.h"
 #include "../../../Public/GameFramework/MGameMode.h"
 #include "../../../Public/Subsystem/MSessionSubsystem.h"
+#include "../../../Public/Subsystem/MPlayerInfoSubsystem.h"
 
 void AMMultiplayerGameState::StartBeginPlayTimer()
 {
@@ -23,6 +24,14 @@ void AMMultiplayerGameState::StartSession_Implementation()
 	if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 	{
 		SessionManager->StartSession();
+	}
+}
+
+void AMMultiplayerGameState::EndSession_Implementation()
+{
+	if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+	{
+		SessionManager->EndSession();
 	}
 }
 
@@ -88,13 +97,19 @@ void AMMultiplayerGameState::ResurrectionTimer(bool bStart)
 	}
 }
 
+void AMMultiplayerGameState::SetResultOfGame(bool bWin)
+{
+	SaveResultOfGame(bWin);
+	EndSession();
+}
+
 void AMMultiplayerGameState::AddPlayerState(APlayerState* PlayerState)
 {
 	Super::AddPlayerState(PlayerState);
 
 	if (PlayerArray.Num() == GetPlayerCountFromGameMode())
 	{
-		BindDelegateForDeath();
+		BindDelegatesForPlayers();
 
 		if (UMSessionSubsystem* SessionManager = GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
 		{
@@ -127,7 +142,7 @@ int AMMultiplayerGameState::GetPlayerCountFromGameMode()
 	return 0;
 }
 
-void AMMultiplayerGameState::BindDelegateForDeath()
+void AMMultiplayerGameState::BindDelegatesForPlayers()
 {
 	for (APlayerState* BasePS : PlayerArray)
 	{
@@ -166,6 +181,18 @@ void AMMultiplayerGameState::OnTimerAccelerationFactor(float NewTimerPeriod)
 			TimerInterval = NewTimerPeriod;
 
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, TimerInterval, true);
+		}
+	}
+}
+
+
+void AMMultiplayerGameState::SaveResultOfGame_Implementation(const bool ResultOfGame)
+{
+	for (APlayerState* BasePS : PlayerArray)
+	{
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
+		{
+			CharacterPS->SaveResultOfGame(ResultOfGame);
 		}
 	}
 }

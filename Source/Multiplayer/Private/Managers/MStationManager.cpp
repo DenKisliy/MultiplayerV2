@@ -105,7 +105,7 @@ void AMStationManager::CheckCountOfCaptureStations()
 	{
 		if (AMBaseGameState* GameState = Cast<AMBaseGameState>(GetWorld()->GetGameState()))
 		{
-			GameState->SaveResultOfGame(EResultOfGame::Win);
+			GameState->SetResultOfGame(true);
 		}
 	}
 }

@@ -39,5 +39,5 @@ public:
 	void UpdateUserNameByLogin(FString UserLogin);
 
 	UFUNCTION(Client, Reliable)
-	void SaveResultOfGame(EResultOfGame ResultOfGame);
+	void SaveResultOfGame(const int ResultOfGame);
 };

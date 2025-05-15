@@ -4,6 +4,7 @@
 #include "UI/Menu/MSGameTypeMenuWidget.h"
 #include "SlateOptMacros.h"
 #include "../../../Public/GameFramework/HUD/MMainMenuHUD.h"
+#include "../../../Public/Subsystem/MSessionSubsystem.h"
 #include "../../../Public/GameFramework/MGameMode.h"
 
 #define LOCTEXT_NAMESPACE "GameTypeMenu"
@@ -55,6 +56,16 @@ void MSGameTypeMenuWidget::Construct(const FArguments& InArgs)
 				]
 		];
 
+	if (IsValid(OwnerHUD->GetGameInstance()))
+	{
+		if (UMSessionSubsystem* PlayerInfoSubsystem = OwnerHUD->GetGameInstance()->GetSubsystem<UMSessionSubsystem>())
+		{
+			if (PlayerInfoSubsystem->IsCreateOrStartSession())
+			{
+				PlayerInfoSubsystem->DestroySession();
+			}
+		}
+	}
 }
 
 bool MSGameTypeMenuWidget::SupportsKeyboardFocus() const

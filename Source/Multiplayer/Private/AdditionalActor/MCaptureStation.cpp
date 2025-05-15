@@ -59,21 +59,16 @@ void AMCaptureStation::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* Overl
 {
 	if (AMPlayerCharacter* HitActor = Cast<AMPlayerCharacter>(Other))
 	{
-		if (InsertPlayerNameArray.Find(HitActor->GetPlayerName()) == INDEX_NONE)
+		if (PlayersNamesArray.Find(HitActor->GetPlayerName()) == INDEX_NONE)
 		{
 			if (!bCapture)
 			{
-				if (AMPlayerState* PlayerState = Cast<AMPlayerState>(HitActor->GetPlayerState()))
-				{
-					HitActor->InsertInSaveZoneDelegate.Broadcast(HitActor);
-					PlayerState->SetPlayerInSaveZone(true);
-					ActivateGameplayEffectForCharacter(HitActor, true);
-				}
+				HitActor->InsertInSaveZoneDelegate.Broadcast(HitActor);
+				UpdatePlayerStateAfterCapture(true, Other);
 			}
 			else
 			{
-				InsertPlayerNameArray.Add(HitActor->GetPlayerName());
-				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerNameArray.Num());
+				UpdateCaptureStateOfPlayer(HitActor->GetPlayerName(), true);
 			}
 		}
 	}
@@ -85,42 +80,62 @@ void AMCaptureStation::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* Overlap
 	{
 		if (!bCapture)
 		{
-			if (AMPlayerState* PlayerState = Cast<AMPlayerState>(HitActor->GetPlayerState()))
-			{
-				PlayerState->SetPlayerInSaveZone(false);
-				ActivateGameplayEffectForCharacter(HitActor, false);
-			}
+			UpdatePlayerStateAfterCapture(false, Other);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *HitActor->GetPlayerName());
-			if (InsertPlayerNameArray.Find(HitActor->GetPlayerName()) != INDEX_NONE)
-			{
-				InsertPlayerNameArray.Remove(HitActor->GetPlayerName());
-				ChangeCountOfCapturePlayerDelegate.Broadcast(InsertPlayerNameArray.Num() > 0 ? InsertPlayerNameArray.Num() : 0);
-			}
+			UpdateCaptureStateOfPlayer(HitActor->GetPlayerName(), false);
 		}
 	}
 }
 
-void AMCaptureStation::ActivateGameplayEffectForCharacter(AMPlayerCharacter* Character, bool bValue)
+void AMCaptureStation::UpdateCaptureStateOfPlayer(FString Name, bool bCameIn)
 {
-	if (IsValid(GameplayEffect))
+	if (bCameIn)
 	{
-		if (bValue)
-		{
-			FGameplayEffectContextHandle EffectContext = Character->GetAbilitySystemComponent()->MakeEffectContext();
-			EffectContext.AddSourceObject(this);
+		PlayersNamesArray.Add(Name);
+	}
+	else
+	{
+		PlayersNamesArray.Remove(Name);
+	}
 
-			FGameplayEffectSpecHandle SpecHandle = Character->GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffect, 1, EffectContext);
-			if (SpecHandle.IsValid())
-			{
-				Character->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-			}
-		}
-		else
+	ChangeCountOfCapturePlayerDelegate.Broadcast(PlayersNamesArray.Num() > 0 ? PlayersNamesArray.Num() : 0);
+}
+
+void AMCaptureStation::UpdatePlayerStateAfterCapture(bool bCameIn, AActor* Player)
+{
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(Player))
+	{
+		if (AMPlayerState* PlayerState = Cast<AMPlayerState>(Character->GetPlayerState()))
 		{
-			Character->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(GameplayEffect, Character->GetAbilitySystemComponent());
+			PlayerState->SetPlayerInSaveZone(bCameIn);
+			ActivateGameplayEffectForCharacter(Player, bCameIn);
+		}
+	}
+}
+
+void AMCaptureStation::ActivateGameplayEffectForCharacter(AActor* Player, bool bValue)
+{
+	if (AMPlayerCharacter* Character = Cast<AMPlayerCharacter>(Player))
+	{
+		if (IsValid(GameplayEffect))
+		{
+			if (bValue)
+			{
+				FGameplayEffectContextHandle EffectContext = Character->GetAbilitySystemComponent()->MakeEffectContext();
+				EffectContext.AddSourceObject(this);
+
+				FGameplayEffectSpecHandle SpecHandle = Character->GetAbilitySystemComponent()->MakeOutgoingSpec(GameplayEffect, 1, EffectContext);
+				if (SpecHandle.IsValid())
+				{
+					Character->GetAbilitySystemComponent()->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				}
+			}
+			else
+			{
+				Character->GetAbilitySystemComponent()->RemoveActiveGameplayEffectBySourceEffect(GameplayEffect, Character->GetAbilitySystemComponent());
+			}
 		}
 	}
 }
@@ -152,7 +167,7 @@ void AMCaptureStation::AddItems_Implementation()
 		{
 			for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 			{
-				for (FString PlayerName : InsertPlayerNameArray)
+				for (FString PlayerName : PlayersNamesArray)
 				{
 					if (Player.Get()->GetPlayerName() == PlayerName)
 					{
@@ -167,7 +182,7 @@ void AMCaptureStation::AddItems_Implementation()
 				}
 			}
 
-			InsertPlayerNameArray.Empty();
+			PlayersNamesArray.Empty();
 		}
 	}
 }

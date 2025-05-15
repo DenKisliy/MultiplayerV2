@@ -8,18 +8,21 @@
 AMPlayerState::AMPlayerState()
 {
 	NetUpdateFrequency = 30.0f;
+	SetReplicates(true);
 }
 
 void AMPlayerState::UpdateUserNameByLogin(FString UserLogin)
 {
 	SetPlayerName(UserLogin);
-
 	bUserNameByLogin = true;
 }
 
-void AMPlayerState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
+void AMPlayerState::SaveResultOfGame_Implementation(const int ResultOfGame)
 {
-
+	if (UMPlayerInfoSubsystem* PlayerInfoManager = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+	{
+		PlayerInfoManager->SaveResultOfLastGame(ResultOfGame);
+	}
 }
 
 

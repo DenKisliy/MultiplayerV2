@@ -146,7 +146,7 @@ void UMSessionSubsystem::DestroySession()
 				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
 					SessionsPtrRef->OnDestroySessionCompleteDelegates.AddUObject(this, &UMSessionSubsystem::OnDestroySessionComplete);
-					if (!GameSessionName.ToString().IsEmpty() && GameSessionName != "None")
+					if (!GameSessionName.ToString().IsEmpty() && GameSessionName != FName("None"))
 					{
 						SessionsPtrRef->DestroySession(GameSessionName);
 					}
@@ -167,10 +167,15 @@ void UMSessionSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSu
 				if (IOnlineSessionPtr SessionsPtrRef = OnlineSub->GetSessionInterface())
 				{
 					SessionsPtrRef->OnDestroySessionCompleteDelegates.Clear();
+					
+					if (!GameSessionName.ToString().IsEmpty())
+					{
+						UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap", true);
+					}
+
 					GameSessionName = "";
 					bJoinToSession = false;
 					bCreateSession = false;
-					UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap", true);
 				}
 			}
 		}

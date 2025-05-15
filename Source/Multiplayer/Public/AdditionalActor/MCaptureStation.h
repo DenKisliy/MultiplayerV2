@@ -62,7 +62,7 @@ private:
 	int CountOfPlayer = 0;
 
 	UPROPERTY(meta = (AllowPrivateAccess = true))
-	TArray<FString> InsertPlayerNameArray;
+	TArray<FString> PlayersNamesArray;
 
 public:	
 	// Sets default values for this actor's properties
@@ -77,7 +77,7 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	void ActivateGameplayEffectForCharacter(AMPlayerCharacter* Character, bool bValue);
+	void ActivateGameplayEffectForCharacter(AActor* Player, bool bValue);
 
 	UFUNCTION()
 	void OnRep_NewStatueMesh();
@@ -90,4 +90,8 @@ private:
 
 	UFUNCTION(Server, Reliable)
 	void AddItems();
+
+	void UpdateCaptureStateOfPlayer(FString Name, bool bCameIn);
+
+	void UpdatePlayerStateAfterCapture(bool bCameIn, AActor* Player);
 };

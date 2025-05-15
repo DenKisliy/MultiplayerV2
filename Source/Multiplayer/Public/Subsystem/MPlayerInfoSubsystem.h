@@ -70,6 +70,12 @@ public:
 
 	bool ResetResultOfLastGame();
 
+	bool SaveResultOfLastGame(int32 ResultOfLastGame);
+
+	FPlayerResultGameData* GetResultOfGameOfUser(FString PlayerName);
+
+	bool UpdateResultOfGameOfUser(FPlayerResultGameData* ResultGameData);
+
 private:
 	void SetDataBase();
 

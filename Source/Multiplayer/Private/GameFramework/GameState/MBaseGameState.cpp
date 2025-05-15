@@ -43,14 +43,3 @@ void AMBaseGameState::ShowTimeForHUD(bool bMain, int Time)
 		}
 	}
 }
-
-void AMBaseGameState::SaveResultOfGame_Implementation(EResultOfGame ResultOfGame)
-{
-	for (APlayerState* BasePS : PlayerArray)
-	{
-		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
-		{
-			CharacterPS->SaveResultOfGame(ResultOfGame);
-		}
-	}
-}

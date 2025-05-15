@@ -29,6 +29,8 @@ private:
 public:
 	void ResurrectionTimer(bool bStart);
 
+	virtual void SetResultOfGame(bool bWin) override;
+
 protected:
 	virtual void AddPlayerState(APlayerState* PlayerState) override;
 
@@ -37,7 +39,7 @@ protected:
 private:
 	int GetPlayerCountFromGameMode();
 
-	void BindDelegateForDeath();
+	void BindDelegatesForPlayers();
 
 	void StartBeginPlayTimer();
 
@@ -52,6 +54,12 @@ private:
 	UFUNCTION(Server, Reliable)
 	void StartSession();
 
+	UFUNCTION(Server, Reliable)
+	void EndSession();
+
 	UFUNCTION()
 	void OnTimerAccelerationFactor(float NewTimerPeriod);
+
+	UFUNCTION(Server, Reliable)
+	void SaveResultOfGame(const bool ResultOfGame);
 };

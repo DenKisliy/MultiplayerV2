@@ -182,6 +182,15 @@ void AMMainMenuHUD::PostInitializeComponents()
 			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
 			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
 
+			if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+			{
+				if (PlayerInfoSubsystem->IsUserSignIn())
+				{
+					ShowWidget(ETypeOfWidget::GameTypeMenu);
+					return;
+				}
+			}
+
 			ShowWidget(ETypeOfWidget::LoginIn);
 		}
 	}

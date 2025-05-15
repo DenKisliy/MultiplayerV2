@@ -39,8 +39,8 @@ public:
 	FAdditionalTimerFinish AdditionalTimerDelegate;
 
 public:
-	UFUNCTION(Server, Reliable)
-	void SaveResultOfGame(EResultOfGame ResultOfGame);
+	UFUNCTION(BlueprintCallable)
+	virtual void SetResultOfGame(bool bWin) {};
 
 protected:
 	int GetTimeForTimerByType(ETypeOfTimer Type);
