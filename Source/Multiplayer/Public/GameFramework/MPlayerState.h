@@ -39,5 +39,11 @@ public:
 	void UpdateUserNameByLogin(FString UserLogin);
 
 	UFUNCTION(Client, Reliable)
-	void SaveResultOfGame(const int ResultOfGame);
+	void SaveResultOfGame(const int ResultOfGame, const bool bStandalone);
+
+	UFUNCTION(Client, Reliable)
+	void ChangePlayersInputStates(const bool bUIMode);
+
+	UFUNCTION(Server, Reliable)
+	void UpdatePlayerNameOnServer(const FString& OldName, const FString& NewName);
 };

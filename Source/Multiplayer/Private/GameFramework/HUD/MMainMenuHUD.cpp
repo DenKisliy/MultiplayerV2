@@ -200,7 +200,7 @@ void AMMainMenuHUD::ShowResultOfGame()
 {
 	if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 	{
-		int ResultOfLastGame = PlayerInfoSubsystem->GetResultOfLastGame();
+		int ResultOfLastGame = PlayerInfoSubsystem->GetResultOfGame();
 		if (ResultOfLastGame != -1)
 		{
 			if (IsValid(GetWorld()))

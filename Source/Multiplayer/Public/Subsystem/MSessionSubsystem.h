@@ -80,4 +80,8 @@ private:
 	void OnEndSessionCompleted(FName SessionName, bool bWasSuccessful);
 
 	FOnlineSessionSearchResult GetSessionDataByName(FString SessionName);
+
+	void DeleteChatTable();
+
+	void OpenMainLevel();
 };

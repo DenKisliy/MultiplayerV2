@@ -57,6 +57,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	FPlayerInfoStruct& GetPlayerInfo();
 
+	UFUNCTION(Client, Reliable)
 	void ResurrectionCharacter();
 
 	UFUNCTION(Client, Reliable)

@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "../../../Public/GameFramework/MPlayerState.h"
 #include "../../../Public/Subsystem/MPlayerInfoSubsystem.h"
+#include "Engine/GameViewportClient.h"
+#include <Blueprint/WidgetBlueprintLibrary.h>
 
 AMPlayingHUD::AMPlayingHUD(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -137,11 +139,14 @@ void AMPlayingHUD::PostInitializeComponents()
 
 	UpdatePlyerName();
 
-	if (IsValid(GetWorld()) && IsValid(GetWorld()->GetFirstPlayerController()))
+	if (IsValid(GetWorld()))
 	{
-		GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-		GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
-		FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+		if (IsValid(GetWorld()->GetFirstPlayerController()))
+		{
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
+			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
+			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+		}
 	}
 
 	SetRemoveOrAddAttributesGroupWidget(true);
@@ -180,22 +185,27 @@ bool AMPlayingHUD::IsStandAloneMode()
 
 void AMPlayingHUD::UpdatePlyerName()
 {
-	if (!IsStandAloneMode())
+	if (IsValid(GetOwningPlayerController()))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(UpdatePlayerNameTimer);
-
-		if (AMPlayerState* PS = Cast<AMPlayerState>(GetOwningPlayerController()->PlayerState))
+		if (!IsStandAloneMode())
 		{
-			if (!PS->IsUserNameByLogin())
+			if (IsValid(GetOwningPlayerController()->PlayerState))
 			{
-				if (UMPlayerInfoSubsystem* PlayerInfoManager = this->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+				GetWorld()->GetTimerManager().ClearTimer(UpdatePlayerNameTimer);
+				if (AMPlayerState* PS = Cast<AMPlayerState>(GetOwningPlayerController()->PlayerState))
 				{
-					PS->UpdateUserNameByLogin(PlayerInfoManager->GetLoginOfUser());
-					return;
+					if (!PS->IsUserNameByLogin())
+					{
+						if (UMPlayerInfoSubsystem* PlayerInfoManager = this->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+						{
+							PS->UpdateUserNameByLogin(PlayerInfoManager->GetLoginOfUser());
+							return;
+						}
+					}
 				}
 			}
-		}
 
-		GetWorld()->GetTimerManager().SetTimer(UpdatePlayerNameTimer, this, &AMPlayingHUD::UpdatePlyerName, 1.0f, false);
+			GetWorld()->GetTimerManager().SetTimer(UpdatePlayerNameTimer, this, &AMPlayingHUD::UpdatePlyerName, 1.0f, false);
+		}
 	}
 }

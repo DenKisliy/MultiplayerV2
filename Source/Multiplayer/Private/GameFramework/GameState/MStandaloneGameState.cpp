@@ -3,6 +3,7 @@
 
 #include "GameFramework/GameState/MStandaloneGameState.h"
 #include "../../../Public/Managers/MBaseManager.h"
+#include "../../../Public/GameFramework/MGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 void AMStandaloneGameState::AddPlayerState(APlayerState* PlayerState)
@@ -17,7 +18,7 @@ void AMStandaloneGameState::AddPlayerState(APlayerState* PlayerState)
 
 		if (TimerFinishDelegate.IsBound())
 		{
-			TimerFinishDelegate.Broadcast(TypeOfTimer);
+			TimerFinishDelegate.Broadcast(MainTypeOfTimer);
 		}
 		else
 		{
@@ -51,6 +52,7 @@ void AMStandaloneGameState::OnCheckManagerState()
 		{
 			TimerFinishDelegate.Broadcast(ETypeOfTimer::StartMatch);
 			GetWorld()->GetTimerManager().ClearTimer(ManagerTiner);
+			ChangePlayersInputStates(false);
 		}
 		else
 		{
@@ -68,19 +70,19 @@ void AMStandaloneGameState::OnTimerAccelerationFactor(float NewTimerPeriod)
 
 		if (NewTimerPeriod == 0)
 		{
-			TimerCounter = -1;
+			MainTimerCounter = -1;
 			TimerInterval = 0;
 
-			TypeOfTimer = ETypeOfTimer::None;
+			MainTypeOfTimer = ETypeOfTimer::None;
 
-			ShowTimeForHUD(true, TimerCounter);
+			ShowTimeForHUD(true, MainTimerCounter);
 		}
 
 		if (NewTimerPeriod != 0 && TimerInterval != NewTimerPeriod)
 		{
 			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 
-			if (TypeOfTimer == ETypeOfTimer::None)
+			if (MainTypeOfTimer == ETypeOfTimer::None)
 			{
 				StartCaptureStationTimer();
 			}
@@ -94,14 +96,14 @@ void AMStandaloneGameState::OnTimerAccelerationFactor(float NewTimerPeriod)
 
 void AMStandaloneGameState::OnTimerCounter()
 {
-	TimerCounter = TimerCounter - 1;
+	MainTimerCounter = MainTimerCounter - 1;
 
-	ShowTimeForHUD(true, TimerCounter);
+	ShowTimeForHUD(true, MainTimerCounter);
 
-	if (TimerCounter == -1 && TypeOfTimer != ETypeOfTimer::None)
+	if (MainTimerCounter == -1 && MainTypeOfTimer != ETypeOfTimer::None)
 	{
-		TimerFinishDelegate.Broadcast(TypeOfTimer);
-		TypeOfTimer = ETypeOfTimer::None;
+		TimerFinishDelegate.Broadcast(MainTypeOfTimer);
+		MainTypeOfTimer = ETypeOfTimer::None;
 		TimerInterval = 0;
 		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
 	}
@@ -109,4 +111,15 @@ void AMStandaloneGameState::OnTimerCounter()
 
 void AMStandaloneGameState::SetResultOfGame(bool bWin)
 {
+	Super::SetResultOfGame(bWin);
+	if (IsValid(GetWorld()))
+	{
+		if (UGameplayStatics::GetGameMode(GetWorld()))
+		{
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), GameMode->GetMainLevel());
+			}
+		}
+	}
 }

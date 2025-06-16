@@ -9,9 +9,23 @@
 
 void AMBaseGameState::StartCaptureStationTimer()
 {
-	TimerInterval = 1;
-	TypeOfTimer = ETypeOfTimer::CaptureStation;
-	TimerCounter = GetTimeForTimerByType(ETypeOfTimer::CaptureStation) + 1;
+	MainTimerInterval = 1;
+	MainTypeOfTimer = ETypeOfTimer::CaptureStation;
+	MainTimerCounter = GetTimeForTimerByType(ETypeOfTimer::CaptureStation) + 1;
+}
+
+void AMBaseGameState::SetResultOfGame(bool bWin)
+{
+	if (IsValid(GetWorld()))
+	{
+		if (UGameplayStatics::GetGameMode(GetWorld()))
+		{
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				SaveResultOfGame(bWin, GameMode->IsStandAloneMode());
+			}
+		}
+	}
 }
 
 int AMBaseGameState::GetTimeForTimerByType(ETypeOfTimer Type)
@@ -40,6 +54,28 @@ void AMBaseGameState::ShowTimeForHUD(bool bMain, int Time)
 			{
 				PlayerHUD->SetTimeTimerWidget(bMain, Time);
 			}
+		}
+	}
+}
+
+void AMBaseGameState::SaveResultOfGame_Implementation(const bool ResultOfGame, const bool bStandalone)
+{
+	for (APlayerState* BasePS : PlayerArray)
+	{
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
+		{
+			CharacterPS->SaveResultOfGame(ResultOfGame, bStandalone);
+		}
+	}
+}
+
+void AMBaseGameState::ChangePlayersInputStates_Implementation(bool bUIMode)
+{
+	for (APlayerState* BasePS : PlayerArray)
+	{
+		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
+		{
+			CharacterPS->ChangePlayersInputStates(bUIMode);
 		}
 	}
 }

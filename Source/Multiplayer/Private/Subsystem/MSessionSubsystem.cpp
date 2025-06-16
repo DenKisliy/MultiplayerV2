@@ -7,6 +7,8 @@
 
 void UMSessionSubsystem::Deinitialize()
 {
+	DeleteChatTable();
+
 	DestroySession();
 
 	Super::Deinitialize();
@@ -170,7 +172,9 @@ void UMSessionSubsystem::OnDestroySessionComplete(FName SessionName, bool bWasSu
 					
 					if (!GameSessionName.ToString().IsEmpty())
 					{
-						UGameplayStatics::OpenLevel(GetWorld(), "MainMenuMap", true);
+						DeleteChatTable();
+
+						OpenMainLevel();
 					}
 
 					GameSessionName = "";
@@ -341,4 +345,29 @@ FOnlineSessionSearchResult UMSessionSubsystem::GetSessionDataByName(FString Sess
 	}
 
 	return FOnlineSessionSearchResult();
+}
+
+void UMSessionSubsystem::DeleteChatTable()
+{
+	if (!GameSessionName.ToString().IsEmpty())
+	{
+		if (UMPlayerInfoSubsystem* PlayerInfo = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+		{
+			PlayerInfo->DestroyTable("Chat_" + GameSessionName.ToString());
+		}
+	}
+}
+
+void UMSessionSubsystem::OpenMainLevel()
+{
+	if (IsValid(GetWorld()))
+	{
+		if (UGameplayStatics::GetGameMode(GetWorld()))
+		{
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				UGameplayStatics::OpenLevelBySoftObjectPtr(GetWorld(), GameMode->GetMainLevel());
+			}
+		}
+	}
 }

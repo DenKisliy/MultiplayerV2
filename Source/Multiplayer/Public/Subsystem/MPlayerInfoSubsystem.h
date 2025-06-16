@@ -66,15 +66,15 @@ public:
 
 	bool CreatePlayerRatingTable();
 
-	int GetResultOfLastGame();
+	int GetResultOfGame();
 
-	bool ResetResultOfLastGame();
+	bool ResetResultOfGame();
 
-	bool SaveResultOfLastGame(int32 ResultOfLastGame);
+	bool SaveResultOfGame(int32 ResultOfLastGame, bool bStandalone);
 
 	FPlayerResultGameData* GetResultOfGameOfUser(FString PlayerName);
 
-	bool UpdateResultOfGameOfUser(FPlayerResultGameData* ResultGameData);
+	bool UpdateResultOfMultiplayerGameOfUser(FPlayerResultGameData* ResultGameData);
 
 private:
 	void SetDataBase();

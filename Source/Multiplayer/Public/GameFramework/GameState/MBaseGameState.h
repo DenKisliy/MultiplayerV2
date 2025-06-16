@@ -23,11 +23,11 @@ class MULTIPLAYER_API AMBaseGameState : public AGameStateBase
 	GENERATED_BODY()
 	
 protected:
-	float TimerInterval;
+	float MainTimerInterval;
 
-	int TimerCounter;
+	int MainTimerCounter;
 
-	ETypeOfTimer TypeOfTimer = ETypeOfTimer::None;
+	ETypeOfTimer MainTypeOfTimer = ETypeOfTimer::None;
 
 	int CaptureStationCounter = 0;
 
@@ -40,7 +40,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintCallable)
-	virtual void SetResultOfGame(bool bWin) {};
+	virtual void SetResultOfGame(bool bWin);
 
 protected:
 	int GetTimeForTimerByType(ETypeOfTimer Type);
@@ -48,4 +48,10 @@ protected:
 	void StartCaptureStationTimer();
 
 	void ShowTimeForHUD(bool bMain, int Time);
+
+	UFUNCTION(Server, Reliable)
+	void SaveResultOfGame(const bool ResultOfGame, const bool bStandalone);
+
+	UFUNCTION(Server, Reliable)
+	void ChangePlayersInputStates(bool bUIMode);
 };

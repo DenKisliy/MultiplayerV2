@@ -48,27 +48,64 @@ struct FPlayerResultGameData : public FTableRowBase
 	FString UserName;
 
 	UPROPERTY(EditAnywhere)
-	int CountOfWin;
+	int CountOfMultiplayerWin;
 
 	UPROPERTY(EditAnywhere)
-	int CountOfLost;
+	int CountOfMultiplayerLost;
+
+	UPROPERTY(EditAnywhere)
+	int CountOfStandaloneWin;
+
+	UPROPERTY(EditAnywhere)
+	int CountOfStandaloneLost;
 
 	UPROPERTY(EditAnywhere)
 	int ResultOfLastGame;
 
-	FPlayerResultGameData(FString NewUserName = "", int NewCountOfWin = 0, int NewCountOfLost = 0, int NewResultOfLastGame = -1)
+	FPlayerResultGameData(FString NewUserName = "")
 	{
-		UserName = NewUserName;
-		CountOfWin = NewCountOfWin;
-		CountOfLost = NewCountOfLost;
-		ResultOfLastGame = NewResultOfLastGame;
+		UserName = NewUserName; 
+		CountOfMultiplayerWin = 0;
+		CountOfMultiplayerLost = 0;
+		CountOfStandaloneWin = 0;
+		CountOfStandaloneLost = 0;
+		ResultOfLastGame = -1;
 	}
 
 	FPlayerResultGameData(TMap<FString, FString> Field)
 	{
 		UserName = **Field.Find("User");
-		CountOfWin = FCString::Atoi(**Field.Find("CountOfWin"));
-		CountOfLost = FCString::Atoi(**Field.Find("CountOfLost"));
+		CountOfMultiplayerWin = FCString::Atoi(**Field.Find("CountOfMultiplayerWin"));
+		CountOfMultiplayerLost = FCString::Atoi(**Field.Find("CountOfMultiplayerLost"));
+		CountOfStandaloneWin = FCString::Atoi(**Field.Find("CountOfStandaloneWin"));
+		CountOfStandaloneLost = FCString::Atoi(**Field.Find("CountOfStandaloneLost"));
 		ResultOfLastGame = FCString::Atoi(**Field.Find("ResultOfLastGame"));
+	}
+
+	void UpdateDataOfGame(int32 ResultOfGame, bool bStandalone)
+	{
+		ResultOfLastGame = ResultOfGame;
+		if (ResultOfGame)
+		{
+			if (bStandalone)
+			{
+				CountOfStandaloneWin = CountOfStandaloneWin + 1;
+			}
+			else
+			{
+				CountOfMultiplayerWin = CountOfMultiplayerWin + 1;
+			}
+		}
+		else
+		{
+			if (bStandalone)
+			{
+				CountOfStandaloneLost = CountOfStandaloneLost + 1;
+			}
+			else
+			{
+				CountOfMultiplayerLost = CountOfMultiplayerLost + 1;
+			}
+		}
 	}
 };

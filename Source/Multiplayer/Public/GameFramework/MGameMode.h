@@ -30,6 +30,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Mode")
 	FString StandAloneLevelURL = "";
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Game Mode")
+	TSoftObjectPtr<UWorld> MainLevel;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Session Varible")
 	FString SessionLevelURL = "";
 	
@@ -62,7 +65,9 @@ public:
 
 	void SetSpawnItems(FItemTypeInfo ItemType, FVector Location);
 
-	bool IsStandAloneMode();
+	bool IsStandAloneMode() { return bStandAloneMode; }
+
+	TSoftObjectPtr<UWorld> GetMainLevel() { return MainLevel; }
 
 protected:
 	virtual void BeginPlay() override;

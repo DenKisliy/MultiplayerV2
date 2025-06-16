@@ -18,13 +18,27 @@ class MULTIPLAYER_API AMMultiplayerGameState : public AMBaseGameState
 	GENERATED_BODY()
 	
 private:
+	int CountOfDeathPlayers = 0;
+
 	//main timer
-	float TimerInterval;
+	float MainTimerInterval;
 
-	FTimerHandle TimerHandle;
+	FTimerHandle MainTimerHandle;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TimeChecker)
-	int TimeChecker;
+	UPROPERTY(ReplicatedUsing = OnRep_MainTimeChecker)
+	int MainTimeChecker;
+
+	//additional timer
+	ETypeOfAdditionalTimer TypeOfAdditionalTimer = ETypeOfAdditionalTimer::None;
+
+	const int AdditionalTimerInterval = 1;
+
+	int AdditionalTimerCounter;
+
+	FTimerHandle AdditionalTimerHandle;
+
+	UPROPERTY(ReplicatedUsing = OnRep_AdditionalTimerChecker)
+	int AdditionalTimerChecker;
 
 public:
 	void ResurrectionTimer(bool bStart);
@@ -39,12 +53,17 @@ protected:
 private:
 	int GetPlayerCountFromGameMode();
 
+	int GetAdditionalTimeForTimerByType();
+
 	void BindDelegatesForPlayers();
+
+	UFUNCTION()
+	void OnPlayerDeath(bool bDeathPlayer);
 
 	void StartBeginPlayTimer();
 
 	UFUNCTION()
-	void OnRep_TimeChecker();
+	void OnRep_MainTimeChecker();
 
 	void SetTimeForPlayers();
 
@@ -60,6 +79,12 @@ private:
 	UFUNCTION()
 	void OnTimerAccelerationFactor(float NewTimerPeriod);
 
-	UFUNCTION(Server, Reliable)
-	void SaveResultOfGame(const bool ResultOfGame);
+	// additional timer
+	UFUNCTION()
+	void OnRep_AdditionalTimerChecker();
+
+	void SetAdditionalTimeForPlayers();
+
+	UFUNCTION()
+	void OnAdditionalTimerCounter();
 };

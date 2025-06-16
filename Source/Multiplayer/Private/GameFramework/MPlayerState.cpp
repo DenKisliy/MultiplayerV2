@@ -13,15 +13,40 @@ AMPlayerState::AMPlayerState()
 
 void AMPlayerState::UpdateUserNameByLogin(FString UserLogin)
 {
+	FString OldName = GetPlayerName();
+
 	SetPlayerName(UserLogin);
 	bUserNameByLogin = true;
+
+	UpdatePlayerNameOnServer(OldName, UserLogin);
 }
 
-void AMPlayerState::SaveResultOfGame_Implementation(const int ResultOfGame)
+void AMPlayerState::UpdatePlayerNameOnServer_Implementation(const FString& OldName, const FString& NewName)
+{
+	SetPlayerName(NewName);
+}
+
+void AMPlayerState::SaveResultOfGame_Implementation(const int ResultOfGame, const bool bStandalone)
 {
 	if (UMPlayerInfoSubsystem* PlayerInfoManager = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 	{
-		PlayerInfoManager->SaveResultOfLastGame(ResultOfGame);
+		PlayerInfoManager->SaveResultOfGame(ResultOfGame, bStandalone);
+	}
+}
+
+void AMPlayerState::ChangePlayersInputStates_Implementation(const bool bUIMode)
+{
+	if (IsValid(GetPlayerController()))
+	{
+		GetPlayerController()->SetShowMouseCursor(bUIMode);
+		if(bUIMode)
+		{ 
+			GetPlayerController()->SetInputMode(FInputModeUIOnly());
+		}
+		else
+		{
+			GetPlayerController()->SetInputMode(FInputModeGameOnly());
+		}
 	}
 }
 

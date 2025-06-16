@@ -12,11 +12,11 @@
 
 void AMMultiplayerGameState::StartBeginPlayTimer()
 {
-	TypeOfTimer = ETypeOfTimer::StartMatch;
-	TimerInterval = 1.0f;
-	TimerCounter = GetTimeForTimerByType(ETypeOfTimer::StartMatch) + 1;
+	MainTypeOfTimer = ETypeOfTimer::StartMatch;
+	MainTimerInterval = 1.0f;
+	MainTimerCounter = GetTimeForTimerByType(ETypeOfTimer::StartMatch) + 1;
 
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, TimerInterval, true);
+	GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, MainTimerInterval, true);
 }
 
 void AMMultiplayerGameState::StartSession_Implementation()
@@ -37,18 +37,18 @@ void AMMultiplayerGameState::EndSession_Implementation()
 
 void AMMultiplayerGameState::OnTimerCounter()
 {
-	TimerCounter = TimerCounter - 1;
+	MainTimerCounter = MainTimerCounter - 1;
 
-	TimeChecker = TimerCounter;
+	MainTimeChecker = MainTimerCounter;
 
 	SetTimeForPlayers();
 }
 
-void AMMultiplayerGameState::OnRep_TimeChecker()
+void AMMultiplayerGameState::OnRep_MainTimeChecker()
 {
-	if (TimerCounter != TimeChecker)
+	if (MainTimerCounter != MainTimeChecker)
 	{
-		TimerCounter = TimeChecker;
+		MainTimerCounter = MainTimeChecker;
 
 		SetTimeForPlayers();
 	}
@@ -58,48 +58,52 @@ void AMMultiplayerGameState::SetTimeForPlayers()
 {
 	if (IsValid(GetWorld()))
 	{
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+		GetWorld()->GetTimerManager().ClearTimer(MainTimerHandle);
 
-		if (TimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
+		if (MainTimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
 		{
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, TimerInterval, true);
+			GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, MainTimerInterval, true);
 		}
 
-		ShowTimeForHUD(true, TimerCounter);
+		ShowTimeForHUD(true, MainTimerCounter);
 
-		if (TimerCounter == -1 && TypeOfTimer != ETypeOfTimer::None)
+		if (MainTimerCounter == -1 && MainTypeOfTimer != ETypeOfTimer::None)
 		{
-			switch (TypeOfTimer)
+			switch (MainTypeOfTimer)
 			{
 			case ETypeOfTimer::StartMatch:
 				StartSession();
-				GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-				GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeGameAndUI());
+				ChangePlayersInputStates(false);
 				TimerAccelerationFactorDelegate.BindDynamic(this, &AMMultiplayerGameState::OnTimerAccelerationFactor);
 				break;
 			}
 
-			TimerFinishDelegate.Broadcast(TypeOfTimer);
-			TypeOfTimer = ETypeOfTimer::None;
-			TimerInterval = 0;
-			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+			TimerFinishDelegate.Broadcast(MainTypeOfTimer);
+			MainTypeOfTimer = ETypeOfTimer::None;
+			MainTimerInterval = 0;
+			GetWorld()->GetTimerManager().ClearTimer(MainTimerHandle);
 		}
 	}
 }
 
 void AMMultiplayerGameState::ResurrectionTimer(bool bStart)
 {
+	TypeOfAdditionalTimer = bStart ? ETypeOfAdditionalTimer::ResurrectionPlayer : ETypeOfAdditionalTimer::None;
+	AdditionalTimerCounter = bStart ? GetAdditionalTimeForTimerByType() + 1 : -1;
+
 	if (bStart)
 	{
+		GetWorld()->GetTimerManager().SetTimer(AdditionalTimerHandle, this, &AMMultiplayerGameState::OnAdditionalTimerCounter, AdditionalTimerInterval, true);
 	}
 	else
 	{
+		SetAdditionalTimeForPlayers();
 	}
 }
 
 void AMMultiplayerGameState::SetResultOfGame(bool bWin)
 {
-	SaveResultOfGame(bWin);
+	Super::SetResultOfGame(bWin);
 	EndSession();
 }
 
@@ -125,8 +129,8 @@ void AMMultiplayerGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AMMultiplayerGameState, TimeChecker);
-	//DOREPLIFETIME(AMMultiplayerGameState, AdditionalTimerChecker);
+	DOREPLIFETIME(AMMultiplayerGameState, MainTimeChecker);
+	DOREPLIFETIME(AMMultiplayerGameState, AdditionalTimerChecker);
 }
 
 int AMMultiplayerGameState::GetPlayerCountFromGameMode()
@@ -142,14 +146,42 @@ int AMMultiplayerGameState::GetPlayerCountFromGameMode()
 	return 0;
 }
 
+int AMMultiplayerGameState::GetAdditionalTimeForTimerByType()
+{
+	if (IsValid(GetWorld()))
+	{
+		if (UGameplayStatics::GetGameMode(GetWorld()))
+		{
+			if (AMGameMode* GameMode = Cast<AMGameMode>(UGameplayStatics::GetGameMode(GetWorld())))
+			{
+				return *GameMode->AdditionalTimerMap.Find(TypeOfAdditionalTimer);
+			}
+		}
+	}
+	return 0;
+}
+
 void AMMultiplayerGameState::BindDelegatesForPlayers()
 {
 	for (APlayerState* BasePS : PlayerArray)
 	{
 		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
 		{
-			//CharacterPS->PlayerDeathDelegate.AddDynamic(this, &AMGameState::OnPlayerDeath);
+			CharacterPS->PlayerDeathDelegate.AddDynamic(this, &AMMultiplayerGameState::OnPlayerDeath);
 		}
+	}
+}
+
+void AMMultiplayerGameState::OnPlayerDeath(bool bDeathPlayer)
+{
+	CountOfDeathPlayers = bDeathPlayer ? CountOfDeathPlayers + 1 : CountOfDeathPlayers - 1 < 0 ? 0 : CountOfDeathPlayers - 1;
+
+	if (CountOfDeathPlayers == GetPlayerCountFromGameMode())
+	{
+		FTimerDelegate EndTimerDelegate;
+		EndTimerDelegate.BindUFunction(this, FName("SetResultOfGame"), 0);
+
+		GetWorldTimerManager().SetTimer(MainTimerHandle, EndTimerDelegate, 2.0f, false);
 	}
 }
 
@@ -159,40 +191,69 @@ void AMMultiplayerGameState::OnTimerAccelerationFactor(float NewTimerPeriod)
 	{
 		if (NewTimerPeriod == 0)
 		{
-			TimerCounter = -5;
+			MainTimerCounter = -5;
 
-			TimeChecker = TimerCounter;
+			MainTimeChecker = MainTimerCounter;
 
-			TypeOfTimer = ETypeOfTimer::None;
+			MainTypeOfTimer = ETypeOfTimer::None;
 
-			TimerInterval = 0;
+			MainTimerInterval = 0;
 
 			SetTimeForPlayers();
 		}
 
-		if (NewTimerPeriod != 0 && TimerInterval != NewTimerPeriod)
+		if (NewTimerPeriod != 0 && MainTimerInterval != NewTimerPeriod)
 		{
-			GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+			GetWorld()->GetTimerManager().ClearTimer(MainTimerHandle);
 
-			if (TypeOfTimer == ETypeOfTimer::None)
+			if (MainTypeOfTimer == ETypeOfTimer::None)
 			{
 				StartCaptureStationTimer();
 			}
-			TimerInterval = NewTimerPeriod;
+			MainTimerInterval = NewTimerPeriod;
 
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, TimerInterval, true);
+			GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, this, &AMMultiplayerGameState::OnTimerCounter, MainTimerInterval, true);
 		}
 	}
 }
 
-
-void AMMultiplayerGameState::SaveResultOfGame_Implementation(const bool ResultOfGame)
+void AMMultiplayerGameState::OnRep_AdditionalTimerChecker()
 {
-	for (APlayerState* BasePS : PlayerArray)
+	if (AdditionalTimerCounter != AdditionalTimerChecker)
 	{
-		if (AMPlayerState* CharacterPS = Cast<AMPlayerState>(BasePS))
+		AdditionalTimerCounter = AdditionalTimerChecker;
+
+		SetAdditionalTimeForPlayers();
+	}
+}
+
+void AMMultiplayerGameState::SetAdditionalTimeForPlayers()
+{
+	if (IsValid(GetWorld()))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(AdditionalTimerHandle);
+
+		if (AdditionalTimerCounter != -1 && GetPlayerCountFromGameMode() > 0)
 		{
-			CharacterPS->SaveResultOfGame(ResultOfGame);
+			GetWorld()->GetTimerManager().SetTimer(AdditionalTimerHandle, this, &AMMultiplayerGameState::OnAdditionalTimerCounter, AdditionalTimerInterval, true);
+		}
+
+		ShowTimeForHUD(false, AdditionalTimerCounter);
+
+		if (AdditionalTimerCounter == -1 && TypeOfAdditionalTimer != ETypeOfAdditionalTimer::None)
+		{
+			AdditionalTimerDelegate.ExecuteIfBound(TypeOfAdditionalTimer);
+			TypeOfAdditionalTimer = ETypeOfAdditionalTimer::None;
+			GetWorld()->GetTimerManager().ClearTimer(AdditionalTimerHandle);
 		}
 	}
+}
+
+void AMMultiplayerGameState::OnAdditionalTimerCounter()
+{
+	AdditionalTimerCounter = AdditionalTimerCounter - 1;
+
+	AdditionalTimerChecker = AdditionalTimerCounter;
+
+	SetAdditionalTimeForPlayers();
 }

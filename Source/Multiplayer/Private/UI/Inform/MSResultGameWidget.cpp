@@ -55,7 +55,7 @@ FReply MSResultGameWidget::OnConfirm() const
 	{
 		if (UMPlayerInfoSubsystem* PlayerInfoSubsystem = OwnerHUD->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 		{
-			PlayerInfoSubsystem->ResetResultOfLastGame();
+			PlayerInfoSubsystem->ResetResultOfGame();
 		}
 
 		HUD->CloseWidget(ETypeOfWidget::ResultOfGame);

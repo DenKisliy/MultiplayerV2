@@ -38,39 +38,53 @@ void AMResurrectionFlower::BeginPlay()
 
 void AMResurrectionFlower::OnUpdatedComponentOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!DeathPlayer)
+	if (IsValid(GetPlayerState()))
 	{
-		DeathPlayer = Cast<AMPlayerCharacter>(Other);
-		if (DeathPlayer)
+		UE_LOG(LogTemp, Warning, TEXT("AMResurrectionFlower The Actor's name is %s"), *GetPlayerState()->GetPlayerName());
+	}
+	if (!HealerPlayer)
+	{
+		HealerPlayer = Cast<AMPlayerCharacter>(Other);
+		if (HealerPlayer)
 		{
-			IsHaveResurrectionItemInInventory(DeathPlayer->GetPlayerName());
+			IsHaveResurrectionItemInInventory(HealerPlayer->GetPlayerName());
 		}
 		else
 		{
-			DeathPlayer = nullptr;
+			HealerPlayer = nullptr;
 		}
 	}
 }
 
 void AMResurrectionFlower::OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (DeathPlayer && IsValid(GetWorld()))
+	if (HealerPlayer && IsValid(GetWorld()))
 	{
 		if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
 		{
 			GameState->ResurrectionTimer(false);
 			GameState->AdditionalTimerDelegate.Clear();
 		}
-		DeathPlayer = nullptr;
+		HealerPlayer = nullptr;
 	}
 }
 
 void AMResurrectionFlower::OnFinishTimer(ETypeOfAdditionalTimer TypeOfAdditionalTimer)
 {
-	if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Controller))
+	RemoveResurrectionItemFromInventory(HealerPlayer->GetPlayerName());
+
+	if (IsValid(GetWorld()->GetGameState()))
 	{
-		RemoveResurrectionItemFromInventory(DeathPlayer->GetPlayerName());
-		PlayerController->ResurrectionCharacter();
+		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
+		{
+			if (Player->GetPlayerName() == GetPlayerState()->GetPlayerName())
+			{
+				if (AMPlayerController* PlayerController = Cast<AMPlayerController>(Player->GetPlayerController()))
+				{
+					PlayerController->ResurrectionCharacter();
+				}
+			}
+		}
 	}
 }
 
@@ -80,23 +94,23 @@ void AMResurrectionFlower::IsHaveResurrectionItemInInventory_Implementation(cons
 	{
 		for (auto Player : GetWorld()->GetGameState()->PlayerArray)
 		{
-			if (Player->GetPlayerName() == PlayerName)
+			if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player->GetPlayerController()->GetPawn()))
 			{
-				if (AMPlayerCharacter* PlayerCharacter = Cast<AMPlayerCharacter>(Player->GetPlayerController()->GetPawn()))
+				if (Player->GetPlayerName() == PlayerName)
 				{
-					if (PlayerCharacter->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
+					//if (PlayerCharacter->InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
+					//{
+					if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
 					{
-						if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
-						{
-							GameState->ResurrectionTimer(true);
-							GameState->AdditionalTimerDelegate.Clear();
-							GameState->AdditionalTimerDelegate.BindDynamic(this, &AMResurrectionFlower::OnFinishTimer);
-						}
+						GameState->ResurrectionTimer(true);
+						GameState->AdditionalTimerDelegate.Clear();
+						GameState->AdditionalTimerDelegate.BindDynamic(this, &AMResurrectionFlower::OnFinishTimer);
 					}
+					/*}
 					else
 					{
 						DeathPlayer = nullptr;
-					}
+					}*/
 				}
 			}
 		}

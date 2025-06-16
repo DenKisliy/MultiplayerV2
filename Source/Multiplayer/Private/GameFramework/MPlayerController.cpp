@@ -45,19 +45,28 @@ FPlayerInfoStruct& AMPlayerController::GetPlayerInfo()
 	return PlayerInfo;
 }
 
-void AMPlayerController::ResurrectionCharacter()
+void AMPlayerController::ResurrectionCharacter_Implementation()
 {
 	if (UMGameInstance* GameInstance = Cast<UMGameInstance>(GetGameInstance()))
 	{
-		/*if (AMPlayerState* PlayerState = Cast<AMPlayerState>(PlayerState))
-		{
-			FPlayerInfoStruct& playerInfo = pState->GetPlayerInfo();
+		FPlayerInfoStruct& PlayerInfo = GameInstance->GetPlayerInfoFromGameInstance();
 
-			if (playerInfo.CharacterType != ETypeOfCharacter::None)
+		if (PlayerInfo.CharacterType != ETypeOfCharacter::None)
+		{
+			TypeOfCharacter = PlayerInfo.CharacterType;
+			PlayerInfo.SetCharacterDeath(!PlayerInfo.bCharacterDeath);
+			SpawnCharacter(PlayerInfo.CharacterType);
+		}
+
+		/*if (AMPlayerState* PS = Cast<AMPlayerState>(PlayerState))
+		{
+			FPlayerInfoStruct& PlayerInfo = PS->GetPlayerInfo();
+
+			if (PlayerInfo.CharacterType != ETypeOfCharacter::None)
 			{
-				TypeOfCharacter = playerInfo.CharacterType;
-				playerInfo.SetCharacterDeath(!playerInfo.bCharacterDeath);
-				SpawnCharacter(playerInfo.CharacterType);
+				TypeOfCharacter = PlayerInfo.CharacterType;
+				PlayerInfo.SetCharacterDeath(!PlayerInfo.bCharacterDeath);
+				SpawnCharacter(PlayerInfo.CharacterType);
 			}
 		}*/
 	}

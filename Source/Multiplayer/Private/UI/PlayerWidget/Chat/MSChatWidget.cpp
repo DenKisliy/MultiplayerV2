@@ -128,7 +128,17 @@ FReply MSChatWidget::OnSendMessage() const
 
 FReply MSChatWidget::OnFocusReceived(const FGeometry& MyGeometry, const FFocusEvent& InFocusEvent)
 {
-	FSlateApplication::Get().SetKeyboardFocus(ChatInput);
+	if (OwnerHUD.IsValid())
+	{
+		if (IsValid(OwnerHUD->GetOwningPlayerController()))
+		{
+			if (OwnerHUD->GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadZero))
+			{
+				FSlateApplication::Get().SetKeyboardFocus(ChatInput);
+			}
+		}
+	}
+
 	return FReply::Handled();
 }
 

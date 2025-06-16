@@ -151,9 +151,11 @@ bool UMPlayerInfoSubsystem::CreatePlayerRatingTable()
 		TableData->TableName = PlayerRatingTableName;
 
 		TableData->AddField("User", ECreatTableFieldType::Varchar);
-		TableData->AddField("CountOfWin", ECreatTableFieldType::Int);
-		TableData->AddField("CountOfLost", ECreatTableFieldType::Int);
 		TableData->AddField("ResultOfLastGame", ECreatTableFieldType::Int);
+		TableData->AddField("CountOfMultiplayerWin", ECreatTableFieldType::Int);
+		TableData->AddField("CountOfMultiplayerLost", ECreatTableFieldType::Int);
+		TableData->AddField("CountOfStandaloneWin", ECreatTableFieldType::Int);
+		TableData->AddField("CountOfStandaloneLost", ECreatTableFieldType::Int);
 
 		bool result = CreateTable(TableData);
 		
@@ -164,31 +166,27 @@ bool UMPlayerInfoSubsystem::CreatePlayerRatingTable()
 	return false;
 }
 
-int UMPlayerInfoSubsystem::GetResultOfLastGame()
+int UMPlayerInfoSubsystem::GetResultOfGame()
 {
 	if (IsValid(Database))
 	{
 		FQueryResult QueryResult = Database->GetQueryData("SELECT * FROM " + PlayerRatingTableName + " Where User = " + LoginOfUser + " ;");
-		if (QueryResult.Success)
+		if (QueryResult.Success || QueryResult.ResultRows.Num() == 1)
 		{
-			if (QueryResult.ResultRows.Num() == 1)
-			{
-				TMap<FString, FString> Row = QueryResult.ResultRows[0].Fields;
-				return FCString::Atoi(**Row.Find("ResultOfLastGame"));
-
-			}
+			return FCString::Atoi(**QueryResult.ResultRows[0].Fields.Find("ResultOfLastGame"));
 		}
 		else
 		{
-			Database->ExecuteQuery("INSERT INTO " + PlayerRatingTableName + " (User, CountOfWin, CountOfLost, ResultOfLastGame) VALUES("
-				+ LoginOfUser + " , 0 ,  0, -1 );");
+			Database->ExecuteQuery("INSERT INTO " + PlayerRatingTableName +
+				" (User, ResultOfLastGame, CountOfMultiplayerWin, CountOfMultiplayerLost, CountOfStandaloneWin, CountOfStandaloneLost) VALUES ("
+				+ LoginOfUser + " , -1 , 0 , 0 , 0 , 0);");
 		}
 	}
 
 	return -1;
 }
 
-bool UMPlayerInfoSubsystem::ResetResultOfLastGame()
+bool UMPlayerInfoSubsystem::ResetResultOfGame()
 {
 	if (IsValid(Database))
 	{
@@ -198,21 +196,13 @@ bool UMPlayerInfoSubsystem::ResetResultOfLastGame()
 	return false;
 }
 
-bool UMPlayerInfoSubsystem::SaveResultOfLastGame(int32 ResultOfLastGame)
+bool UMPlayerInfoSubsystem::SaveResultOfGame(int32 ResultOfLastGame, bool bStandalone)
 {
 	if (FPlayerResultGameData* UserResultsOfGames = GetResultOfGameOfUser(LoginOfUser))
 	{
-		UserResultsOfGames->ResultOfLastGame = ResultOfLastGame;
-		if (ResultOfLastGame)
-		{
-			UserResultsOfGames->CountOfWin = UserResultsOfGames->CountOfWin + 1;
-		}
-		else
-		{
-			UserResultsOfGames->CountOfLost = UserResultsOfGames->CountOfLost + 1;
-		}
+		UserResultsOfGames->UpdateDataOfGame(ResultOfLastGame, bStandalone);
 
-		return UpdateResultOfGameOfUser(UserResultsOfGames);
+		return UpdateResultOfMultiplayerGameOfUser(UserResultsOfGames);
 	}
 	return false;
 }
@@ -231,13 +221,17 @@ FPlayerResultGameData* UMPlayerInfoSubsystem::GetResultOfGameOfUser(FString Play
 	return nullptr;
 }
 
-bool UMPlayerInfoSubsystem::UpdateResultOfGameOfUser(FPlayerResultGameData* ResultGameData)
+bool UMPlayerInfoSubsystem::UpdateResultOfMultiplayerGameOfUser(FPlayerResultGameData* ResultGameData)
 {
 	if (IsValid(Database))
 	{
 		bool bResult =  Database->ExecuteQuery("UPDATE " + PlayerRatingTableName + " SET ResultOfLastGame = " 
-			+ FString::FromInt(ResultGameData->ResultOfLastGame) + ", CountOfWin = " + FString::FromInt(ResultGameData->CountOfWin ) + 
-			", CountOfLost= " + FString::FromInt(ResultGameData->CountOfLost) + " Where User = " + ResultGameData->UserName + " ;");
+			+ FString::FromInt(ResultGameData->ResultOfLastGame) + 
+			", CountOfMultiplayerWin = " + FString::FromInt(ResultGameData->CountOfMultiplayerWin) +
+			", CountOfMultiplayerLost = " + FString::FromInt(ResultGameData->CountOfMultiplayerLost) + 
+			", CountOfStandaloneWin = " + FString::FromInt(ResultGameData->CountOfStandaloneWin) +
+			", CountOfStandaloneLost = " + FString::FromInt(ResultGameData->CountOfStandaloneLost) +
+			" Where User = " + ResultGameData->UserName + " ;");
 
 		delete ResultGameData;
 
