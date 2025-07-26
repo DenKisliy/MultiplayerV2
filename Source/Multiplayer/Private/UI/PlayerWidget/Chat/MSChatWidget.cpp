@@ -4,6 +4,7 @@
 #include "UI/PlayerWidget/Chat/MSChatWidget.h"
 #include "../../../../Public/Subsystem/MPlayerInfoSubsystem.h"
 #include "../../../../Public/GameFramework/MPlayerController.h"
+#include "../../../../Public/GameFramework/HUD/MPlayingHUD.h"
 
 #define LOCTEXT_NAMESPACE "Chat"
 
@@ -124,6 +125,14 @@ FReply MSChatWidget::OnSendMessage() const
 	}
 
 	return FReply::Handled();
+}
+
+void MSChatWidget::ChangeUserMode()
+{
+	if (AMPlayingHUD* HUD = Cast<AMPlayingHUD>(OwnerHUD))
+	{
+		HUD->SetModeAndShowMouse(FInputModeGameAndUI(), false);
+	}
 }
 
 FReply MSChatWidget::OnFocusReceived(const FGeometry& MyGeometry, const FFocusEvent& InFocusEvent)

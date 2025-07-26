@@ -67,6 +67,8 @@ public:
 
 	void ShowInformText(FString Text);
 
+	void SetModeAndShowMouse(const FInputModeDataBase& GameMode, bool bShowMouse, UUserWidget* WidgetForFocus = nullptr);
+
 protected:
 	virtual void PostInitializeComponents() override;
 

@@ -130,7 +130,7 @@ void AMPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 		if (AbilitySystemComponent)
 		{
 			FTopLevelAssetPath AbilityEnumAssetPath = FTopLevelAssetPath(FName("/Script/Multiplayer"), FName("EGDAbilityInputID"));
-			AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, FGameplayAbilityInputBinds(FString("Confirm"),
+			AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, FGameplayAbilityInputBinds(FString("Confirm"),
 				FString("Cancel"), AbilityEnumAssetPath, static_cast<int32>(EGDAbilityInputID::Confirm), static_cast<int32>(EGDAbilityInputID::Cancel)));
 		}
 

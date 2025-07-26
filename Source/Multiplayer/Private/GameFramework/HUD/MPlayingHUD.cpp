@@ -18,7 +18,7 @@ void AMPlayingHUD::SetTimeTimerWidget(bool bMain, int Time)
 {
 	if (!IsValid(TimerWidget) && IsValid(TimerStatic))
 	{
-		TimerWidget = CreateWidget<UMTimerWidget>(this->GetOwningPlayerController(), TimerStatic);
+		TimerWidget = CreateWidget<UMTimerWidget>(GetOwningPlayerController(), TimerStatic);
 		TimerWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.0f));
 		TimerWidget->SetAlignmentInViewport(FVector2D(double(0.5), 0));
 	}
@@ -43,7 +43,7 @@ void AMPlayingHUD::SetRemoveOrAddAttributesGroupWidget(bool bAdd)
 {
 	if (!IsValid(AttributesGroupWidget) && IsValid(AttributesGroupStatic))
 	{
-		AttributesGroupWidget = CreateWidget<UMAttributesGroupWidget>(this->GetOwningPlayerController(), AttributesGroupStatic);
+		AttributesGroupWidget = CreateWidget<UMAttributesGroupWidget>(GetOwningPlayerController(), AttributesGroupStatic);
 	}
 
 	if (IsValid(AttributesGroupWidget))
@@ -58,7 +58,7 @@ void AMPlayingHUD::SetRemoveOrAddAttributesGroupWidget(bool bAdd)
 			{
 				if (IsValid(AttributesGroupStatic) && !AttributesGroupWidget->IsInViewport())
 				{
-					AttributesGroupWidget = CreateWidget<UMAttributesGroupWidget>(this->GetOwningPlayerController(), AttributesGroupStatic);
+					AttributesGroupWidget = CreateWidget<UMAttributesGroupWidget>(GetOwningPlayerController(), AttributesGroupStatic);
 					AttributesGroupWidget->AddToViewport();
 				}
 			}
@@ -79,16 +79,8 @@ void AMPlayingHUD::ShowInventory()
 	{
 		if (IsValid(InventoryStatic))
 		{
-			if (!IsValid(InventoryWidget))
-			{
-				InventoryWidget = CreateWidget<UMInventoryWidget>(this->GetOwningPlayerController(), InventoryStatic);
-				InventoryWidget->AddToViewport(-1);
-			}
-			else
-			{
-				InventoryWidget->RemoveFromParent();
-				InventoryWidget = nullptr;
-			}
+			InventoryWidget = CreateWidget<UMInventoryWidget>(GetOwningPlayerController(), InventoryStatic);
+			InventoryWidget->AddToViewport(-1);
 		}
 	}
 	else
@@ -133,23 +125,37 @@ void AMPlayingHUD::OnHUDSet()
 	GetWorld()->GetTimerManager().SetTimer(UpdateSetHUDTimer, this, &AMPlayingHUD::OnHUDSet, 1.0f, false);
 }
 
+void AMPlayingHUD::SetModeAndShowMouse(const FInputModeDataBase& GameMode, bool bShowMouse, UUserWidget* WidgetForFocus)
+{
+	if (IsValid(GetWorld()))
+	{
+		if (IsValid(GetWorld()->GetFirstPlayerController()))
+		{
+			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(bShowMouse);
+			GetWorld()->GetFirstPlayerController()->SetInputMode(GameMode);
+
+			if (IsValid(WidgetForFocus))
+			{
+				WidgetForFocus->SetFocus();
+			}
+			else
+			{
+				FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
+			}
+		}
+	}
+}
+
 void AMPlayingHUD::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
 
 	UpdatePlyerName();
 
-	if (IsValid(GetWorld()))
-	{
-		if (IsValid(GetWorld()->GetFirstPlayerController()))
-		{
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(false);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
-			FSlateApplication::Get().SetUserFocusToGameViewport(0, EFocusCause::SetDirectly);
-		}
-	}
+	SetModeAndShowMouse(FInputModeUIOnly(), false);
 
 	SetRemoveOrAddAttributesGroupWidget(true);
+
 	OnHUDSet();
 }
 
@@ -161,9 +167,7 @@ void AMPlayingHUD::DrawHUD()
 	{
 		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadZero))
 		{
-			GetWorld()->GetFirstPlayerController()->SetShowMouseCursor(true);
-			GetWorld()->GetFirstPlayerController()->SetInputMode(FInputModeUIOnly());
-			ChatWidget->SetFocus();
+			SetModeAndShowMouse(FInputModeUIOnly(), true, ChatWidget);
 		}
 
 		if (GetOwningPlayerController()->WasInputKeyJustPressed(EKeys::NumPadOne))
@@ -196,7 +200,7 @@ void AMPlayingHUD::UpdatePlyerName()
 				{
 					if (!PS->IsUserNameByLogin())
 					{
-						if (UMPlayerInfoSubsystem* PlayerInfoManager = this->GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
+						if (UMPlayerInfoSubsystem* PlayerInfoManager = GetGameInstance()->GetSubsystem<UMPlayerInfoSubsystem>())
 						{
 							PS->UpdateUserNameByLogin(PlayerInfoManager->GetLoginOfUser());
 							return;

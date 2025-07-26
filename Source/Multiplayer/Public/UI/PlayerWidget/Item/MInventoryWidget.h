@@ -33,6 +33,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
 	UScrollBox* ScrollBox;
 
+	UPROPERTY(BlueprintReadWrite, meta = (BindWidget))
+	UTextBlock* InformTextBlock;
+
 	UPROPERTY(EditAnywhere, Category = "Static Widgets")
 	TSubclassOf<UMItemWidget> ItemStaticWidget;
 

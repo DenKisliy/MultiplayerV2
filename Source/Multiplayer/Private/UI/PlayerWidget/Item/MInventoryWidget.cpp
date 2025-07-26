@@ -33,31 +33,39 @@ void UMInventoryWidget::CreateItemsList()
 
 	if (ItemsArray.Num() > 0)
 	{
-		int count = 0;
-		UHorizontalBox* horizontalBox = nullptr;
+		InformTextBlock->SetVisibility(ESlateVisibility::Collapsed);
+		int Count = 0;
+		UHorizontalBox* HorizontalBox = nullptr;
+		ScrollBox->SetAlwaysShowScrollbar(true);
+
 		for (int i = 0; i< ItemsArray.Num(); i++)
 		{
-			if (!horizontalBox)
+			if (!HorizontalBox)
 			{
-				horizontalBox = NewObject<UHorizontalBox>(this, UHorizontalBox::StaticClass());
+				HorizontalBox = NewObject<UHorizontalBox>(this, UHorizontalBox::StaticClass());
 			}
 			
-			UMItemWidget* itemWidget = CreateWidget<UMItemWidget>(GetOwningPlayer(), ItemStaticWidget);
-			itemWidget->SetItemInfo(ItemsArray[i]);
-			horizontalBox->AddChild(itemWidget);
-			count = count + 1;
+			UMItemWidget* ItemWidget = CreateWidget<UMItemWidget>(GetOwningPlayer(), ItemStaticWidget);
+			ItemWidget->SetItemInfo(ItemsArray[i]);
+			HorizontalBox->AddChild(ItemWidget);
+			Count = Count + 1;
 			
-			if (count == CountOfItemInOneRow)
+			if (Count == CountOfItemInOneRow)
 			{
-				ScrollBox->AddChild(horizontalBox);
-				horizontalBox = nullptr;
-				count = 0;
+				ScrollBox->AddChild(HorizontalBox);
+				HorizontalBox = nullptr;
+				Count = 0;
 			}
 
-			if (i == ItemsArray.Num() - 1 && count < CountOfItemInOneRow && count> 0)
+			if (i == ItemsArray.Num() - 1 && Count < CountOfItemInOneRow && Count > 0)
 			{
-				ScrollBox->AddChild(horizontalBox);
+				ScrollBox->AddChild(HorizontalBox);
 			}
 		}
+	}
+	else
+	{
+		InformTextBlock->SetVisibility(ESlateVisibility::Visible);
+		ScrollBox->SetAlwaysShowScrollbar(false);
 	}
 }

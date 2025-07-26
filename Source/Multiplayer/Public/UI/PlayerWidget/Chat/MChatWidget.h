@@ -29,6 +29,8 @@ protected:
 
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 
+	virtual void NativeOnFocusLost(const FFocusEvent& InFocusEvent) override;
+
 private:
 	UFUNCTION()
 	void OnUpdateChat();

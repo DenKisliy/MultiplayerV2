@@ -42,6 +42,11 @@ FReply UMChatWidget::NativeOnFocusReceived(const FGeometry& InGeometry, const FF
 	return Result;
 }
 
+void UMChatWidget::NativeOnFocusLost(const FFocusEvent& InFocusEvent)
+{
+	Super::NativeOnFocusLost(InFocusEvent);
+}
+
 void UMChatWidget::OnUpdateChat()
 {
 	if (ChatWidget.IsValid())
