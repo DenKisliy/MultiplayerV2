@@ -50,7 +50,7 @@ void AMWindBallActor::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActo
 			HitActor->GetAbilitySystemComponent()->ApplyGameplayEffectToSelf(DamageGameplayEffect, 1.0f, HitActor->GetAbilitySystemComponent()->MakeEffectContext());
 		}
 
-		Destroy();
+		DestroyActor();
 	}
 }
 
@@ -69,6 +69,11 @@ void AMWindBallActor::StartMove()
 
 	GetWorld()->GetTimerManager().SetTimer(DestroyTimer, [this]()
 		{
-			Destroy();
+			DestroyActor();
 		}, TimeToDestroy, false);
+}
+
+void AMWindBallActor::DestroyActor_Implementation()
+{
+	Destroy();
 }
