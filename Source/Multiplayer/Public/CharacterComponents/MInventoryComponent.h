@@ -9,7 +9,7 @@
 
 #include "../Items/MItemBase.h"
 #include "../GameFramework/MGameMode.h"
-#include "../GameFramework/MPlayerState.h"
+#include "Net/UnrealNetwork.h"
 
 #include "MInventoryComponent.generated.h"
 
@@ -55,7 +55,7 @@ public:
 	void SetPickUpItem(FItemTypeInfo ItemType, const AActor* ItemActor);
 
 	void AddPickUpItemToInventory();
-
+	
 	bool IsHaveItem(FItemTypeInfo ItemInfo);
 
 private:

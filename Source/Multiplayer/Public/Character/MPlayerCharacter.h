@@ -125,6 +125,12 @@ public:
 
 	FRotator GetSpawnActorRotation() { return SpawnArrowComponent->GetComponentRotation(); }
 
+	UFUNCTION(Client, Reliable)
+	void CheckItemInInventory(const AActor* ResurrectionFlower, const FItemTypeInfo& ItemForResurrectionInfo);
+
+	UFUNCTION(Server, Reliable)
+	void LaunchTimer(const AActor* ResurrectionFlower);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

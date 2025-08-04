@@ -158,6 +158,7 @@ bool UMInventoryComponent::IsHaveItemInInventoryAdd(FItemTypeInfo ItemType)
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -170,5 +171,6 @@ bool UMInventoryComponent::IsHaveItem(FItemTypeInfo ItemInfo)
 			return true;
 		}
 	}
+
 	return false;
 }

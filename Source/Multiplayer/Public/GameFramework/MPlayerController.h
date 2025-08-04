@@ -15,6 +15,9 @@
 #include "MGameInstance.h"
 #include "GameFramework/Character.h"
 #include "../Subsystem/MPlayerInfoSubsystem.h"
+#include "InputActionValue.h"
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
 
 #include "MPlayerController.generated.h"
 
@@ -34,7 +37,20 @@ private:
 	FVector SpawnLocationAfterDeath  = FVector(0);
 
 	FTimerHandle CharacterTypeTimer;
+
 public:
+	/** MappingContext */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext;
+
+	/** Chat Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ChatAction;
+
+	/** Chat Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InventoryAction;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	ETypeOfCharacter TypeOfCharacter = ETypeOfCharacter::None;
 
@@ -91,4 +107,10 @@ private:
 
 protected:
 	virtual void OnPossess(APawn* aPawn) override;
+
+	virtual void SetupInputComponent() override;
+
+	virtual void OnRep_PlayerState() override;
+
+	void InitializeInput();
 };

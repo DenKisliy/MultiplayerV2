@@ -50,5 +50,3 @@ void AMPlayerState::ChangePlayersInputStates_Implementation(const bool bUIMode)
 	}
 }
 
-
-

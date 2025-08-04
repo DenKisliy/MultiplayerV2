@@ -5,6 +5,9 @@
 #include "../../Public/GameFramework/HUD/MPlayingHUD.h"
 #include "../../Public/Subsystem/MPlayerInfoSubsystem.h"
 #include "../../Public/GameFramework/MPlayerState.h"
+#include "../../Public/GameFramework/MPlayerController.h"
+#include "../../Public/AdditionalActor/MResurrectionFlower.h"
+#include "../../Public/GameFramework/GameState/MMultiplayerGameState.h"
 
 // Sets default values
 AMPlayerCharacter::AMPlayerCharacter()
@@ -86,6 +89,32 @@ FString AMPlayerCharacter::GetButtonTextForInformWidget(FString ButtonName)
 	}
 
 	return Result;
+}
+
+void AMPlayerCharacter::CheckItemInInventory_Implementation(const AActor* ResurrectionFlower, const FItemTypeInfo& ItemForResurrectionInfo)
+{
+	if (InventoryComponent->IsHaveItem(ItemForResurrectionInfo))
+	{
+		LaunchTimer(ResurrectionFlower);
+	}
+}
+
+void AMPlayerCharacter::LaunchTimer_Implementation(const AActor* ResurrectionFlower)
+{
+	if (AMMultiplayerGameState* GameState = Cast<AMMultiplayerGameState>(GetWorld()->GetGameState()))
+	{
+		GameState->ResurrectionTimer(true);
+
+		if (GameState->AdditionalTimerDelegate.IsBound())
+		{
+			GameState->AdditionalTimerDelegate.Clear();
+		}
+
+		if (AMResurrectionFlower* Flower = Cast<AMResurrectionFlower>(const_cast<AActor*>(ResurrectionFlower)))
+		{
+			GameState->AdditionalTimerDelegate.BindDynamic(Flower, &AMResurrectionFlower::OnFinishTimer);
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -270,14 +299,8 @@ void AMPlayerCharacter::InitializeInput(AController* NewController)
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 			BindAllDelegates();
-
-			if (IsValid(GetPlayerState()))
-			{
-				UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *GetPlayerState()->GetPlayerName());
-			}
 		}
 	}
-
 }
 
 void AMPlayerCharacter::RotatePlayerNameWidget()

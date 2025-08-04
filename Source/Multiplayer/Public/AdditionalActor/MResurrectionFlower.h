@@ -9,7 +9,6 @@
 #include "Particles/ParticleSystemComponent.h"
 
 #include "../GameFramework/MPlayerController.h"
-#include "../Character/MPlayerCharacter.h"
 
 #include "MResurrectionFlower.generated.h"
 
@@ -32,11 +31,14 @@ public:
 	FItemTypeInfo ItemForResurrectionInfo;
 
 private:
-	AMPlayerCharacter* HealerPlayer = nullptr;
+	FString HealerPlayerName = "";
 
 public:	
 	// Sets default values for this actor's properties
 	AMResurrectionFlower();
+
+	UFUNCTION()
+	void OnFinishTimer(ETypeOfAdditionalTimer TypeOfAdditionalTimer);
 
 protected:
 	virtual void BeginPlay() override;
@@ -47,9 +49,6 @@ private:
 
 	UFUNCTION()
 	void OnUpdatedComponentOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Other, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-	UFUNCTION()
-	void OnFinishTimer(ETypeOfAdditionalTimer TypeOfAdditionalTimer);
 
 	UFUNCTION(Server, Reliable)
 	void IsHaveResurrectionItemInInventory(const FString& PlayerName);

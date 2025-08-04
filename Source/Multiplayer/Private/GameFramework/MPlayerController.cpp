@@ -142,14 +142,38 @@ void AMPlayerController::OnPossess(APawn* aPawn)
 
 	OnSetCharacterType();
 
-	//if (UMGameInstance* gameInstance = Cast<UMGameInstance>(GetGameInstance()))
-	//{
-	//	FPlayerInfoStruct& playerInfo = gameInstance->GetPlayerInfoFromGameInstance();
-	//	if (playerInfo.bCharacterDeath || !SpawnLocationAfterDeath.IsZero())
-	//	{
-	//		aPawn->SetActorLocation(SpawnLocationAfterDeath);
-	//	}
-	//}
+	if (!SpawnLocationAfterDeath.IsZero())
+	{
+		aPawn->SetActorLocation(SpawnLocationAfterDeath);
+	}
+}
+
+void AMPlayerController::SetupInputComponent()
+{
+	Super::SetupInputComponent();
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+	{
+		//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APPlayerController::Move);
+	}
+}
+
+void AMPlayerController::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	InitializeInput();
+}
+
+void AMPlayerController::InitializeInput()
+{
+	if (IsValid(GetLocalPlayer()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
 }
 
 void AMPlayerController::SpawnCharacter_Implementation(ETypeOfCharacter SelectTypeOfCharacter)
@@ -233,4 +257,3 @@ void AMPlayerController::OnUpdateChat_Implementation()
 {
 	UpdateChatWidgetDelegate.ExecuteIfBound();
 }
-
